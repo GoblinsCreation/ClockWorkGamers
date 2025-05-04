@@ -12,6 +12,7 @@ import CoursesPage from "@/pages/courses-page";
 import CalculatorsPage from "@/pages/calculators-page";
 import ContactPage from "@/pages/contact-page";
 import AdminPage from "@/pages/admin-page";
+import NFTMarketplacePage from "@/pages/nft-marketplace-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from "./hooks/use-auth";
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/rentals" component={RentalsPage} />
       <Route path="/courses" component={CoursesPage} />
       <Route path="/calculators" component={CalculatorsPage} />
+      <Route path="/nft-marketplace" component={NFTMarketplacePage} />
       <Route path="/contact" component={ContactPage} />
       <ProtectedRoute path="/admin" component={AdminPage} />
       <Route component={NotFound} />

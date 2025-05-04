@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Menu, LogOut, User, UserCircle, ChevronDown } from "lucide-react";
+import { WalletConnect } from "@/components/web3/WalletConnect";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -25,6 +26,7 @@ export function Navbar() {
     { name: "Streamers", path: "/streamers" },
     { name: "Rentals", path: "/rentals" },
     { name: "Courses", path: "/courses" },
+    { name: "NFT Marketplace", path: "/nft-marketplace" },
     { name: "Calculators", path: "/calculators" },
     { name: "Contact", path: "/contact" }
   ];
@@ -66,12 +68,9 @@ export function Navbar() {
           </div>
           
           <div className="flex items-center">
-            <Button 
-              variant="outline" 
-              className="bg-gradient-to-r from-[hsl(var(--cwg-orange))] to-[hsl(var(--cwg-orange))/80] text-white px-4 py-2 rounded-lg font-orbitron font-medium text-sm btn-hover transition-all duration-300 mr-3"
-            >
-              Connect Wallet
-            </Button>
+            <div className="mr-3 w-40">
+              <WalletConnect />
+            </div>
             
             {user ? (
               <DropdownMenu>
