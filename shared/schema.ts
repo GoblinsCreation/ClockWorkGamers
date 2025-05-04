@@ -32,6 +32,8 @@ export const streamers = pgTable("streamers", {
   currentGame: text("current_game"),
   streamTitle: text("stream_title"),
   viewerCount: integer("viewer_count").default(0).notNull(),
+  bio: text("bio"),
+  mainGames: text("main_games").array(),
 });
 
 export const insertStreamerSchema = createInsertSchema(streamers)
@@ -98,6 +100,22 @@ export const news = pgTable("news", {
 export const insertNewsSchema = createInsertSchema(news)
   .omit({ id: true, publishDate: true });
 
+// Streamer Schedule model
+export const streamerSchedules = pgTable("streamer_schedules", {
+  id: serial("id").primaryKey(),
+  streamerId: integer("streamer_id").notNull(),
+  dayOfWeek: text("day_of_week").notNull(), // Monday, Tuesday, etc.
+  startTime: text("start_time").notNull(), // 24h format e.g. "18:00"
+  endTime: text("end_time").notNull(), // 24h format e.g. "22:00"
+  game: text("game"),
+  title: text("title"),
+  notes: text("notes"),
+  isSpecialEvent: boolean("is_special_event").default(false).notNull(),
+});
+
+export const insertStreamerScheduleSchema = createInsertSchema(streamerSchedules)
+  .omit({ id: true });
+
 // Relations definitions
 export const usersRelations = relations(users, ({ many }) => ({
   streamers: many(streamers),
@@ -106,11 +124,12 @@ export const usersRelations = relations(users, ({ many }) => ({
   coursesInstructed: many(courses, { relationName: "instructor" }),
 }));
 
-export const streamersRelations = relations(streamers, ({ one }) => ({
+export const streamersRelations = relations(streamers, ({ one, many }) => ({
   user: one(users, {
     fields: [streamers.userId],
     references: [users.id],
   }),
+  schedules: many(streamerSchedules),
 }));
 
 export const coursesRelations = relations(courses, ({ one }) => ({
@@ -140,6 +159,13 @@ export const newsRelations = relations(news, ({ one }) => ({
   }),
 }));
 
+export const streamerScheduleRelations = relations(streamerSchedules, ({ one }) => ({
+  streamer: one(streamers, {
+    fields: [streamerSchedules.streamerId],
+    references: [streamers.id],
+  }),
+}));
+
 // Type exports
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -158,3 +184,6 @@ export type RentalRequest = typeof rentalRequests.$inferSelect;
 
 export type InsertNews = z.infer<typeof insertNewsSchema>;
 export type News = typeof news.$inferSelect;
+
+export type InsertStreamerSchedule = z.infer<typeof insertStreamerScheduleSchema>;
+export type StreamerSchedule = typeof streamerSchedules.$inferSelect;

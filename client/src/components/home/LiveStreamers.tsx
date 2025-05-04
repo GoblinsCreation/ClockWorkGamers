@@ -70,13 +70,20 @@ function StreamerCard({ streamer }: { streamer: Streamer }) {
 }
 
 export function LiveStreamers() {
-  const { data: streamers = [], isLoading } = useQuery<Streamer[]>({
+  const { data, isLoading, isError } = useQuery<Streamer[]>({
     queryKey: ["/api/streamers/live"],
     queryFn: async ({ queryKey }) => {
       const res = await fetch(queryKey[0] as string, { credentials: 'include' });
-      return await res.json();
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`);
+      }
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
     },
   });
+  
+  // Ensure streamers is always an array
+  const streamers = Array.isArray(data) ? data : [];
   
   // Display at most 3 live streamers
   const displayStreamers = streamers.slice(0, 3);
@@ -92,7 +99,9 @@ export function LiveStreamers() {
       currentGame: "Boss Fighters",
       streamTitle: "Tournament Finals",
       viewerCount: 1200,
-      profileImageUrl: null
+      profileImageUrl: null,
+      bio: null,
+      mainGames: null
     },
     {
       id: 2,
@@ -103,7 +112,9 @@ export function LiveStreamers() {
       currentGame: "Boss Fighters",
       streamTitle: "Crafting Guide",
       viewerCount: 743,
-      profileImageUrl: null
+      profileImageUrl: null,
+      bio: null,
+      mainGames: null
     },
     {
       id: 3,
@@ -114,11 +125,13 @@ export function LiveStreamers() {
       currentGame: "Boss Fighters",
       streamTitle: "Token Earnings Run",
       viewerCount: 512,
-      profileImageUrl: null
+      profileImageUrl: null,
+      bio: null,
+      mainGames: null
     }
   ];
   
-  const renderStreamers = isLoading || displayStreamers.length === 0 ? placeholders : displayStreamers;
+  const renderStreamers = isLoading || isError || displayStreamers.length === 0 ? placeholders : displayStreamers;
 
   return (
     <section className="py-16 bg-[hsl(var(--cwg-dark))]">

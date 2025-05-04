@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
 import StreamersPage from "@/pages/streamers-page";
+import StreamerProfilePage from "@/pages/streamer-profile-page";
 import RentalsPage from "@/pages/rentals-page";
 import CoursesPage from "@/pages/courses-page";
 import CalculatorsPage from "@/pages/calculators-page";

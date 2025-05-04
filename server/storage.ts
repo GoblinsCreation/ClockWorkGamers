@@ -4,7 +4,8 @@ import {
   courses, type Course, type InsertCourse,
   rentals, type Rental, type InsertRental,
   rentalRequests, type RentalRequest, type InsertRentalRequest,
-  news as newsTable, type News, type InsertNews
+  news as newsTable, type News, type InsertNews,
+  streamerSchedules, type StreamerSchedule, type InsertStreamerSchedule
 } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
@@ -31,6 +32,13 @@ export interface IStorage {
   updateStreamer(id: number, data: Partial<Streamer>): Promise<Streamer | undefined>;
   listStreamers(): Promise<Streamer[]>;
   getLiveStreamers(): Promise<Streamer[]>;
+  
+  // Streamer Schedule operations
+  getStreamerSchedule(id: number): Promise<StreamerSchedule | undefined>;
+  createStreamerSchedule(schedule: InsertStreamerSchedule): Promise<StreamerSchedule>;
+  updateStreamerSchedule(id: number, data: Partial<StreamerSchedule>): Promise<StreamerSchedule | undefined>;
+  deleteStreamerSchedule(id: number): Promise<boolean>;
+  listStreamerSchedulesByStreamerId(streamerId: number): Promise<StreamerSchedule[]>;
   
   // Course operations
   getCourse(id: number): Promise<Course | undefined>;
@@ -135,6 +143,38 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(streamers)
       .where(eq(streamers.isLive, true));
+  }
+  
+  // Streamer Schedule methods
+  async getStreamerSchedule(id: number): Promise<StreamerSchedule | undefined> {
+    const [schedule] = await db.select().from(streamerSchedules).where(eq(streamerSchedules.id, id));
+    return schedule;
+  }
+  
+  async createStreamerSchedule(insertSchedule: InsertStreamerSchedule): Promise<StreamerSchedule> {
+    const [schedule] = await db.insert(streamerSchedules).values(insertSchedule).returning();
+    return schedule;
+  }
+  
+  async updateStreamerSchedule(id: number, data: Partial<StreamerSchedule>): Promise<StreamerSchedule | undefined> {
+    const [schedule] = await db
+      .update(streamerSchedules)
+      .set(data)
+      .where(eq(streamerSchedules.id, id))
+      .returning();
+    return schedule;
+  }
+  
+  async deleteStreamerSchedule(id: number): Promise<boolean> {
+    const deleted = await db.delete(streamerSchedules).where(eq(streamerSchedules.id, id)).returning();
+    return deleted.length > 0;
+  }
+  
+  async listStreamerSchedulesByStreamerId(streamerId: number): Promise<StreamerSchedule[]> {
+    return await db
+      .select()
+      .from(streamerSchedules)
+      .where(eq(streamerSchedules.streamerId, streamerId));
   }
   
   // Course methods

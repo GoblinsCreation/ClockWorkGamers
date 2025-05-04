@@ -1,6 +1,7 @@
 import { Streamer } from "@shared/schema";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye, Calendar, ChevronRight } from "lucide-react";
 
 export function StreamerCard({ streamer }: { streamer: Streamer }) {
   return (
@@ -61,28 +62,47 @@ export function StreamerCard({ streamer }: { streamer: Streamer }) {
           </div>
         </div>
         
-        {streamer.isLive ? (
-          <a 
-            href={`https://twitch.tv/${streamer.twitchId}`} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="mt-4 block w-full bg-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-dark))] font-orbitron py-2 rounded text-center hover:bg-[hsl(var(--cwg-orange))]/90 transition-colors"
+        <div className="mt-4 flex gap-2">
+          {streamer.isLive ? (
+            <a 
+              href={`https://twitch.tv/${streamer.twitchId}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex-1 bg-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-dark))] font-orbitron py-2 rounded text-center hover:bg-[hsl(var(--cwg-orange))]/90 transition-colors"
+            >
+              <div className="flex items-center justify-center">
+                <Eye className="mr-2 h-4 w-4" />
+                Watch Now
+              </div>
+            </a>
+          ) : (
+            <a 
+              href={`https://twitch.tv/${streamer.twitchId}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex-1 bg-[hsl(var(--cwg-muted))]/20 text-[hsl(var(--cwg-muted))] font-orbitron py-2 rounded text-center hover:bg-[hsl(var(--cwg-muted))]/30 transition-colors"
+            >
+              <div className="flex items-center justify-center">
+                <Eye className="mr-2 h-4 w-4" />
+                View Channel
+              </div>
+            </a>
+          )}
+          
+          <Link 
+            href={`/streamers/${streamer.id}`}
+            className="bg-[hsl(var(--cwg-dark-blue))] hover:bg-[hsl(var(--cwg-dark-blue))]/80 text-[hsl(var(--cwg-text))] py-2 px-3 rounded transition-colors"
           >
-            <div className="flex items-center justify-center">
-              <Eye className="mr-2 h-4 w-4" />
-              Watch Now
-            </div>
-          </a>
-        ) : (
-          <a 
-            href={`https://twitch.tv/${streamer.twitchId}`} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="mt-4 block w-full bg-[hsl(var(--cwg-muted))]/20 text-[hsl(var(--cwg-muted))] font-orbitron py-2 rounded text-center hover:bg-[hsl(var(--cwg-muted))]/30 transition-colors"
-          >
-            View Channel
-          </a>
-        )}
+            <Calendar className="h-4 w-4" />
+          </Link>
+        </div>
+        
+        <Link 
+          href={`/streamers/${streamer.id}`}
+          className="mt-2 text-sm text-[hsl(var(--cwg-orange))] flex items-center justify-center hover:underline"
+        >
+          View Profile & Schedule <ChevronRight className="ml-1 h-3 w-3" />
+        </Link>
       </div>
     </div>
   );

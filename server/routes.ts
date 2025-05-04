@@ -44,6 +44,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Streamer Schedule routes
+  app.get("/api/streamers/:id/schedule", async (req, res) => {
+    try {
+      const streamerId = parseInt(req.params.id);
+      const streamer = await storage.getStreamer(streamerId);
+      
+      if (!streamer) {
+        return res.status(404).json({ message: "Streamer not found" });
+      }
+      
+      const schedules = await storage.listStreamerSchedulesByStreamerId(streamerId);
+      res.json(schedules);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch streamer schedule" });
+    }
+  });
+  
+  app.post("/api/streamers/:id/schedule", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const streamerId = parseInt(req.params.id);
+      const streamer = await storage.getStreamer(streamerId);
+      
+      if (!streamer) {
+        return res.status(404).json({ message: "Streamer not found" });
+      }
+      
+      // Check if the authenticated user is the streamer or an admin
+      if (streamer.userId !== req.user!.id && !req.user!.isAdmin) {
+        return res.status(403).json({ message: "You do not have permission to edit this schedule" });
+      }
+      
+      const schedule = await storage.createStreamerSchedule({
+        ...req.body,
+        streamerId
+      });
+      
+      res.status(201).json(schedule);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create streamer schedule" });
+    }
+  });
+  
+  app.patch("/api/streamers/schedule/:id", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const scheduleId = parseInt(req.params.id);
+      const schedule = await storage.getStreamerSchedule(scheduleId);
+      
+      if (!schedule) {
+        return res.status(404).json({ message: "Schedule not found" });
+      }
+      
+      const streamer = await storage.getStreamer(schedule.streamerId);
+      
+      // Check if the authenticated user is the streamer or an admin
+      if (!streamer || (streamer.userId !== req.user!.id && !req.user!.isAdmin)) {
+        return res.status(403).json({ message: "You do not have permission to edit this schedule" });
+      }
+      
+      const updatedSchedule = await storage.updateStreamerSchedule(scheduleId, req.body);
+      res.json(updatedSchedule);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update streamer schedule" });
+    }
+  });
+  
+  app.delete("/api/streamers/schedule/:id", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const scheduleId = parseInt(req.params.id);
+      const schedule = await storage.getStreamerSchedule(scheduleId);
+      
+      if (!schedule) {
+        return res.status(404).json({ message: "Schedule not found" });
+      }
+      
+      const streamer = await storage.getStreamer(schedule.streamerId);
+      
+      // Check if the authenticated user is the streamer or an admin
+      if (!streamer || (streamer.userId !== req.user!.id && !req.user!.isAdmin)) {
+        return res.status(403).json({ message: "You do not have permission to delete this schedule" });
+      }
+      
+      await storage.deleteStreamerSchedule(scheduleId);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete streamer schedule" });
+    }
+  });
+  
   // Courses routes
   app.get("/api/courses", async (req, res) => {
     try {
