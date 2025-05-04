@@ -90,7 +90,7 @@ const SAMPLE_QUESTS = [
     id: "quest1",
     title: "Complete 3 Ranked Matches",
     reward: 50,
-    game: "Crypto Legends",
+    game: "Boss Fighters",
     difficulty: "Easy",
     timeEstimate: "30 mins",
     completed: true
@@ -108,7 +108,7 @@ const SAMPLE_QUESTS = [
     id: "quest3",
     title: "Reach Level 10 in Campaign",
     reward: 100,
-    game: "Galaxy Raiders",
+    game: "Call of Legends",
     difficulty: "Medium",
     timeEstimate: "2 hours", 
     completed: false
@@ -126,7 +126,7 @@ const SAMPLE_QUESTS = [
     id: "quest5",
     title: "Stream for 2 Hours",
     reward: 250,
-    game: "Any Game",
+    game: "Spellcraft",
     difficulty: "Hard",
     timeEstimate: "2 hours",
     completed: false

@@ -27,9 +27,11 @@ function Router() {
       <Route path="/streamers" component={StreamersPage} />
       <Route path="/rentals" component={RentalsPage} />
       <Route path="/courses" component={CoursesPage} />
-      <Route path="/calculators" component={CalculatorsPage} />
+      <Route path="/play-to-earn" component={HomePage} /> {/* Placeholder until page is created */}
+      <Route path="/pay-to-earn" component={HomePage} /> {/* Placeholder until page is created */}
       <Route path="/nft-marketplace" component={NFTMarketplacePage} />
       <Route path="/token-dashboard" component={TokenDashboardPage} />
+      <Route path="/calculators" component={CalculatorsPage} />
       <Route path="/contact" component={ContactPage} />
       <ProtectedRoute path="/admin" component={AdminPage} />
       <Route component={NotFound} />
