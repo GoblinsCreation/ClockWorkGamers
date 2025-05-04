@@ -1,6 +1,7 @@
-import { pgTable, text, serial, integer, boolean, json, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 // User model
 export const users = pgTable("users", {
@@ -96,6 +97,48 @@ export const news = pgTable("news", {
 
 export const insertNewsSchema = createInsertSchema(news)
   .omit({ id: true, publishDate: true });
+
+// Relations definitions
+export const usersRelations = relations(users, ({ many }) => ({
+  streamers: many(streamers),
+  rentalRequests: many(rentalRequests),
+  newsAuthored: many(news, { relationName: "author" }),
+  coursesInstructed: many(courses, { relationName: "instructor" }),
+}));
+
+export const streamersRelations = relations(streamers, ({ one }) => ({
+  user: one(users, {
+    fields: [streamers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const coursesRelations = relations(courses, ({ one }) => ({
+  instructor: one(users, {
+    fields: [courses.instructorId],
+    references: [users.id],
+    relationName: "instructor",
+  }),
+}));
+
+export const rentalRequestsRelations = relations(rentalRequests, ({ one }) => ({
+  user: one(users, {
+    fields: [rentalRequests.userId],
+    references: [users.id],
+  }),
+  rental: one(rentals, {
+    fields: [rentalRequests.rentalId],
+    references: [rentals.id],
+  }),
+}));
+
+export const newsRelations = relations(news, ({ one }) => ({
+  author: one(users, {
+    fields: [news.authorId],
+    references: [users.id],
+    relationName: "author",
+  }),
+}));
 
 // Type exports
 export type InsertUser = z.infer<typeof insertUserSchema>;
