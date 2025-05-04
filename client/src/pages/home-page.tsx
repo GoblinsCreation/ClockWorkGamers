@@ -26,6 +26,10 @@ export default function HomePage() {
   
   const { data: isAuthenticated } = useQuery<{ isAuthenticated: boolean }>({
     queryKey: ['/api/check-auth'],
+    queryFn: async ({ queryKey }) => {
+      const res = await fetch(queryKey[0] as string, { credentials: 'include' });
+      return await res.json();
+    },
   });
   
   const closeRegistrationModal = () => {

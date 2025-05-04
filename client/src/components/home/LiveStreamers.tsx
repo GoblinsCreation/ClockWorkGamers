@@ -72,6 +72,10 @@ function StreamerCard({ streamer }: { streamer: Streamer }) {
 export function LiveStreamers() {
   const { data: streamers = [], isLoading } = useQuery<Streamer[]>({
     queryKey: ["/api/streamers/live"],
+    queryFn: async ({ queryKey }) => {
+      const res = await fetch(queryKey[0] as string, { credentials: 'include' });
+      return await res.json();
+    },
   });
   
   // Display at most 3 live streamers

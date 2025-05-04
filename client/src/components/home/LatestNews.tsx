@@ -49,6 +49,10 @@ function NewsCard({ news }: { news: News }) {
 export function LatestNews() {
   const { data: newsItems = [], isLoading } = useQuery<News[]>({
     queryKey: ["/api/news?limit=3"],
+    queryFn: async ({ queryKey }) => {
+      const res = await fetch(queryKey[0] as string, { credentials: 'include' });
+      return await res.json();
+    },
   });
   
   // Display at most 3 news items
