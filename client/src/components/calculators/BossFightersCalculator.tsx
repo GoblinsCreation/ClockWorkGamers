@@ -565,12 +565,12 @@ export default function BossFightersCalculator() {
                       <div className="pt-3">
                         <h4 className="text-[hsl(var(--cwg-text))] font-orbitron text-sm mb-2">Required Badges by Rarity</h4>
                         <div className="grid grid-cols-2 gap-2">
-                          {Object.entries(craftingResults.requiredBadges)
+                          {craftingResults && craftingResults.requiredBadges && Object.entries(craftingResults.requiredBadges)
                             .filter(([_, count]) => (count as number) > 0)
                             .map(([rarity, count]) => (
                               <div key={rarity} className="flex justify-between">
                                 <span className="text-[hsl(var(--cwg-muted))]">{rarity}:</span>
-                                <span className="text-[hsl(var(--cwg-text))]">{count}</span>
+                                <span className="text-[hsl(var(--cwg-text))]">{String(count)}</span>
                               </div>
                             ))
                           }
