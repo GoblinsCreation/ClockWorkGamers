@@ -22,9 +22,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/streamers/live", async (req, res) => {
     try {
-      const liveStreamers = await storage.getLiveStreamers();
-      res.json(liveStreamers);
+      // Wrap in try-catch to handle any errors in getLiveStreamers
+      try {
+        const liveStreamers = await storage.getLiveStreamers();
+        res.json(liveStreamers || []);
+      } catch (storageError) {
+        console.error("Error fetching live streamers:", storageError);
+        // Return empty array as fallback
+        res.json([]);
+      }
     } catch (error) {
+      console.error("Error in /api/streamers/live route:", error);
       res.status(500).json({ message: "Failed to fetch live streamers" });
     }
   });

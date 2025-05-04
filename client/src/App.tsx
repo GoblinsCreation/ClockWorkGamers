@@ -30,6 +30,7 @@ function Router() {
       <Route path="/" component={HomePage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/streamers" component={StreamersPage} />
+      <Route path="/streamers/:id" component={StreamerProfilePage} />
       <Route path="/rentals" component={RentalsPage} />
       <Route path="/courses" component={CoursesPage} />
       <Route path="/games" component={GamesPage} />

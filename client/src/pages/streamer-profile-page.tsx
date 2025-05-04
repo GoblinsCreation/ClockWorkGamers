@@ -5,7 +5,7 @@ import { Streamer } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import StreamerSchedule from "@/components/streamers/StreamerSchedule";
+import StreamerScheduleView from "@/components/streamers/StreamerScheduleView";
 import { 
   Tabs, 
   TabsList, 
@@ -35,7 +35,7 @@ export default function StreamerProfilePage() {
   const { id } = useParams();
   const [, navigate] = useLocation();
   const { user } = useAuth();
-  const streamerId = parseInt(id);
+  const streamerId = id ? parseInt(id) : 0; // Default to 0 if ID is missing
   const [activeTab, setActiveTab] = useState("schedule");
   
   const { data: streamer, isLoading, error } = useQuery<Streamer>({
@@ -200,7 +200,7 @@ export default function StreamerProfilePage() {
               </TabsList>
               
               <TabsContent value="schedule" className="space-y-4">
-                <StreamerSchedule streamer={streamer} />
+                <StreamerScheduleView streamer={streamer} />
               </TabsContent>
               
               <TabsContent value="streams" className="space-y-4">
