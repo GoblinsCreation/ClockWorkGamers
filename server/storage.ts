@@ -135,14 +135,46 @@ export class DatabaseStorage implements IStorage {
   }
   
   async listStreamers(): Promise<Streamer[]> {
-    return await db.select().from(streamers);
+    try {
+      return await db
+        .select({
+          id: streamers.id,
+          userId: streamers.userId,
+          displayName: streamers.displayName,
+          twitchId: streamers.twitchId,
+          profileImageUrl: streamers.profileImageUrl,
+          isLive: streamers.isLive,
+          currentGame: streamers.currentGame,
+          streamTitle: streamers.streamTitle,
+          viewerCount: streamers.viewerCount
+        })
+        .from(streamers);
+    } catch (error) {
+      console.error("Error fetching streamers:", error);
+      return [];
+    }
   }
   
   async getLiveStreamers(): Promise<Streamer[]> {
-    return await db
-      .select()
-      .from(streamers)
-      .where(eq(streamers.isLive, true));
+    try {
+      return await db
+        .select({
+          id: streamers.id,
+          userId: streamers.userId,
+          displayName: streamers.displayName,
+          twitchId: streamers.twitchId,
+          profileImageUrl: streamers.profileImageUrl,
+          isLive: streamers.isLive,
+          currentGame: streamers.currentGame,
+          streamTitle: streamers.streamTitle,
+          viewerCount: streamers.viewerCount
+        })
+        .from(streamers)
+        .where(eq(streamers.isLive, true));
+    } catch (error) {
+      console.error("Error fetching live streamers:", error);
+      return [];
+    }
   }
   
   // Streamer Schedule methods

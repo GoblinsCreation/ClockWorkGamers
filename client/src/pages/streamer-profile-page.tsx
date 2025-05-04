@@ -143,29 +143,20 @@ export default function StreamerProfilePage() {
                     <ExternalLink className="ml-1 h-3 w-3" />
                   </a>
                   
-                  {streamer.mainGames && streamer.mainGames.length > 0 && (
+                  {streamer.currentGame && (
                     <div className="flex items-center flex-wrap">
                       <GamepadIcon className="mr-1 h-4 w-4 text-[hsl(var(--cwg-muted))]" />
                       <div className="flex flex-wrap gap-1">
-                        {streamer.mainGames.map((game, index) => (
-                          <Badge 
-                            key={index} 
-                            variant="outline"
-                            className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))]"
-                          >
-                            {game}
-                          </Badge>
-                        ))}
+                        <Badge 
+                          variant="outline"
+                          className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))]"
+                        >
+                          {streamer.currentGame}
+                        </Badge>
                       </div>
                     </div>
                   )}
                 </div>
-                
-                {streamer.bio && (
-                  <p className="mt-4 text-[hsl(var(--cwg-text))] max-w-3xl">
-                    {streamer.bio}
-                  </p>
-                )}
               </div>
             </div>
           </div>

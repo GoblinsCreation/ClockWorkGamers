@@ -32,8 +32,6 @@ export const streamers = pgTable("streamers", {
   currentGame: text("current_game"),
   streamTitle: text("stream_title"),
   viewerCount: integer("viewer_count").default(0).notNull(),
-  bio: text("bio"),
-  mainGames: text("main_games").array(),
 });
 
 export const insertStreamerSchema = createInsertSchema(streamers)

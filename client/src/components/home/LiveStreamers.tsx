@@ -99,9 +99,7 @@ export function LiveStreamers() {
       currentGame: "Boss Fighters",
       streamTitle: "Tournament Finals",
       viewerCount: 1200,
-      profileImageUrl: null,
-      bio: null,
-      mainGames: null
+      profileImageUrl: null
     },
     {
       id: 2,
@@ -112,9 +110,7 @@ export function LiveStreamers() {
       currentGame: "Boss Fighters",
       streamTitle: "Crafting Guide",
       viewerCount: 743,
-      profileImageUrl: null,
-      bio: null,
-      mainGames: null
+      profileImageUrl: null
     },
     {
       id: 3,
@@ -125,9 +121,7 @@ export function LiveStreamers() {
       currentGame: "Boss Fighters",
       streamTitle: "Token Earnings Run",
       viewerCount: 512,
-      profileImageUrl: null,
-      bio: null,
-      mainGames: null
+      profileImageUrl: null
     }
   ];
   
