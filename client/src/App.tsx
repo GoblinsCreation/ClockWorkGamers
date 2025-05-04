@@ -17,6 +17,7 @@ import NFTMarketplacePage from "@/pages/nft-marketplace-page";
 import TokenDashboardPage from "@/pages/token-dashboard-page";
 import PlayToEarnPage from "@/pages/play-to-earn-page";
 import PayToEarnPage from "@/pages/pay-to-earn-page";
+import PaymentPage from "@/pages/payment-page";
 import GamesPage from "@/pages/games-page";
 import InvestmentsPage from "@/pages/investments-page";
 import { ProtectedRoute } from "./lib/protected-route";
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/investments" component={InvestmentsPage} />
       <Route path="/play-to-earn" component={PlayToEarnPage} />
       <Route path="/pay-to-earn" component={PayToEarnPage} />
+      <Route path="/payment" component={PaymentPage} />
       <Route path="/nft-marketplace" component={NFTMarketplacePage} />
       <Route path="/token-dashboard" component={TokenDashboardPage} />
       <Route path="/calculators" component={CalculatorsPage} />

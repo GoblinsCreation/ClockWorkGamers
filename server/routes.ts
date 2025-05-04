@@ -1,8 +1,10 @@
-import type { Express } from "express";
+import express, { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { z } from "zod";
+import { createPaymentIntent, createSubscription, handleWebhook } from "./stripe";
+import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
@@ -276,6 +278,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(newsItem);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch news item" });
+    }
+  });
+  
+  // Payment routes
+  
+  // Stripe payment routes
+  app.post("/api/create-payment-intent", async (req, res) => {
+    try {
+      await createPaymentIntent(req, res);
+    } catch (error) {
+      console.error("Error in create-payment-intent:", error);
+      res.status(500).json({ error: "Failed to create payment intent" });
+    }
+  });
+  
+  app.post("/api/create-subscription", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      await createSubscription(req, res);
+    } catch (error) {
+      console.error("Error in create-subscription:", error);
+      res.status(500).json({ error: "Failed to create subscription" });
+    }
+  });
+  
+  // Special route for Stripe webhooks - needs raw body, not JSON parsed
+  app.post("/api/webhooks/stripe", express.raw({ type: "application/json" }), async (req, res) => {
+    try {
+      await handleWebhook(req, res);
+    } catch (error) {
+      console.error("Error in Stripe webhook:", error);
+      res.status(500).json({ error: "Failed to process webhook" });
+    }
+  });
+  
+  // PayPal payment routes
+  app.get("/api/paypal/setup", async (req, res) => {
+    try {
+      await loadPaypalDefault(req, res);
+    } catch (error) {
+      console.error("Error in PayPal setup:", error);
+      res.status(500).json({ error: "Failed to set up PayPal" });
+    }
+  });
+  
+  app.post("/api/paypal/order", async (req, res) => {
+    try {
+      await createPaypalOrder(req, res);
+    } catch (error) {
+      console.error("Error in create PayPal order:", error);
+      res.status(500).json({ error: "Failed to create PayPal order" });
+    }
+  });
+  
+  app.post("/api/paypal/order/:orderID/capture", async (req, res) => {
+    try {
+      await capturePaypalOrder(req, res);
+    } catch (error) {
+      console.error("Error in capture PayPal order:", error);
+      res.status(500).json({ error: "Failed to capture PayPal order" });
     }
   });
   

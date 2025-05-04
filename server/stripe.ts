@@ -9,7 +9,7 @@ let stripe: Stripe | null = null;
 
 if (STRIPE_SECRET_KEY) {
   stripe = new Stripe(STRIPE_SECRET_KEY, {
-    apiVersion: "2023-10-16",
+    apiVersion: '2023-10-16' as any,
   });
 } else {
   console.warn("Missing STRIPE_SECRET_KEY - Stripe payments will be unavailable");
