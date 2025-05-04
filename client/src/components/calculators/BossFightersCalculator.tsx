@@ -66,7 +66,7 @@ export default function BossFightersCalculator() {
   // Earnings Calculator State
   const [bfTokensEarned, setBfTokensEarned] = useState<number>(1000);
   const [minutesPlayed, setMinutesPlayed] = useState<number>(60);
-  const [badgeRarity, setBadgeRarity] = useState<Rarity>("Epic");
+  const [badgeRarities, setBadgeRarities] = useState<Rarity[]>(["Epic", "Epic", "Epic", "Epic", "Epic"]);
   const [badgeCount, setBadgeCount] = useState<number>(1);
   const [earningsResults, setEarningsResults] = useState<any | null>(null);
   
@@ -87,11 +87,29 @@ export default function BossFightersCalculator() {
     // Calculate USD value
     const usdPerHour = tokensPerHour * MARKET_PRICES.bfToken;
     
-    // Calculate recharge costs for the badge(s)
+    // Calculate recharge costs for the badge(s) using the active badges based on badgeCount
+    let totalFlex = 0;
+    let totalSponsor = 0;
+    let avgDuration = 0;
+    
+    // Use only the number of badges specified by badgeCount
+    const activeBadges = badgeRarities.slice(0, badgeCount);
+    
+    // Calculate costs for each active badge
+    for (let i = 0; i < activeBadges.length; i++) {
+      const rarity = activeBadges[i];
+      totalFlex += BADGE_RECHARGE_COSTS[rarity].flex;
+      totalSponsor += BADGE_RECHARGE_COSTS[rarity].sponsor;
+      avgDuration += BADGE_RECHARGE_COSTS[rarity].rechargeDuration;
+    }
+    
+    // Get average duration for multiple badges
+    avgDuration = avgDuration / activeBadges.length;
+    
     const rechargeCost = {
-      flex: BADGE_RECHARGE_COSTS[badgeRarity].flex * badgeCount,
-      sponsor: BADGE_RECHARGE_COSTS[badgeRarity].sponsor * badgeCount,
-      duration: BADGE_RECHARGE_COSTS[badgeRarity].rechargeDuration
+      flex: totalFlex,
+      sponsor: totalSponsor,
+      duration: avgDuration
     };
     
     // Calculate recharge cost in USD
@@ -105,11 +123,11 @@ export default function BossFightersCalculator() {
     // Calculate hourly profit
     const hourlyProfit = profitPerRecharge / rechargeCost.duration;
     
-    // Calculate daily profit (assuming 8 hours of play)
-    const dailyProfit = hourlyProfit * 8;
+    // Calculate weekly profit (assuming 3 hours of play per day)
+    const weeklyProfit = hourlyProfit * 3 * 7;
     
-    // Calculate monthly profit (assuming 30 days)
-    const monthlyProfit = dailyProfit * 30;
+    // Calculate monthly profit (assuming 3 hours per day, 30 days)
+    const monthlyProfit = hourlyProfit * 3 * 30;
     
     // Calculate return on investment (ROI)
     const roi = (profitPerRecharge / rechargeCostUsd) * 100;
@@ -122,7 +140,7 @@ export default function BossFightersCalculator() {
       rechargeCostUsd,
       profitPerRecharge,
       hourlyProfit,
-      dailyProfit,
+      weeklyProfit,
       monthlyProfit,
       roi
     });
@@ -288,25 +306,38 @@ export default function BossFightersCalculator() {
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <Label className="text-[hsl(var(--cwg-muted))]">Badge Rarity</Label>
-                <Select 
-                  value={badgeRarity} 
-                  onValueChange={(value) => setBadgeRarity(value as Rarity)}
-                >
-                  <SelectTrigger className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]">
-                    <SelectValue placeholder="Select badge rarity" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]">
-                    <SelectItem value="Common">Common</SelectItem>
-                    <SelectItem value="Uncommon">Uncommon</SelectItem>
-                    <SelectItem value="Rare">Rare</SelectItem>
-                    <SelectItem value="Epic">Epic</SelectItem>
-                    <SelectItem value="Legendary">Legendary</SelectItem>
-                    <SelectItem value="Mythic">Mythic</SelectItem>
-                    <SelectItem value="Exalted">Exalted</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* Badge Rarities - one selector per possible badge */}
+              <div className="space-y-4">
+                <Label className="text-[hsl(var(--cwg-muted))] font-semibold">Badge Rarities</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {[0, 1, 2, 3, 4].map((index) => (
+                    <div key={index} className={`space-y-1 ${index >= badgeCount ? 'opacity-50' : ''}`}>
+                      <Label className="text-xs text-[hsl(var(--cwg-muted))]">Badge {index + 1}</Label>
+                      <Select 
+                        value={badgeRarities[index]} 
+                        onValueChange={(value) => {
+                          const newRarities = [...badgeRarities];
+                          newRarities[index] = value as Rarity;
+                          setBadgeRarities(newRarities);
+                        }}
+                        disabled={index >= badgeCount}
+                      >
+                        <SelectTrigger className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))] h-8 text-sm">
+                          <SelectValue placeholder="Select rarity" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]">
+                          <SelectItem value="Common">Common</SelectItem>
+                          <SelectItem value="Uncommon">Uncommon</SelectItem>
+                          <SelectItem value="Rare">Rare</SelectItem>
+                          <SelectItem value="Epic">Epic</SelectItem>
+                          <SelectItem value="Legendary">Legendary</SelectItem>
+                          <SelectItem value="Mythic">Mythic</SelectItem>
+                          <SelectItem value="Exalted">Exalted</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ))}
+                </div>
               </div>
               
               <div className="space-y-2">
@@ -368,7 +399,14 @@ export default function BossFightersCalculator() {
                   </div>
                   
                   <div className="flex justify-between">
-                    <span className="text-[hsl(var(--cwg-muted))]">Monthly profit (8h/day):</span>
+                    <span className="text-[hsl(var(--cwg-muted))]">Weekly profit (3h/day):</span>
+                    <span className={earningsResults.weeklyProfit >= 0 ? "text-green-400" : "text-red-400"}>
+                      ${earningsResults.weeklyProfit.toFixed(2)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-[hsl(var(--cwg-muted))]">Monthly profit (3h/day):</span>
                     <span className={earningsResults.monthlyProfit >= 0 ? "text-green-400" : "text-red-400"}>
                       ${earningsResults.monthlyProfit.toFixed(2)}
                     </span>

@@ -107,11 +107,7 @@ export function Footer() {
                   WorldShards
                 </a>
               </li>
-              <li>
-                <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                  Moon Frost
-                </a>
-              </li>
+
               <li>
                 <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
                   Off The Grid

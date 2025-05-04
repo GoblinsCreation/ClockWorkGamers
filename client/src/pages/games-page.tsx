@@ -51,14 +51,7 @@ export default function GamesPage() {
       investment: "Starting at 0.5 SOL",
       roi: "12-25% monthly"
     },
-    {
-      name: "Moon Frost",
-      description: "Sci-fi exploration game with investment opportunities in ships and equipment.",
-      imageUrl: "/assets/games/moonfrost.jpg",
-      link: "https://moonfrost.game",
-      investment: "0.8-3 SOL",
-      roi: "15-30% monthly"
-    },
+
     {
       name: "Off The Grid",
       description: "Cyberpunk metaverse with player-owned businesses and property investment.",
