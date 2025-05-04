@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Lock } from "lucide-react";
 
 export default function CalculatorsPage() {
-  const [selectedGame, setSelectedGame] = useState("boss-fighters");
+  const [selectedGame, setSelectedGame] = useState("boss-fighters"); // Updated games list with Boss Fighters, KoKodi, Nyan Heroes
   const { user } = useAuth();
   
   // Check if the user is a CWG member to access calculators
@@ -45,11 +45,11 @@ export default function CalculatorsPage() {
                 <div className="flex justify-between items-center mb-6">
                   <TabsList>
                     <TabsTrigger value="boss-fighters" className="font-orbitron">Boss Fighters</TabsTrigger>
-                    <TabsTrigger value="galaxy-raiders" className="font-orbitron" disabled>
-                      Galaxy Raiders <span className="ml-1 text-xs">(Soon)</span>
+                    <TabsTrigger value="kokodi" className="font-orbitron" disabled>
+                      KoKodi <span className="ml-1 text-xs">(Soon)</span>
                     </TabsTrigger>
-                    <TabsTrigger value="crypto-legends" className="font-orbitron" disabled>
-                      Crypto Legends <span className="ml-1 text-xs">(Soon)</span>
+                    <TabsTrigger value="nyan-heroes" className="font-orbitron" disabled>
+                      Nyan Heroes <span className="ml-1 text-xs">(Soon)</span>
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -90,24 +90,24 @@ export default function CalculatorsPage() {
                   )}
                 </TabsContent>
                 
-                <TabsContent value="galaxy-raiders">
+                <TabsContent value="kokodi">
                   <div className="card-gradient rounded-xl p-8 border border-[hsl(var(--cwg-blue))]/20 text-center">
                     <h3 className="text-2xl font-orbitron font-semibold text-[hsl(var(--cwg-text))] mb-3">
                       Coming Soon
                     </h3>
                     <p className="text-[hsl(var(--cwg-muted))] max-w-lg mx-auto">
-                      Our Galaxy Raiders calculators are currently in development. Check back soon for tools to optimize your gameplay and earnings.
+                      Our KoKodi calculators are currently in development. Check back soon for tools to optimize your gameplay and earnings.
                     </p>
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="crypto-legends">
+                <TabsContent value="nyan-heroes">
                   <div className="card-gradient rounded-xl p-8 border border-[hsl(var(--cwg-blue))]/20 text-center">
                     <h3 className="text-2xl font-orbitron font-semibold text-[hsl(var(--cwg-text))] mb-3">
                       Coming Soon
                     </h3>
                     <p className="text-[hsl(var(--cwg-muted))] max-w-lg mx-auto">
-                      Our Crypto Legends calculators are currently in development. Check back soon for tools to optimize your gameplay and earnings.
+                      Our Nyan Heroes calculators are currently in development. Check back soon for tools to optimize your gameplay and earnings.
                     </p>
                   </div>
                 </TabsContent>

@@ -44,36 +44,36 @@ export default function GamesPage() {
   // List of pay-to-earn games
   const payToEarnGames = [
     {
-      name: "Crypto Legends",
-      description: "Purchase heroes and earn through PvP battles and quests with exponential rewards.",
-      imageUrl: "/assets/games/crypto-legends.jpg",
-      link: "https://cryptolegends.io",
-      investment: "Starting at 0.1 ETH",
+      name: "WorldShards",
+      description: "Own and develop virtual land plots that generate resources and yield.",
+      imageUrl: "/assets/games/worldshards.jpg",
+      link: "https://worldshards.io",
+      investment: "Starting at 0.5 SOL",
+      roi: "12-25% monthly"
+    },
+    {
+      name: "Moon Frost",
+      description: "Sci-fi exploration game with investment opportunities in ships and equipment.",
+      imageUrl: "/assets/games/moonfrost.jpg",
+      link: "https://moonfrost.game",
+      investment: "0.8-3 SOL",
       roi: "15-30% monthly"
     },
     {
-      name: "NFT Worlds",
-      description: "Own land in the metaverse and earn passive income through events and rentals.",
-      imageUrl: "/assets/games/nft-worlds.jpg",
-      link: "https://nftworlds.com",
-      investment: "0.5-2 ETH",
-      roi: "10-25% monthly"
+      name: "Off The Grid",
+      description: "Cyberpunk metaverse with player-owned businesses and property investment.",
+      imageUrl: "/assets/games/offthegrid.jpg",
+      link: "https://otg.game",
+      investment: "1-5 SOL",
+      roi: "20-35% monthly"
     },
     {
-      name: "Yield Hunters",
-      description: "Purchase NFT characters and equipment to earn through resource gathering.",
-      imageUrl: "/assets/games/yield-hunters.jpg",
-      link: "https://yieldhunters.finance",
-      investment: "0.2-0.8 ETH",
-      roi: "20-40% monthly"
-    },
-    {
-      name: "Crypto Racing League",
-      description: "Purchase NFT vehicles and compete in races with substantial prize pools.",
-      imageUrl: "/assets/games/crypto-racing.jpg",
-      link: "https://cryptoracing.io",
-      investment: "0.3-1 ETH",
-      roi: "15-35% monthly"
+      name: "RavenQuest",
+      description: "Fantasy RPG where players can invest in assets that generate passive income.",
+      imageUrl: "/assets/games/ravenquest.jpg",
+      link: "https://ravenquest.io",
+      investment: "0.3-2 SOL",
+      roi: "10-28% monthly"
     }
   ];
 

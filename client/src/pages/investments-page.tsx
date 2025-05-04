@@ -27,19 +27,6 @@ export default function InvestmentsPage() {
       badge: "Popular"
     },
     {
-      id: "tournaments",
-      title: "Tournament Fund",
-      description: "Back our esports tournaments and events. Investors receive a percentage of entry fees, sponsorships, and media rights.",
-      icon: <Trophy className="h-6 w-6 text-[hsl(var(--cwg-orange))]" />,
-      minInvestment: "1 SOL",
-      currentRaise: 85,
-      targetRaise: 150,
-      unit: "SOL",
-      returnEstimate: "15-25% annually",
-      timeframe: "Monthly distributions",
-      badge: "High Yield"
-    },
-    {
       id: "nft-staking",
       title: "NFT Staking Pool",
       description: "Provide liquidity for our NFT staking platform. Earn fees from users staking their gaming NFTs for yield.",
