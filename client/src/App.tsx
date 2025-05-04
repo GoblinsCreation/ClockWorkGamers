@@ -15,6 +15,7 @@ import AdminPage from "@/pages/admin-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from "./hooks/use-auth";
+import { Web3Provider } from "./hooks/use-web3";
 
 function Router() {
   return (
@@ -36,12 +37,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
-        </ThemeProvider>
+        <Web3Provider>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </ThemeProvider>
+        </Web3Provider>
       </AuthProvider>
     </QueryClientProvider>
   );

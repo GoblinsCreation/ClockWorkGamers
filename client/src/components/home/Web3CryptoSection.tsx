@@ -1,6 +1,7 @@
 import { Wallet, Gamepad, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { WalletConnect } from "@/components/web3/WalletConnect";
 
 export function Web3CryptoSection() {
   return (
@@ -45,9 +46,9 @@ export function Web3CryptoSection() {
                 <span className="text-[hsl(var(--cwg-muted))]">Trade items with other players</span>
               </li>
             </ul>
-            <Button className="mt-8 px-6 py-3 bg-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-dark))] rounded-lg font-orbitron btn-hover transition-all duration-300">
-              Connect Wallet
-            </Button>
+            <div className="mt-8">
+              <WalletConnect />
+            </div>
           </div>
           
           {/* Play-to-Earn Games Card */}

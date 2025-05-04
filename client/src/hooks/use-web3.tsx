@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { ethers } from 'ethers';
+import { Web3Provider as EthersWeb3Provider } from '@ethersproject/providers';
+import { formatEther } from '@ethersproject/units';
 import { useToast } from './use-toast';
 
 type Web3ContextType = {
   account: string | null;
   chainId: number | null;
   provider: any | null;
-  signer: ethers.Signer | null;
+  signer: any | null;
   balance: string;
   connecting: boolean;
   connected: boolean;
@@ -19,8 +20,8 @@ const Web3Context = createContext<Web3ContextType | null>(null);
 export function Web3Provider({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<string | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
-  const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
-  const [signer, setSigner] = useState<ethers.Signer | null>(null);
+  const [provider, setProvider] = useState<any | null>(null);
+  const [signer, setSigner] = useState<any | null>(null);
   const [balance, setBalance] = useState<string>('0');
   const [connecting, setConnecting] = useState<boolean>(false);
   const [connected, setConnected] = useState<boolean>(false);
@@ -40,7 +41,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
       setConnecting(true);
       // Request account access
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const ethProvider = new ethers.providers.Web3Provider(window.ethereum);
+      const ethProvider = new EthersWeb3Provider(window.ethereum);
       const ethSigner = ethProvider.getSigner();
       const network = await ethProvider.getNetwork();
       const ethBalance = await ethProvider.getBalance(accounts[0]);
@@ -49,7 +50,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
       setChainId(network.chainId);
       setProvider(ethProvider);
       setSigner(ethSigner);
-      setBalance(ethers.utils.formatEther(ethBalance));
+      setBalance(formatEther(ethBalance));
       setConnected(true);
       
       toast({
@@ -91,8 +92,8 @@ export function Web3Provider({ children }: { children: ReactNode }) {
           setAccount(accounts[0]);
           // Update balance for new account
           if (provider) {
-            provider.getBalance(accounts[0]).then(balance => {
-              setBalance(ethers.utils.formatEther(balance));
+            provider.getBalance(accounts[0]).then((newBalance: any) => {
+              setBalance(formatEther(newBalance));
             });
           }
         }
