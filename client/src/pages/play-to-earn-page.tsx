@@ -3,7 +3,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
-import { GameController, Trophy, Users, ChevronRight } from 'lucide-react';
+import { Gamepad2, Trophy, Users, ChevronRight } from 'lucide-react';
 
 export default function PlayToEarnPage() {
   // List of games from your document
@@ -55,7 +55,7 @@ export default function PlayToEarnPage() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Button className="bg-[hsl(var(--cwg-orange))] text-white font-orbitron">
-                <GameController className="mr-2 h-5 w-5" /> Browse Games
+                <Gamepad2 className="mr-2 h-5 w-5" /> Browse Games
               </Button>
               <Button variant="outline" className="border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))] font-orbitron">
                 <Trophy className="mr-2 h-5 w-5" /> View Tournaments
@@ -78,7 +78,7 @@ export default function PlayToEarnPage() {
               <div key={index} className="bg-[hsl(var(--cwg-dark-blue))]/30 border border-[hsl(var(--cwg-dark-blue))] rounded-lg overflow-hidden">
                 <div className="h-48 bg-[hsl(var(--cwg-dark-blue))] flex items-center justify-center">
                   {/* Placeholder for game image */}
-                  <GameController className="h-16 w-16 text-[hsl(var(--cwg-blue))]/50" />
+                  <Gamepad2 className="h-16 w-16 text-[hsl(var(--cwg-blue))]/50" />
                 </div>
                 <div className="p-5">
                   <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-text))] mb-2">{game.name}</h3>
@@ -110,7 +110,7 @@ export default function PlayToEarnPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="bg-[hsl(var(--cwg-dark))] p-6 rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
                 <div className="w-12 h-12 bg-[hsl(var(--cwg-blue))]/20 rounded-full flex items-center justify-center mb-4">
-                  <GameController className="h-6 w-6 text-[hsl(var(--cwg-blue))]" />
+                  <Gamepad2 className="h-6 w-6 text-[hsl(var(--cwg-blue))]" />
                 </div>
                 <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-text))] mb-2">1. Play Games</h3>
                 <p className="text-[hsl(var(--cwg-muted))]">
