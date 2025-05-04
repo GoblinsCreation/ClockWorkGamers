@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@ethersproject/contracts": "^5.8.0",
     "@ethersproject/providers": "^5.8.0",
     "@ethersproject/units": "^5.8.0",
     "@hookform/resolvers": "^3.10.0",

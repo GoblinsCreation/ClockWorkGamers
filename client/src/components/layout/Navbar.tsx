@@ -27,6 +27,7 @@ export function Navbar() {
     { name: "Rentals", path: "/rentals" },
     { name: "Courses", path: "/courses" },
     { name: "NFT Marketplace", path: "/nft-marketplace" },
+    { name: "Guild Tokens", path: "/token-dashboard" },
     { name: "Calculators", path: "/calculators" },
     { name: "Contact", path: "/contact" }
   ];

@@ -1,109 +1,106 @@
+import { useState, useEffect } from 'react';
 import { useWeb3 } from '@/hooks/use-web3';
 import { Button } from '@/components/ui/button';
-import { Loader2, Wallet, ExternalLink, Copy, CheckCircle } from 'lucide-react';
-import { useState } from 'react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Wallet, ChevronDown, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { formatEthereumAddress } from '@/lib/utils';
+import { getNetworkName, isSupportedNetwork } from '@/lib/web3-utils';
 
 export function WalletConnect() {
-  console.log("Rendering WalletConnect component");
+  const { connected, connecting, account, chainId, balance, connectWallet, disconnectWallet } = useWeb3();
+  const [networkStatus, setNetworkStatus] = useState<'supported' | 'unsupported' | 'unknown'>('unknown');
   
-  try {
-    const { connected, connecting, account, balance, connectWallet, disconnectWallet } = useWeb3();
-    const [copied, setCopied] = useState(false);
+  console.log("Rendering WalletConnect component");
 
-    const copyAddress = () => {
-      if (account) {
-        navigator.clipboard.writeText(account);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
-    };
-
-    const viewOnEtherscan = () => {
-      if (account) {
-        window.open(`https://etherscan.io/address/${account}`, '_blank');
-      }
-    };
-
-    if (connecting) {
-      return (
-        <Button disabled className="w-full bg-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-dark))]">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Connecting...
-        </Button>
-      );
+  // Check network support when chainId changes
+  useEffect(() => {
+    if (!chainId) {
+      setNetworkStatus('unknown');
+    } else if (isSupportedNetwork(chainId)) {
+      setNetworkStatus('supported');
+    } else {
+      setNetworkStatus('unsupported');
     }
+  }, [chainId]);
 
-    if (connected && account) {
-      return (
-        <div className="bg-[hsl(var(--cwg-dark-blue))]/30 rounded-lg p-4 border border-[hsl(var(--cwg-blue))]/30">
-          <div className="flex justify-between items-center mb-3">
-            <div className="flex items-center">
-              <div className="w-8 h-8 rounded-full bg-[hsl(var(--cwg-blue))]/20 flex items-center justify-center mr-2">
-                <Wallet className="h-4 w-4 text-[hsl(var(--cwg-blue))]" />
-              </div>
-              <span className="font-orbitron text-sm text-[hsl(var(--cwg-text))]">Connected Wallet</span>
-            </div>
-            <Button 
-              variant="ghost" 
-              className="h-8 text-xs text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-blue))]"
-              onClick={disconnectWallet}
-            >
-              Disconnect
-            </Button>
-          </div>
-          
-          <div className="p-3 bg-[hsl(var(--cwg-dark))] rounded border border-[hsl(var(--cwg-dark-blue))]">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-[hsl(var(--cwg-text))]">{formatEthereumAddress(account)}</span>
-              <div className="flex space-x-1">
-                <button 
-                  onClick={copyAddress} 
-                  className="p-1 hover:bg-[hsl(var(--cwg-dark-blue))] rounded transition-colors"
-                  title="Copy address"
-                >
-                  {copied ? 
-                    <CheckCircle className="h-4 w-4 text-green-500" /> : 
-                    <Copy className="h-4 w-4 text-[hsl(var(--cwg-muted))]" />
-                  }
-                </button>
-                <button 
-                  onClick={viewOnEtherscan} 
-                  className="p-1 hover:bg-[hsl(var(--cwg-dark-blue))] rounded transition-colors"
-                  title="View on Etherscan"
-                >
-                  <ExternalLink className="h-4 w-4 text-[hsl(var(--cwg-muted))]" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="mt-2 flex justify-between items-center">
-              <span className="text-xs text-[hsl(var(--cwg-muted))]">Balance</span>
-              <span className="text-sm font-orbitron text-[hsl(var(--cwg-blue))]">{parseFloat(balance).toFixed(4)} ETH</span>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
+  if (!connected) {
     return (
       <Button 
-        className="w-full bg-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-dark))] hover:bg-[hsl(var(--cwg-blue))]/90"
+        variant="outline" 
+        className="bg-gradient-to-r from-[hsl(var(--cwg-orange))] to-[hsl(var(--cwg-orange))/80] text-white px-4 py-2 rounded-lg font-orbitron font-medium text-sm btn-hover transition-all duration-300 w-full"
         onClick={connectWallet}
+        disabled={connecting}
       >
-        <Wallet className="mr-2 h-4 w-4" /> Connect Wallet
-      </Button>
-    );
-  } catch (error) {
-    console.error("Error in WalletConnect:", error);
-    return (
-      <Button 
-        className="w-full bg-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-dark))] hover:bg-[hsl(var(--cwg-blue))]/90"
-      >
-        <Wallet className="mr-2 h-4 w-4" /> Connect Wallet
+        {connecting ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Wallet className="mr-2 h-4 w-4" />}
+        {connecting ? 'Connecting...' : 'Connect Wallet'}
       </Button>
     );
   }
-}
 
-export default WalletConnect;
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          variant="outline" 
+          className="bg-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-blue))] border border-[hsl(var(--cwg-blue))] px-4 py-2 rounded-lg font-orbitron text-xs btn-hover transition-all duration-300 w-full"
+        >
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center">
+              <Wallet className="mr-2 h-4 w-4" />
+              {formatEthereumAddress(account || '')}
+            </div>
+            <ChevronDown className="h-4 w-4" />
+          </div>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end">
+        <DropdownMenuLabel>Wallet Connected</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem className="flex justify-between">
+            <span className="text-[hsl(var(--cwg-muted))]">Address:</span>
+            <span className="font-mono text-xs">{formatEthereumAddress(account || '')}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className="flex justify-between">
+            <span className="text-[hsl(var(--cwg-muted))]">Balance:</span>
+            <span>{balance}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className="flex justify-between">
+            <span className="text-[hsl(var(--cwg-muted))]">Network:</span>
+            <div className="flex items-center">
+              {networkStatus === 'supported' ? (
+                <span className="flex items-center text-green-500">
+                  <CheckCircle className="mr-1 h-3 w-3" />
+                  {getNetworkName(chainId)}
+                </span>
+              ) : networkStatus === 'unsupported' ? (
+                <span className="flex items-center text-red-500">
+                  <XCircle className="mr-1 h-3 w-3" />
+                  Unsupported
+                </span>
+              ) : (
+                <span className="text-[hsl(var(--cwg-muted))]">Unknown</span>
+              )}
+            </div>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem 
+          className="text-red-500 cursor-pointer flex justify-center"
+          onClick={disconnectWallet}
+        >
+          Disconnect Wallet
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
