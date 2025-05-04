@@ -89,22 +89,37 @@ export function Footer() {
               </li>
               <li>
                 <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                  Galaxy Raiders
+                  KoKodi
                 </a>
               </li>
               <li>
                 <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                  Crypto Legends
+                  Nyan Heroes
                 </a>
               </li>
               <li>
                 <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                  NFT Warriors
+                  Big Time
                 </a>
               </li>
               <li>
                 <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                  Chain Battles
+                  WorldShards
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
+                  Moon Frost
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
+                  Off The Grid
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
+                  RavenQuest
                 </a>
               </li>
             </ul>

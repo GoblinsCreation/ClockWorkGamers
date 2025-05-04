@@ -15,29 +15,29 @@ export default function GamesPage() {
       name: "Boss Fighters",
       description: "A competitive fighting game where players battle bosses for rewards.",
       imageUrl: "/assets/games/boss-fighters.jpg",
-      link: "https://bossfighters.io",
+      link: "https://economy.bossfighters.game/register?ref=9f15935b",
       rewards: "Up to 500 CWG tokens per week"
     },
     {
-      name: "Call of Legends",
-      description: "A team-based shooter with play-to-earn mechanics integrated into ranked matches.",
-      imageUrl: "/assets/games/call-of-legends.jpg",
-      link: "https://calloflegends.com",
-      rewards: "250-400 CWG tokens per tournament"
+      name: "KoKodi",
+      description: "An immersive blockchain game with NFT-based characters and worlds.",
+      imageUrl: "/assets/games/kokodi.jpg",
+      link: "https://kokodi.io",
+      rewards: "Earn NFT assets and 150-300 CWG tokens"
     },
     {
-      name: "Spellcraft",
-      description: "A strategic card game with collectible NFT cards that can be earned through play.",
-      imageUrl: "/assets/games/spellcraft.jpg",
-      link: "https://spellcraft-game.com",
-      rewards: "Earn cards and 100-200 CWG tokens daily"
+      name: "Nyan Heroes",
+      description: "Battle royale game featuring upgradeable mech suits and cute cat pilots.",
+      imageUrl: "/assets/games/nyan-heroes.jpg",
+      link: "https://nyanheroes.com",
+      rewards: "Earn 200-400 CWG tokens weekly"
     },
     {
-      name: "Metaverse Racing",
-      description: "High-octane racing in the metaverse with upgradable NFT vehicles.",
-      imageUrl: "/assets/games/metaverse-racing.jpg",
-      link: "https://metaverse-racing.com",
-      rewards: "Vehicle parts and up to 300 CWG tokens"
+      name: "Big Time",
+      description: "Action RPG where players journey through time and collect valuable NFTs.",
+      imageUrl: "/assets/games/big-time.jpg",
+      link: "https://bigtime.gg",
+      rewards: "Rare items and up to 350 CWG tokens"
     }
   ];
 

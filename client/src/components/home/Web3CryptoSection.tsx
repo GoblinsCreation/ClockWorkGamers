@@ -77,19 +77,19 @@ export function Web3CryptoSection() {
                 <div className="w-full h-20 bg-[hsl(var(--cwg-dark-blue))] rounded flex items-center justify-center">
                   <svg viewBox="0 0 100 100" className="w-12 h-12">
                     <circle cx="50" cy="50" r="30" fill="#00A3FF" fillOpacity="0.5" />
-                    <text x="50" y="55" textAnchor="middle" fontFamily="Orbitron" fontSize="10" fill="#FFFFFF">GR</text>
+                    <text x="50" y="55" textAnchor="middle" fontFamily="Orbitron" fontSize="10" fill="#FFFFFF">KO</text>
                   </svg>
                 </div>
-                <p className="mt-2 text-center text-xs text-[hsl(var(--cwg-muted))]">Galaxy Raiders</p>
+                <p className="mt-2 text-center text-xs text-[hsl(var(--cwg-muted))]">KoKodi</p>
               </div>
               <div className="bg-[hsl(var(--cwg-dark))] p-3 rounded-lg border border-[hsl(var(--cwg-dark-blue))] hover:border-[hsl(var(--cwg-orange))] transition-colors">
                 <div className="w-full h-20 bg-[hsl(var(--cwg-dark-blue))] rounded flex items-center justify-center">
                   <svg viewBox="0 0 100 100" className="w-12 h-12">
                     <rect x="30" y="30" width="40" height="40" fill="#FF6B00" fillOpacity="0.5" />
-                    <text x="50" y="55" textAnchor="middle" fontFamily="Orbitron" fontSize="10" fill="#FFFFFF">CL</text>
+                    <text x="50" y="55" textAnchor="middle" fontFamily="Orbitron" fontSize="10" fill="#FFFFFF">NH</text>
                   </svg>
                 </div>
-                <p className="mt-2 text-center text-xs text-[hsl(var(--cwg-muted))]">Crypto Legends</p>
+                <p className="mt-2 text-center text-xs text-[hsl(var(--cwg-muted))]">Nyan Heroes</p>
               </div>
             </div>
             <Button className="mt-8 px-6 py-3 bg-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-dark))] rounded-lg font-orbitron btn-hover transition-all duration-300">
@@ -113,7 +113,7 @@ export function Web3CryptoSection() {
                   </Button>
                 </Link>
                 <a href="https://discord.gg/qC3wMKXYQb" target="_blank" rel="noopener noreferrer">
-                  <Button className="px-6 py-3 border border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))] rounded-lg font-orbitron hover:bg-[hsl(var(--cwg-blue))] hover:text-[hsl(var(--cwg-dark))] transition-colors duration-300">
+                  <Button className="px-6 py-3 bg-[hsl(var(--cwg-orange))] text-black rounded-lg font-orbitron hover:bg-[hsl(var(--cwg-orange))]/80 hover:text-black transition-colors duration-300">
                     Discord Community
                   </Button>
                 </a>
