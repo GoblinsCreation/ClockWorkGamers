@@ -1,0 +1,117 @@
+import { pgTable, text, serial, integer, boolean, json, timestamp } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+// User model
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull().unique(),
+  dateOfBirth: text("date_of_birth").notNull(),
+  guild: text("guild").notNull(),
+  discordUsername: text("discord_username"),
+  twitchHandle: text("twitch_handle"),
+  isAdmin: boolean("is_admin").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertUserSchema = createInsertSchema(users)
+  .omit({ id: true, createdAt: true });
+
+// Streamer model
+export const streamers = pgTable("streamers", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  displayName: text("display_name").notNull(),
+  twitchId: text("twitch_id").notNull(),
+  profileImageUrl: text("profile_image_url"),
+  isLive: boolean("is_live").default(false).notNull(),
+  currentGame: text("current_game"),
+  streamTitle: text("stream_title"),
+  viewerCount: integer("viewer_count").default(0).notNull(),
+});
+
+export const insertStreamerSchema = createInsertSchema(streamers)
+  .omit({ id: true });
+
+// Course model
+export const courses = pgTable("courses", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  price: integer("price").notNull(),
+  game: text("game").notNull(),
+  courseType: text("course_type").notNull(),
+  imageUrl: text("image_url"),
+  instructorId: integer("instructor_id").notNull(),
+});
+
+export const insertCourseSchema = createInsertSchema(courses)
+  .omit({ id: true });
+
+// Rental model
+export const rentals = pgTable("rentals", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  itemType: text("item_type").notNull(),
+  rarity: text("rarity").notNull(),
+  game: text("game").notNull(),
+  pricePerDay: integer("price_per_day").notNull(),
+  available: boolean("available").default(true).notNull(),
+  imageUrl: text("image_url"),
+});
+
+export const insertRentalSchema = createInsertSchema(rentals)
+  .omit({ id: true });
+
+// Rental Request model
+export const rentalRequests = pgTable("rental_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  rentalId: integer("rental_id"),
+  customRequest: text("custom_request"),
+  startDate: text("start_date").notNull(),
+  endDate: text("end_date").notNull(),
+  status: text("status").default("pending").notNull(),
+  totalPrice: integer("total_price"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertRentalRequestSchema = createInsertSchema(rentalRequests)
+  .omit({ id: true, createdAt: true });
+
+// News/Updates model
+export const news = pgTable("news", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  category: text("category").notNull(),
+  imageUrl: text("image_url"),
+  authorId: integer("author_id").notNull(),
+  publishDate: timestamp("publish_date").defaultNow().notNull(),
+});
+
+export const insertNewsSchema = createInsertSchema(news)
+  .omit({ id: true, publishDate: true });
+
+// Type exports
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
+
+export type InsertStreamer = z.infer<typeof insertStreamerSchema>;
+export type Streamer = typeof streamers.$inferSelect;
+
+export type InsertCourse = z.infer<typeof insertCourseSchema>;
+export type Course = typeof courses.$inferSelect;
+
+export type InsertRental = z.infer<typeof insertRentalSchema>;
+export type Rental = typeof rentals.$inferSelect;
+
+export type InsertRentalRequest = z.infer<typeof insertRentalRequestSchema>;
+export type RentalRequest = typeof rentalRequests.$inferSelect;
+
+export type InsertNews = z.infer<typeof insertNewsSchema>;
+export type News = typeof news.$inferSelect;
