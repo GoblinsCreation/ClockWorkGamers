@@ -26,8 +26,8 @@ export function Navbar() {
     { name: "Streamers", path: "/streamers" },
     { name: "Rentals", path: "/rentals" },
     { name: "Courses", path: "/courses" },
-    { name: "Play-to-Earn", path: "/play-to-earn" },
-    { name: "Pay-to-Earn", path: "/pay-to-earn" },
+    { name: "Games", path: "/games" },
+    { name: "Investments", path: "/investments" },
     { name: "CWG NFTs", path: "/nft-marketplace" },
     { name: "Guild Tokens", path: "/token-dashboard" },
     { name: "Calculators", path: "/calculators" },
@@ -36,45 +36,51 @@ export function Navbar() {
 
   return (
     <nav className="bg-[hsl(var(--cwg-dark))] border-b border-[hsl(var(--cwg-dark-blue))] sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20">
+      <div className="w-full px-2 sm:px-4 lg:px-6">
+        <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
+            {/* Left side with logo */}
             <div className="flex-shrink-0 flex items-center">
               <Link href="/">
                 <a className="flex items-center">
-                  {/* Using the animated logo cwg.gif - path will need to be updated */}
-                  <img src="/assets/cwg.gif" alt="CWG Logo" className="h-14 w-14 rounded-full" 
+                  {/* Using the animated logo cwg.gif which should be at public/assets/cwg.gif */}
+                  <img src="/assets/cwg.gif" alt="CWG Logo" className="h-10 w-10 rounded-full mr-2" 
                     onError={(e) => {
                       // Fallback if image fails to load
                       e.currentTarget.style.display = 'none';
                       const fallback = document.createElement('div');
-                      fallback.className = 'h-14 w-14 bg-[hsl(var(--cwg-orange))] rounded-full flex items-center justify-center';
-                      fallback.innerHTML = '<span class="text-white font-orbitron font-bold">CWG</span>';
+                      fallback.className = 'h-10 w-10 bg-[hsl(var(--cwg-orange))] rounded-full flex items-center justify-center';
+                      fallback.innerHTML = '<span class="text-white font-orbitron font-bold text-xs">CWG</span>';
                       e.currentTarget.parentNode?.appendChild(fallback);
                     }}
                   />
-                  <span className="ml-3 text-[hsl(var(--cwg-orange))] font-orbitron font-bold text-xl">ClockWork Gamers</span>
+                  <span className="text-[hsl(var(--cwg-orange))] font-orbitron font-bold text-lg hidden md:block">
+                    ClockWork Gamers
+                  </span>
                 </a>
               </Link>
             </div>
           </div>
           
-          <div className="hidden lg:flex items-center justify-center space-x-3">
-            {navLinks.map((link) => (
-              <Link key={link.path} href={link.path}>
-                <a className={`font-orbitron text-sm whitespace-nowrap ${location === link.path ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'} px-1 transition-colors duration-200`}>
-                  {link.name}
-                </a>
-              </Link>
-            ))}
-            
-            {user?.isAdmin && (
-              <Link href="/admin">
-                <a className={`font-orbitron text-sm whitespace-nowrap ${location === '/admin' ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'} px-1 transition-colors duration-200`}>
-                  Admin
-                </a>
-              </Link>
-            )}
+          {/* Center navigation */}
+          <div className="hidden lg:flex items-center justify-center flex-1 mx-6">
+            <div className="flex space-x-4 xl:space-x-6 overflow-x-auto px-4 py-2 scrollbar-hide">
+              {navLinks.map((link) => (
+                <Link key={link.path} href={link.path}>
+                  <a className={`font-orbitron text-sm whitespace-nowrap ${location === link.path ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'} px-2 py-1 transition-colors duration-200`}>
+                    {link.name}
+                  </a>
+                </Link>
+              ))}
+              
+              {user?.isAdmin && (
+                <Link href="/admin">
+                  <a className={`font-orbitron text-sm whitespace-nowrap ${location === '/admin' ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'} px-2 py-1 transition-colors duration-200`}>
+                    Admin
+                  </a>
+                </Link>
+              )}
+            </div>
           </div>
           
           <div className="flex items-center">

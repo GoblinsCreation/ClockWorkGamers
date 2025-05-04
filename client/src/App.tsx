@@ -16,6 +16,8 @@ import NFTMarketplacePage from "@/pages/nft-marketplace-page";
 import TokenDashboardPage from "@/pages/token-dashboard-page";
 import PlayToEarnPage from "@/pages/play-to-earn-page";
 import PayToEarnPage from "@/pages/pay-to-earn-page";
+import GamesPage from "@/pages/games-page";
+import InvestmentsPage from "@/pages/investments-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from "./hooks/use-auth";
@@ -29,6 +31,8 @@ function Router() {
       <Route path="/streamers" component={StreamersPage} />
       <Route path="/rentals" component={RentalsPage} />
       <Route path="/courses" component={CoursesPage} />
+      <Route path="/games" component={GamesPage} />
+      <Route path="/investments" component={InvestmentsPage} />
       <Route path="/play-to-earn" component={PlayToEarnPage} />
       <Route path="/pay-to-earn" component={PayToEarnPage} />
       <Route path="/nft-marketplace" component={NFTMarketplacePage} />
