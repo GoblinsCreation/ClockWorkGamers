@@ -77,15 +77,17 @@ export function Navbar() {
           </div>
           
           <div className="flex items-center">
-            <div className="mr-3 w-40">
+            <div className="mr-1 sm:mr-3 w-12 sm:w-40">
               <WalletConnect />
             </div>
             
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="bg-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-blue))] border border-[hsl(var(--cwg-blue))] px-4 py-2 rounded-lg font-orbitron text-sm btn-hover transition-all duration-300">
-                    {user.username} <ChevronDown className="ml-2 h-4 w-4" />
+                  <Button variant="outline" className="bg-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-blue))] border border-[hsl(var(--cwg-blue))] px-2 sm:px-4 py-2 rounded-lg font-orbitron text-xs sm:text-sm btn-hover transition-all duration-300">
+                    <span className="hidden sm:inline">{user.username}</span>
+                    <User className="sm:hidden h-4 w-4" />
+                    <ChevronDown className="ml-1 sm:ml-2 h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -115,13 +117,14 @@ export function Navbar() {
               </DropdownMenu>
             ) : (
               <Link href="/auth">
-                <Button variant="outline" className="bg-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-blue))] border border-[hsl(var(--cwg-blue))] px-4 py-2 rounded-lg font-orbitron text-sm btn-hover transition-all duration-300">
-                  Sign In
+                <Button variant="outline" className="bg-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-blue))] border border-[hsl(var(--cwg-blue))] px-2 sm:px-4 py-2 rounded-lg font-orbitron text-xs sm:text-sm btn-hover transition-all duration-300">
+                  <span className="hidden sm:inline">Sign In</span>
+                  <User className="sm:hidden h-4 w-4" />
                 </Button>
               </Link>
             )}
             
-            <div className="lg:hidden ml-4">
+            <div className="lg:hidden ml-2 sm:ml-4">
               <Button 
                 variant="ghost" 
                 className="text-[hsl(var(--cwg-text))] hover:text-[hsl(var(--cwg-orange))]"

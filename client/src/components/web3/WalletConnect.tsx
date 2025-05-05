@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useWeb3 } from '@/hooks/use-web3';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -18,8 +18,21 @@ import { getNetworkName, isSupportedNetwork } from '@/lib/web3-utils';
 export function WalletConnect() {
   const { connected, connecting, account, chainId, balance, connectWallet, disconnectWallet } = useWeb3();
   const [networkStatus, setNetworkStatus] = useState<'supported' | 'unsupported' | 'unknown'>('unknown');
+  const [isMobile, setIsMobile] = useState(false);
   
-  console.log("Rendering WalletConnect component");
+  // Detect if we're on a mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
   // Check network support when chainId changes
   useEffect(() => {
@@ -36,12 +49,13 @@ export function WalletConnect() {
     return (
       <Button 
         variant="outline" 
-        className="bg-gradient-to-r from-[hsl(var(--cwg-orange))] to-[hsl(var(--cwg-orange))/80] text-white px-4 py-2 rounded-lg font-orbitron font-medium text-sm btn-hover transition-all duration-300 w-full"
+        className="bg-gradient-to-r from-[hsl(var(--cwg-orange))] to-[hsl(var(--cwg-orange))/80] text-white px-3 sm:px-4 py-2 rounded-lg font-orbitron font-medium text-xs sm:text-sm btn-hover transition-all duration-300 w-full"
         onClick={connectWallet}
         disabled={connecting}
       >
-        {connecting ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Wallet className="mr-2 h-4 w-4" />}
-        {connecting ? 'Connecting...' : 'Connect Wallet'}
+        {connecting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Wallet className={`h-4 w-4 ${isMobile ? "" : "mr-2"}`} />}
+        {!isMobile && (connecting ? 'Connecting...' : 'Connect Wallet')}
+        {isMobile && (connecting ? '...' : '')}
       </Button>
     );
   }
@@ -51,12 +65,12 @@ export function WalletConnect() {
       <DropdownMenuTrigger asChild>
         <Button 
           variant="outline" 
-          className="bg-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-blue))] border border-[hsl(var(--cwg-blue))] px-4 py-2 rounded-lg font-orbitron text-xs btn-hover transition-all duration-300 w-full"
+          className="bg-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-blue))] border border-[hsl(var(--cwg-blue))] px-2 sm:px-4 py-2 rounded-lg font-orbitron text-xs btn-hover transition-all duration-300 w-full"
         >
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center">
-              <Wallet className="mr-2 h-4 w-4" />
-              {formatEthereumAddress(account || '')}
+              <Wallet className={`h-4 w-4 ${isMobile ? "" : "mr-2"}`} />
+              {isMobile ? '' : formatEthereumAddress(account || '')}
             </div>
             <ChevronDown className="h-4 w-4" />
           </div>
