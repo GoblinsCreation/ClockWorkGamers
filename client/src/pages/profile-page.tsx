@@ -128,17 +128,17 @@ export default function ProfilePage() {
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       username: user?.username || '',
-      displayName: profileData?.displayName || '',
-      bio: profileData?.bio || '',
-      email: profileData?.email || '',
-      avatar: profileData?.avatar || '',
-      discordUsername: profileData?.discordUsername || '',
-      twitterUsername: profileData?.twitterUsername || '',
-      gameIds: profileData?.gameIds || [],
+      displayName: '',
+      bio: '',
+      email: '',
+      avatar: '',
+      discordUsername: '',
+      twitterUsername: '',
+      gameIds: [],
       preferences: {
-        emailNotifications: profileData?.preferences?.emailNotifications || true,
-        showWalletAddress: profileData?.preferences?.showWalletAddress || false,
-        darkMode: profileData?.preferences?.darkMode || true,
+        emailNotifications: true,
+        showWalletAddress: false,
+        darkMode: true,
       }
     },
   });
@@ -156,9 +156,12 @@ export default function ProfilePage() {
         twitterUsername: profileData.twitterUsername || '',
         gameIds: profileData.gameIds || [],
         preferences: {
-          emailNotifications: profileData.preferences?.emailNotifications || true,
-          showWalletAddress: profileData.preferences?.showWalletAddress || false,
-          darkMode: profileData.preferences?.darkMode || true,
+          emailNotifications: profileData.preferences?.emailNotifications !== undefined 
+            ? profileData.preferences.emailNotifications : true,
+          showWalletAddress: profileData.preferences?.showWalletAddress !== undefined 
+            ? profileData.preferences.showWalletAddress : false,
+          darkMode: profileData.preferences?.darkMode !== undefined 
+            ? profileData.preferences.darkMode : true,
         }
       });
     }
@@ -205,9 +208,13 @@ export default function ProfilePage() {
   }
   
   const initialData = profileData || {
-    username: user.username,
+    displayName: '',
     email: '',
     avatar: '',
+    bio: '',
+    discordUsername: '',
+    twitterUsername: '',
+    gameIds: [],
     preferences: {
       emailNotifications: true,
       showWalletAddress: false,
@@ -251,14 +258,14 @@ export default function ProfilePage() {
                   
                   <CardContent className="flex flex-col items-center">
                     <Avatar className="h-24 w-24 mb-4 border-2 border-[hsl(var(--cwg-purple))]">
-                      <AvatarImage src={initialData.avatar || ''} alt={initialData.displayName || initialData.username} />
+                      <AvatarImage src={initialData.avatar || ''} alt={initialData.displayName || user?.username || 'User'} />
                       <AvatarFallback className="bg-[hsl(var(--cwg-purple-dark))] text-[hsl(var(--cwg-orange))]">
-                        {initialData.username.substring(0, 2).toUpperCase()}
+                        {user?.username ? user.username.substring(0, 2).toUpperCase() : 'CG'}
                       </AvatarFallback>
                     </Avatar>
                     
-                    <h3 className="text-xl font-bold mb-1">{initialData.displayName || initialData.username}</h3>
-                    <p className="text-sm text-[hsl(var(--cwg-muted))] mb-4">@{initialData.username}</p>
+                    <h3 className="text-xl font-bold mb-1">{initialData.displayName || user?.username || 'User'}</h3>
+                    <p className="text-sm text-[hsl(var(--cwg-muted))] mb-4">@{user?.username || 'user'}</p>
                     
                     {initialData.bio && (
                       <p className="text-sm text-center mb-4">{initialData.bio}</p>
