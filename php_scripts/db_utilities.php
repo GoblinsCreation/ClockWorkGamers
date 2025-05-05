@@ -2,161 +2,156 @@
 /**
  * Database Utilities for ClockWork Gamers
  * 
- * This script provides PHP-based database utilities for the ClockWork Gamers platform.
- * It can be executed via the Node.js server using child_process.
+ * This script provides database-related utilities for the admin panel
  */
 
-// Database configuration - should match our PostgreSQL database
-$db_config = [
-    'host' => getenv('PGHOST'),
-    'port' => getenv('PGPORT'),
-    'dbname' => getenv('PGDATABASE'),
-    'user' => getenv('PGUSER'),
-    'password' => getenv('PGPASSWORD')
-];
+// Get database credentials from environment
+$dbHost = $_ENV['PGHOST'] ?? 'localhost';
+$dbPort = $_ENV['PGPORT'] ?? '5432';
+$dbName = $_ENV['PGDATABASE'] ?? 'postgres';
+$dbUser = $_ENV['PGUSER'] ?? 'postgres';
+$dbPassword = $_ENV['PGPASSWORD'] ?? '';
 
-/**
- * Establishes database connection using the configuration
- */
-function connect_db() {
-    global $db_config;
+// Command line arguments
+$action = $argv[1] ?? '';
+
+// Database connection function
+function connectToDatabase() {
+    global $dbHost, $dbPort, $dbName, $dbUser, $dbPassword;
     
-    $connection_string = sprintf(
-        "host=%s port=%s dbname=%s user=%s password=%s",
-        $db_config['host'],
-        $db_config['port'],
-        $db_config['dbname'],
-        $db_config['user'],
-        $db_config['password']
-    );
+    $dsn = "pgsql:host=$dbHost;port=$dbPort;dbname=$dbName;user=$dbUser;password=$dbPassword";
     
-    $conn = pg_connect($connection_string);
-    
-    if (!$conn) {
-        $error = error_get_last();
-        echo json_encode([
-            'success' => false,
-            'error' => $error['message'] ?? 'Failed to connect to database'
-        ]);
-        exit;
+    try {
+        $conn = new PDO($dsn);
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        return $conn;
+    } catch (PDOException $e) {
+        error_log("Connection failed: " . $e->getMessage());
+        throw $e;
     }
-    
-    return $conn;
 }
 
-/**
- * Generate a database report
- */
-function generate_db_report() {
-    $conn = connect_db();
-    
-    // Get tables list
-    $tables_query = "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'";
-    $tables_result = pg_query($conn, $tables_query);
-    
-    if (!$tables_result) {
-        echo json_encode([
-            'success' => false,
-            'error' => 'Failed to query tables'
-        ]);
-        exit;
-    }
-    
-    $tables = [];
-    while ($row = pg_fetch_assoc($tables_result)) {
-        $table_name = $row['tablename'];
+// Generate database report
+function generateDbReport() {
+    try {
+        $db = connectToDatabase();
         
-        // Get row count for each table
-        $count_query = "SELECT COUNT(*) FROM $table_name";
-        $count_result = pg_query($conn, $count_query);
-        $count = pg_fetch_row($count_result)[0];
+        // Table sizes
+        $tableSizesSql = "
+            SELECT
+                table_name,
+                pg_size_pretty(pg_total_relation_size(quote_ident(table_name))) as size,
+                pg_total_relation_size(quote_ident(table_name)) as raw_size
+            FROM
+                information_schema.tables
+            WHERE
+                table_schema = 'public'
+            ORDER BY
+                raw_size DESC;
+        ";
         
-        // Get column info
-        $columns_query = "SELECT column_name, data_type FROM information_schema.columns 
-                         WHERE table_schema = 'public' AND table_name = '$table_name'";
-        $columns_result = pg_query($conn, $columns_query);
+        $tableStmt = $db->query($tableSizesSql);
+        $tables = $tableStmt->fetchAll(PDO::FETCH_ASSOC);
         
-        $columns = [];
-        while ($column = pg_fetch_assoc($columns_result)) {
-            $columns[] = $column;
+        // Database size
+        $dbSizeSql = "
+            SELECT pg_size_pretty(pg_database_size(current_database())) as size,
+                   pg_database_size(current_database()) as raw_size;
+        ";
+        
+        $dbSizeStmt = $db->query($dbSizeSql);
+        $dbSize = $dbSizeStmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Record counts
+        $recordCounts = [];
+        foreach ($tables as $table) {
+            $tableName = $table['table_name'];
+            $countSql = "SELECT COUNT(*) as count FROM \"$tableName\";";
+            $countStmt = $db->query($countSql);
+            $count = $countStmt->fetch(PDO::FETCH_ASSOC);
+            $recordCounts[$tableName] = $count['count'];
         }
         
-        $tables[] = [
-            'name' => $table_name,
-            'row_count' => $count,
-            'columns' => $columns
+        $report = [
+            'success' => true,
+            'database' => [
+                'name' => $dbName,
+                'size' => $dbSize['size'],
+                'raw_size' => (int)$dbSize['raw_size']
+            ],
+            'tables' => $tables,
+            'record_counts' => $recordCounts
         ];
-    }
-    
-    // Generate report
-    $report = [
-        'success' => true,
-        'timestamp' => date('Y-m-d H:i:s'),
-        'tables' => $tables
-    ];
-    
-    pg_close($conn);
-    
-    echo json_encode($report, JSON_PRETTY_PRINT);
-}
-
-/**
- * Run a custom database query
- */
-function run_custom_query($query) {
-    $conn = connect_db();
-    
-    $result = pg_query($conn, $query);
-    
-    if (!$result) {
-        echo json_encode([
+        
+        echo json_encode($report, JSON_PRETTY_PRINT);
+        
+    } catch (PDOException $e) {
+        $error = [
             'success' => false,
-            'error' => pg_last_error($conn)
-        ]);
-        exit;
+            'error' => $e->getMessage()
+        ];
+        echo json_encode($error, JSON_PRETTY_PRINT);
     }
-    
-    $rows = [];
-    while ($row = pg_fetch_assoc($result)) {
-        $rows[] = $row;
-    }
-    
-    $response = [
-        'success' => true,
-        'rows' => $rows,
-        'row_count' => pg_num_rows($result)
-    ];
-    
-    pg_close($conn);
-    
-    echo json_encode($response, JSON_PRETTY_PRINT);
 }
 
-/**
- * Main execution section
- */
-// Get command from arguments
-$command = $argv[1] ?? '';
-$param = $argv[2] ?? '';
-
-switch ($command) {
-    case 'report':
-        generate_db_report();
-        break;
-    case 'query':
-        if (empty($param)) {
-            echo json_encode([
+// Execute a custom query
+function executeQuery($query) {
+    try {
+        $db = connectToDatabase();
+        
+        // Basic security check to prevent destructive queries
+        $lowerQuery = strtolower(trim($query));
+        
+        // Prevent direct data modifications unless explicitly authorized
+        if (preg_match('/^\s*(delete|drop|truncate|update|alter)/i', $lowerQuery)) {
+            $error = [
                 'success' => false,
-                'error' => 'No query provided'
-            ]);
-            exit;
+                'error' => 'Destructive queries are not allowed through this interface'
+            ];
+            echo json_encode($error, JSON_PRETTY_PRINT);
+            return;
         }
-        run_custom_query($param);
-        break;
-    default:
-        echo json_encode([
+        
+        $stmt = $db->query($query);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $response = [
+            'success' => true,
+            'query' => $query,
+            'rowCount' => $stmt->rowCount(),
+            'results' => $results
+        ];
+        
+        echo json_encode($response, JSON_PRETTY_PRINT);
+        
+    } catch (PDOException $e) {
+        $error = [
             'success' => false,
-            'error' => 'Unknown command'
-        ]);
+            'query' => $query,
+            'error' => $e->getMessage()
+        ];
+        echo json_encode($error, JSON_PRETTY_PRINT);
+    }
 }
-?>
+
+// Main command processing
+switch ($action) {
+    case 'report':
+        generateDbReport();
+        break;
+        
+    case 'query':
+        $query = isset($argv[2]) ? trim($argv[2], '"\'') : '';
+        
+        if (empty($query)) {
+            echo json_encode(['success' => false, 'error' => 'No query provided']);
+            exit(1);
+        }
+        
+        executeQuery($query);
+        break;
+        
+    default:
+        echo json_encode(['success' => false, 'error' => 'Unknown action: ' . $action]);
+        exit(1);
+}

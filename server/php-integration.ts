@@ -34,7 +34,7 @@ export async function executePhpScript(scriptPath: string, args: string[] = []):
       // If not JSON, return raw output
       return stdout;
     }
-  } catch (error) {
+  } catch (error: any) {
     log(`Failed to execute PHP script: ${error.message}`, 'php-integration');
     throw error;
   }
@@ -47,7 +47,7 @@ export async function handleDbReport(req: Request, res: Response) {
   try {
     const result = await executePhpScript('./php_scripts/db_utilities.php', ['report']);
     res.json(result);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: error.message
@@ -74,7 +74,7 @@ export async function handleDbQuery(req: Request, res: Response) {
     
     const result = await executePhpScript('./php_scripts/db_utilities.php', ['query', `"${escapedQuery}"`]);
     res.json(result);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: error.message
@@ -89,7 +89,7 @@ export async function handleUserActivityReport(req: Request, res: Response) {
   try {
     const result = await executePhpScript('./php_scripts/user_utilities.php', ['activity']);
     res.json(result);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: error.message
@@ -104,7 +104,7 @@ export async function handleReferralReport(req: Request, res: Response) {
   try {
     const result = await executePhpScript('./php_scripts/user_utilities.php', ['referrals']);
     res.json(result);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: error.message
@@ -136,7 +136,7 @@ export async function handlePasswordReset(req: Request, res: Response) {
     ]);
     
     res.json(result);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: error.message
@@ -195,7 +195,7 @@ export function servePhpAdminPanel(req: Request, res: Response) {
         </body>
       </html>
     `);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: error.message
