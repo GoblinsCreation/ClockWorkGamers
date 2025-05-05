@@ -14,6 +14,7 @@ import {
   servePhpAdminPanel
 } from "./php-integration";
 import { scheduleStreamStatusUpdates, updateStreamStatus, linkTwitchAccount } from "./twitch";
+import { handleContactForm, sendTestEmail } from "./email";
 
 import { WebSocketServer, WebSocket } from 'ws';
 
@@ -426,6 +427,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({
       isAuthenticated: req.isAuthenticated()
     });
+  });
+  
+  // Contact form route
+  app.post("/api/contact", async (req, res) => {
+    try {
+      await handleContactForm(req, res);
+    } catch (error) {
+      console.error("Error handling contact form:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to process your message. Please try again later."
+      });
+    }
+  });
+  
+  // Admin-only route to test email functionality
+  app.post("/api/admin/test-email", async (req, res) => {
+    try {
+      await sendTestEmail(req, res);
+    } catch (error) {
+      console.error("Error testing email:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to send test email. Check server logs for details."
+      });
+    }
   });
 
   // Admin routes (requires admin authentication)

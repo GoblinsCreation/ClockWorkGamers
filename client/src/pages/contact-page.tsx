@@ -1,15 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, MessageCircleCode, Send, AlertCircle, MessageSquareText } from "lucide-react";
+import { Mail, MessageCircleCode, Send, AlertCircle, MessageSquareText, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import {
   Form,
   FormControl,
@@ -31,6 +32,7 @@ type ContactFormValues = z.infer<typeof contactFormSchema>;
 
 export default function ContactPage() {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -42,19 +44,41 @@ export default function ContactPage() {
     },
   });
   
-  const onSubmit = (values: ContactFormValues) => {
-    console.log(values);
-    // In a real app, we would send this data to the server
+  const onSubmit = async (values: ContactFormValues) => {
+    setIsSubmitting(true);
     
-    // Show success toast
-    toast({
-      title: "Message Sent!",
-      description: "We've received your message and will respond soon.",
-      variant: "default",
-    });
-    
-    // Reset form
-    form.reset();
+    try {
+      const response = await apiRequest("POST", "/api/contact", values);
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // Show success toast
+        toast({
+          title: "Message Sent!",
+          description: "We've received your message and will respond soon.",
+          variant: "default",
+        });
+        
+        // Reset form
+        form.reset();
+      } else {
+        // Show error toast with message from server if available
+        toast({
+          title: "Message Not Sent",
+          description: data.message || "There was an error sending your message. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error sending contact form:", error);
+      toast({
+        title: "Connection Error",
+        description: "Could not connect to the server. Please check your internet connection and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   return (
@@ -161,10 +185,20 @@ export default function ContactPage() {
                       
                       <Button
                         type="submit"
-                        className="bg-gradient-to-r from-[hsl(var(--cwg-orange))] to-[hsl(var(--cwg-orange-dark))] text-white py-2 px-4 rounded-lg font-orbitron font-medium hover:brightness-110 transition-all duration-300"
+                        disabled={isSubmitting}
+                        className="bg-gradient-to-r from-[hsl(var(--cwg-orange))] to-[hsl(var(--cwg-orange-dark))] text-white py-2 px-4 rounded-lg font-orbitron font-medium hover:brightness-110 transition-all duration-300 disabled:opacity-70"
                       >
-                        <Send className="mr-2 h-4 w-4" />
-                        Send Message
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="mr-2 h-4 w-4" />
+                            Send Message
+                          </>
+                        )}
                       </Button>
                     </form>
                   </Form>
