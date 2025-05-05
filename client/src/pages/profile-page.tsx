@@ -106,15 +106,15 @@ export default function ProfilePage() {
   const { user } = useAuth();
   const { account, balance } = useWeb3();
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
   
   // Redirect if not logged in
   useEffect(() => {
     if (!user) {
-      navigate('/auth');
+      setLocation('/auth');
     }
-  }, [user, navigate]);
+  }, [user, setLocation]);
   
   // Fetch profile data
   const { data: profileData, isLoading: isLoadingProfile } = useQuery({
@@ -343,7 +343,7 @@ export default function ProfilePage() {
                           </div>
                         </div>
                         
-                        <Button variant="outline" className="w-full" onClick={() => navigate('/token-dashboard')}>
+                        <Button variant="outline" className="w-full" onClick={() => setLocation('/token-dashboard')}>
                           View Token Dashboard
                         </Button>
                       </div>

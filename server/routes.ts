@@ -410,6 +410,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Route to check authentication status
+  app.get("/api/check-auth", (req, res) => {
+    res.json({
+      isAuthenticated: req.isAuthenticated()
+    });
+  });
+
   // Admin routes (requires admin authentication)
   app.use("/api/admin", (req, res, next) => {
     if (!req.isAuthenticated() || !req.user!.isAdmin) {
