@@ -8,11 +8,12 @@ import {
   streamerSchedules, type StreamerSchedule, type InsertStreamerSchedule,
   userProfiles, type UserProfile, type InsertUserProfile,
   chatMessages, type ChatMessage, type InsertChatMessage,
-  referrals, type Referral, type InsertReferral
+  referrals, type Referral, type InsertReferral,
+  notifications, type Notification, type InsertNotification
 } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
-import { eq, desc, and, asc, inArray, sql } from "drizzle-orm";
+import { eq, desc, and, asc, inArray, sql, count } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
 import { Store } from "express-session";
