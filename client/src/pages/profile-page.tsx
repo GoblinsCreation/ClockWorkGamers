@@ -58,7 +58,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 
 // Form schema validation
 const profileFormSchema = z.object({

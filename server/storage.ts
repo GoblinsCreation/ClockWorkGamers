@@ -26,6 +26,11 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   listUsers(): Promise<User[]>;
   
+  // User Profile operations
+  getUserProfile(userId: number): Promise<UserProfile | undefined>;
+  createUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
+  updateUserProfile(userId: number, data: Partial<UserProfile>): Promise<UserProfile | undefined>;
+  
   // Streamer operations
   getStreamer(id: number): Promise<Streamer | undefined>;
   getStreamerByUserId(userId: number): Promise<Streamer | undefined>;
@@ -108,6 +113,39 @@ export class DatabaseStorage implements IStorage {
   
   async listUsers(): Promise<User[]> {
     return await db.select().from(users);
+  }
+  
+  // User Profile methods
+  async getUserProfile(userId: number): Promise<UserProfile | undefined> {
+    const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId));
+    return profile;
+  }
+  
+  async createUserProfile(profile: InsertUserProfile): Promise<UserProfile> {
+    const [createdProfile] = await db.insert(userProfiles).values(profile).returning();
+    return createdProfile;
+  }
+  
+  async updateUserProfile(userId: number, data: Partial<UserProfile>): Promise<UserProfile | undefined> {
+    // First check if profile exists
+    const existingProfile = await this.getUserProfile(userId);
+    
+    if (!existingProfile) {
+      // Create new profile if it doesn't exist
+      return await this.createUserProfile({
+        userId,
+        ...data,
+      } as InsertUserProfile);
+    }
+    
+    // Update existing profile
+    const [updatedProfile] = await db
+      .update(userProfiles)
+      .set(data)
+      .where(eq(userProfiles.userId, userId))
+      .returning();
+    
+    return updatedProfile;
   }
   
   // Streamer methods
