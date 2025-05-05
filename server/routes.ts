@@ -483,6 +483,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Notification routes
+  app.get("/api/notifications", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const notifications = await storage.getUserNotifications(req.user.id, limit);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+  
+  app.get("/api/notifications/unread-count", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const count = await storage.getUnreadNotificationCount(req.user.id);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error fetching unread notification count:", error);
+      res.status(500).json({ message: "Failed to fetch unread notification count" });
+    }
+  });
+  
+  app.post("/api/notifications/:id/mark-read", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid notification ID" });
+      }
+      
+      const notification = await storage.getNotification(id);
+      
+      // Ensure the notification exists and belongs to the user
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      if (notification.userId !== req.user.id) {
+        return res.status(403).json({ message: "You don't have permission to access this notification" });
+      }
+      
+      const updatedNotification = await storage.markNotificationAsRead(id);
+      res.json(updatedNotification);
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+  
+  app.post("/api/notifications/mark-all-read", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      await storage.markAllUserNotificationsAsRead(req.user.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
+  
+  app.delete("/api/notifications/:id", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid notification ID" });
+      }
+      
+      const notification = await storage.getNotification(id);
+      
+      // Ensure the notification exists and belongs to the user
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      if (notification.userId !== req.user.id) {
+        return res.status(403).json({ message: "You don't have permission to delete this notification" });
+      }
+      
+      const success = await storage.deleteNotification(id);
+      if (success) {
+        res.status(204).end();
+      } else {
+        res.status(500).json({ message: "Failed to delete notification" });
+      }
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      res.status(500).json({ message: "Failed to delete notification" });
+    }
+  });
+  
   // Twitch integration routes
   app.get("/api/twitch/auth-url", (req, res) => {
     if (!req.isAuthenticated()) {
