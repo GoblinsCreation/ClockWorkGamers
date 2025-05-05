@@ -772,7 +772,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Helper function to broadcast message to all connected clients
-  function broadcastMessage(message) {
+  function broadcastMessage(message: any) {
     const messageStr = JSON.stringify(message);
     clients.forEach((client) => {
       // Only send if the connection is open

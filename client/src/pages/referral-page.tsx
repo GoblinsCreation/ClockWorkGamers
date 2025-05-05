@@ -15,5 +15,5 @@ function ReferralPage() {
 
 // Wrap component with ProtectedRoute to ensure user is authenticated
 export default function ProtectedReferralPage() {
-  return <ProtectedRoute component={ReferralPage} />;
+  return <ProtectedRoute path="/referrals" component={ReferralPage} />;
 }

@@ -472,12 +472,12 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getUserReferredUsers(userId: number): Promise<User[]> {
-    const referrals = await db
+    const userReferrals = await db
       .select()
       .from(referrals)
       .where(eq(referrals.referrerId, userId));
     
-    const referredUserIds = referrals.map(referral => referral.referredId);
+    const referredUserIds = userReferrals.map((referral: { referredId: number }) => referral.referredId);
     
     if (referredUserIds.length === 0) {
       return [];
