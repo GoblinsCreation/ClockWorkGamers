@@ -57,6 +57,8 @@ export const NotificationType = {
   NEW_MESSAGE: "new_message",
   SYSTEM: "system",
   REFERRAL: "referral",
+  ACHIEVEMENT_UNLOCKED: "achievement-unlocked",
+  ACHIEVEMENT_CLAIMED: "achievement-claimed",
 } as const;
 
 /**
@@ -298,4 +300,95 @@ export async function createReferralNotification(
   };
   
   return createNotification(notification, true, "You've earned a referral on ClockWork Gamers!");
+}
+
+/**
+ * Creates a notification for an unlocked achievement
+ */
+export async function createAchievementUnlockedNotification(
+  userId: number,
+  achievementId: number,
+  achievementName: string,
+  rewardType: string,
+  rewardValue: number
+): Promise<boolean> {
+  const title = "Achievement Unlocked!";
+  const message = `You've earned the "${achievementName}" achievement!`;
+  
+  // Format the reward information
+  let rewardText = "";
+  if (rewardType === "tokens") {
+    rewardText = `${rewardValue} CWG Tokens`;
+  } else if (rewardType === "points") {
+    rewardText = `${rewardValue} Guild Points`;
+  } else if (rewardType === "xp") {
+    rewardText = `${rewardValue} XP`;
+  }
+  
+  const notification: InsertNotification = {
+    userId,
+    type: NotificationType.ACHIEVEMENT_UNLOCKED,
+    title,
+    message,
+    link: "/achievements",
+    metadata: {
+      achievementId,
+      achievementName,
+      rewardType,
+      rewardValue
+    },
+    isRead: false,
+  };
+  
+  const emailHtml = `
+    <h2>${title}</h2>
+    <p>Congratulations! ${message}</p>
+    ${rewardText ? `<p>You've earned: ${rewardText}</p>` : ''}
+    <p>Visit <a href="https://clockworkgamers.net/achievements">your achievements page</a> to claim your reward.</p>
+  `;
+  
+  return createNotification(notification, true, title, emailHtml);
+}
+
+/**
+ * Creates a notification for a claimed achievement reward
+ */
+export async function createAchievementClaimedNotification(
+  userId: number,
+  achievementId: number,
+  achievementName: string,
+  rewardType: string,
+  rewardValue: number
+): Promise<boolean> {
+  const title = "Achievement Reward Claimed";
+  
+  // Format the reward information
+  let rewardText = "";
+  if (rewardType === "tokens") {
+    rewardText = `${rewardValue} CWG Tokens`;
+  } else if (rewardType === "points") {
+    rewardText = `${rewardValue} Guild Points`;
+  } else if (rewardType === "xp") {
+    rewardText = `${rewardValue} XP`;
+  }
+  
+  const message = `You claimed the reward for "${achievementName}": ${rewardText}`;
+  
+  const notification: InsertNotification = {
+    userId,
+    type: NotificationType.ACHIEVEMENT_CLAIMED,
+    title,
+    message,
+    link: "/achievements",
+    metadata: {
+      achievementId,
+      achievementName,
+      rewardType,
+      rewardValue
+    },
+    isRead: false,
+  };
+  
+  // Don't send email for claiming rewards, just create the notification
+  return createNotification(notification, false);
 }

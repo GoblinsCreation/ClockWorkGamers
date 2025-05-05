@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, LogOut, User, MessageSquare, Gift, ChevronDown } from "lucide-react";
+import { Menu, LogOut, User, MessageSquare, Gift, ChevronDown, Trophy } from "lucide-react";
 import { WalletConnect } from "@/components/web3/WalletConnect";
 import NotificationBell from "@/components/notifications/NotificationBell";
 
@@ -31,6 +31,7 @@ export function Navbar() {
     { name: "Investments", path: "/investments" },
     { name: "CWG NFTs", path: "/nft-marketplace" },
     { name: "Guild Tokens", path: "/token-dashboard" },
+    { name: "Achievements", path: "/achievements" },
     { name: "Calculators", path: "/calculators" },
     { name: "Contact", path: "/contact" }
   ];
@@ -99,6 +100,11 @@ export function Navbar() {
                   <Link href="/profile">
                     <DropdownMenuItem className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" /> Profile
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/achievements">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <Trophy className="mr-2 h-4 w-4" /> Achievements
                     </DropdownMenuItem>
                   </Link>
                   {/* Chat is now available via floating widget */}

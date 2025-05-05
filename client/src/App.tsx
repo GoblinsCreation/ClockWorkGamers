@@ -25,6 +25,7 @@ import ProfilePage from "@/pages/profile-page";
 import ChatPage from "@/pages/chat-page";
 import ReferralPage from "@/pages/referral-page";
 import NewsPage from "@/pages/news-page";
+import AchievementsPage from "@/pages/achievements-page";
 import PrivacyPolicyPage from "@/pages/privacy-policy-page";
 import TermsOfServicePage from "@/pages/terms-of-service-page";
 import CookiePolicyPage from "@/pages/cookie-policy-page";
@@ -33,6 +34,7 @@ import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from "./hooks/use-auth";
 import { Web3Provider } from "./hooks/use-web3";
 import FloatingChat from "@/components/chat/FloatingChat";
+import AchievementUnlockNotification from "@/components/achievements/AchievementUnlockNotification";
 
 function Router() {
   return (
@@ -57,6 +59,7 @@ function Router() {
       {/* We're using the floating chat, but keep route for direct access */}
       <Route path="/chat" component={ChatPage} />
       <Route path="/referrals" component={ReferralPage} />
+      <Route path="/achievements" component={AchievementsPage} />
       <Route path="/privacy-policy" component={PrivacyPolicyPage} />
       <Route path="/terms-of-service" component={TermsOfServicePage} />
       <Route path="/cookie-policy" component={CookiePolicyPage} />
@@ -77,6 +80,7 @@ function App() {
                 <Toaster />
                 <Router />
                 <FloatingChat />
+                <AchievementUnlockNotification />
               </TooltipProvider>
             </ThemeProvider>
         </Web3Provider>
