@@ -149,9 +149,9 @@ export function Footer() {
         <div className="border-t border-[hsl(var(--cwg-dark-blue))/50] pt-8 mt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-[hsl(var(--cwg-muted))] text-sm">&copy; {new Date().getFullYear()} ClockWork Gamers. All rights reserved.</p>
           <div className="mt-4 md:mt-0 flex space-x-6">
-            <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] text-sm transition-colors duration-200">Privacy Policy</a>
-            <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] text-sm transition-colors duration-200">Terms of Service</a>
-            <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] text-sm transition-colors duration-200">Cookie Policy</a>
+            <Link href="/privacy-policy" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] text-sm transition-colors duration-200">Privacy Policy</Link>
+            <Link href="/terms-of-service" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] text-sm transition-colors duration-200">Terms of Service</Link>
+            <Link href="/cookie-policy" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] text-sm transition-colors duration-200">Cookie Policy</Link>
           </div>
         </div>
       </div>
