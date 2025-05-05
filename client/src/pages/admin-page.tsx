@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { User, RentalRequest, News, Streamer, StreamerSchedule } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -70,6 +71,7 @@ export default function AdminPage() {
     isSubmitting: false
   });
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
   
   // Fetch streamer schedules when a streamer is selected
   const { data: streamerSchedules = [], isLoading: isLoadingSchedules } = useQuery<StreamerSchedule[]>({
