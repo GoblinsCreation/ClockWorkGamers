@@ -17,6 +17,7 @@ import {
 import { scheduleStreamStatusUpdates, updateStreamStatus, linkTwitchAccount } from "./twitch";
 import { handleContactForm, sendTestEmail } from "./email";
 import { WebSocketServer, WebSocket } from 'ws';
+import { createSystemNotification } from "./notifications";
 
 // Extend session with our custom properties
 declare module "express-session" {
@@ -1272,6 +1273,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
+  // Notification routes
+  app.get("/api/notifications", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const notifications = await storage.getUserNotifications(userId, limit);
+      
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+  
+  app.get("/api/notifications/unread-count", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 0 }); // Return 0 if not authenticated
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const count = await storage.getUnreadNotificationCount(userId);
+      
+      res.json(count);
+    } catch (error) {
+      console.error("Error fetching unread notification count:", error);
+      res.status(500).json({ message: "Failed to fetch unread count" });
+    }
+  });
+  
+  app.post("/api/notifications/:id/mark-read", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const notificationId = parseInt(req.params.id);
+      const notification = await storage.getNotification(notificationId);
+      
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      // Check if this notification belongs to the user
+      if (notification.userId !== req.user!.id) {
+        return res.status(403).json({ message: "You don't have permission to modify this notification" });
+      }
+      
+      const updatedNotification = await storage.markNotificationAsRead(notificationId);
+      res.json(updatedNotification);
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+  
+  app.post("/api/notifications/mark-all-read", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      await storage.markAllUserNotificationsAsRead(userId);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
+  
+  app.delete("/api/notifications/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const notificationId = parseInt(req.params.id);
+      const notification = await storage.getNotification(notificationId);
+      
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      // Check if this notification belongs to the user
+      if (notification.userId !== req.user!.id) {
+        return res.status(403).json({ message: "You don't have permission to delete this notification" });
+      }
+      
+      await storage.deleteNotification(notificationId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      res.status(500).json({ message: "Failed to delete notification" });
+    }
+  });
+  
+  // Admin route to send a system notification to all users
+  app.post("/api/admin/notifications/system", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    // Only admins, mods, and owners can send system notifications
+    if (!req.user!.isAdmin && req.user!.role !== "Mod" && req.user!.role !== "Admin" && req.user!.role !== "Owner") {
+      return res.status(403).json({ message: "Admin privileges required" });
+    }
+    
+    try {
+      const { message, title, specificUserId, sendEmail } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      
+      const success = await createSystemNotification(
+        message,
+        title || "System Notification",
+        specificUserId ? parseInt(specificUserId) : undefined,
+        sendEmail === true
+      );
+      
+      if (success) {
+        res.json({ success: true });
+      } else {
+        res.status(500).json({ message: "Failed to create system notification" });
+      }
+    } catch (error) {
+      console.error("Error creating system notification:", error);
+      res.status(500).json({ message: "Failed to create system notification" });
+    }
+  });
+
   // Helper function to broadcast message to clients in the appropriate room
   function broadcastMessage(message: any) {
     const messageStr = JSON.stringify(message);

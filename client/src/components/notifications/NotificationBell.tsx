@@ -16,7 +16,7 @@ export default function NotificationBell({ className }: { className?: string }) 
     data: unreadCount = 0,
     isLoading: countLoading,
     error: countError
-  } = useQuery({
+  } = useQuery<number>({
     queryKey: ['/api/notifications/unread-count'],
     retry: false,
     // Refresh the count every minute and whenever the component is focused
@@ -36,6 +36,9 @@ export default function NotificationBell({ className }: { className?: string }) 
     });
   };
 
+  // Use the unreadCount safely
+  const count = typeof unreadCount === 'number' ? unreadCount : 0;
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -46,9 +49,9 @@ export default function NotificationBell({ className }: { className?: string }) 
           aria-label="Notifications"
         >
           <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
+          {count > 0 && (
             <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-white">
-              {unreadCount > 99 ? '99+' : unreadCount}
+              {count > 99 ? '99+' : count}
             </span>
           )}
         </Button>
