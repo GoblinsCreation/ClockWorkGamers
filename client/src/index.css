@@ -4,42 +4,52 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
+    --background: 240 15% 2.5%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 240 15% 2.9%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 240 15% 2.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 24 100% 50%;
+    --primary: 21 100% 45%;
     --primary-foreground: 240 5% 95%;
-    --secondary: 207 90% 54%;
+    --secondary: 210 95% 45%;
     --secondary-foreground: 240 5% 95%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 207 90% 54%;
+    --accent: 210 95% 45%;
     --accent-foreground: 240 5% 95%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 24 100% 50%;
+    --ring: 21 100% 45%;
     
     --radius: 0.5rem;
     
     /* Custom colors */
-    --cwg-dark: 0 0% 7%;
-    --cwg-dark-blue: 240 10% 15%;
-    --cwg-orange: 24 100% 50%;
-    --cwg-blue: 207 90% 54%;
+    --cwg-dark: 240 15% 5%;
+    --cwg-dark-blue: 240 20% 12%;
+    --cwg-orange: 21 100% 45%;
+    --cwg-orange-dark: 21 100% 35%;
+    --cwg-orange-light: 21 100% 55%; 
+    --cwg-blue: 210 95% 45%;
+    --cwg-blue-dark: 210 95% 35%;
+    --cwg-blue-light: 210 95% 60%;
     --cwg-text: 0 0% 94%;
     --cwg-muted: 240 5% 64.9%;
     
     /* Chart colors */
-    --chart-1: 24 100% 50%;
-    --chart-2: 207 90% 54%;
+    --chart-1: 21 100% 45%;
+    --chart-2: 210 95% 45%;
     --chart-3: 262 83% 58%;
     --chart-4: 322 79% 58%;
     --chart-5: 135 72% 47%;
+    
+    /* Web3 Theme Colors */
+    --web3-neon-green: 135 100% 60%;
+    --web3-neon-purple: 280 100% 65%;
+    --web3-cyber-pink: 320 100% 65%;
+    --web3-crypto-yellow: 45 100% 60%;
   }
 }
 
@@ -59,23 +69,91 @@
 
 /* Custom CSS that tailwind doesn't handle well */
 @layer utilities {
+  /* Background effects */
   .bg-mesh {
     background-image: radial-gradient(circle at 50% 50%, hsl(var(--cwg-dark-blue)) 0%, hsl(var(--cwg-dark)) 100%);
     background-size: 100% 100%;
   }
   
+  .bg-web3-grid {
+    background-image: 
+      linear-gradient(to right, hsla(var(--cwg-dark-blue), 0.2) 1px, transparent 1px),
+      linear-gradient(to bottom, hsla(var(--cwg-dark-blue), 0.2) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  
+  .bg-web3-dots {
+    background-image: radial-gradient(hsla(var(--cwg-blue), 0.2) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  
+  .bg-web3-circuit {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .bg-web3-circuit::before {
+    content: "";
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath fill='none' stroke='rgba(0, 163, 255, 0.15)' stroke-width='1' d='M10,10 L90,10 M10,50 L90,50 M10,90 L90,90 M50,10 L50,90 M10,10 L50,50 M50,50 L90,10 M10,90 L50,50 M50,50 L90,90'/%3E%3C/svg%3E");
+    background-size: 50px 50px;
+    z-index: -1;
+    opacity: 0.3;
+  }
+  
+  /* Glow effects */
   .neon-glow {
-    box-shadow: 0 0 15px rgba(255, 107, 0, 0.6);
+    box-shadow: 0 0 15px hsla(var(--cwg-orange), 0.6);
   }
   
   .blue-glow {
-    box-shadow: 0 0 15px rgba(0, 163, 255, 0.6);
+    box-shadow: 0 0 15px hsla(var(--cwg-blue), 0.6);
   }
   
+  .neon-text-orange {
+    color: hsl(var(--cwg-orange));
+    text-shadow: 0 0 5px hsla(var(--cwg-orange), 0.5), 
+                 0 0 10px hsla(var(--cwg-orange), 0.3);
+    letter-spacing: 0.05em;
+  }
+  
+  .neon-text-blue {
+    color: hsl(var(--cwg-blue));
+    text-shadow: 0 0 5px hsla(var(--cwg-blue), 0.5), 
+                 0 0 10px hsla(var(--cwg-blue), 0.3);
+    letter-spacing: 0.05em;
+  }
+  
+  .neon-border-orange {
+    border: 1px solid hsl(var(--cwg-orange));
+    box-shadow: 0 0 5px hsla(var(--cwg-orange), 0.5), 
+                inset 0 0 5px hsla(var(--cwg-orange), 0.2);
+  }
+  
+  .neon-border-blue {
+    border: 1px solid hsl(var(--cwg-blue));
+    box-shadow: 0 0 5px hsla(var(--cwg-blue), 0.5), 
+                inset 0 0 5px hsla(var(--cwg-blue), 0.2);
+  }
+  
+  /* Hover effects */
   .btn-hover:hover {
-    box-shadow: 0 0 20px rgba(255, 107, 0, 0.8);
+    box-shadow: 0 0 20px hsla(var(--cwg-orange), 0.8);
     transform: translateY(-2px);
     transition: all 0.3s ease;
+  }
+  
+  .btn-hover-blue:hover {
+    box-shadow: 0 0 20px hsla(var(--cwg-blue), 0.8);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+  }
+  
+  .web3-hover:hover {
+    transform: scale(1.03);
+    transition: all 0.2s ease;
   }
   
   .streamer-card:hover {
@@ -83,6 +161,7 @@
     transition: all 0.3s ease;
   }
   
+  /* Status indicators */
   .live-indicator {
     position: absolute;
     top: 10px;
@@ -110,10 +189,26 @@
     }
   }
   
+  /* Gradients */
   .card-gradient {
     background: linear-gradient(135deg, hsl(var(--cwg-dark-blue)) 0%, hsl(var(--cwg-dark)) 100%);
   }
   
+  .web3-gradient {
+    background: linear-gradient(135deg, 
+      hsla(var(--cwg-blue), 0.8) 0%, 
+      hsla(var(--cwg-dark-blue), 0.9) 50%, 
+      hsla(var(--cwg-orange), 0.8) 100%);
+  }
+  
+  .crypto-gradient {
+    background: linear-gradient(135deg, 
+      hsla(var(--web3-neon-green), 0.2) 0%, 
+      hsla(var(--cwg-blue), 0.2) 50%, 
+      hsla(var(--web3-crypto-yellow), 0.2) 100%);
+  }
+  
+  /* Animations */
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
@@ -123,8 +218,72 @@
     50% { transform: translateY(-10px); }
   }
   
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  
+  .animate-cyber-scan {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .animate-cyber-scan::after {
+    content: "";
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    height: 300%;
+    width: 300%;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      hsla(var(--cwg-blue), 0.1) 50%,
+      transparent 100%
+    );
+    animation: cyber-scan 4s linear infinite;
+    transform: rotate(30deg);
+  }
+  
+  @keyframes cyber-scan {
+    0% { transform: translateY(-100%) rotate(30deg); }
+    100% { transform: translateY(100%) rotate(30deg); }
+  }
+  
+  /* Shapes */
   .hexagon {
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  }
+  
+  .diamond {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  }
+  
+  .web3-chip {
+    position: relative;
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  
+  .web3-chip::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(130deg, transparent 0%, transparent 33%, hsla(var(--cwg-blue), 0.3) 66%, hsla(var(--cwg-orange), 0.3) 100%);
+    background-size: 300% 300%;
+    background-position: 0 0;
+    animation: web3-chip-gradient 3s ease infinite;
+    z-index: -1;
+  }
+  
+  @keyframes web3-chip-gradient {
+    0% { background-position: 0% 0%; }
+    50% { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
   }
 }
 
