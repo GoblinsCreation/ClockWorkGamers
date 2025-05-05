@@ -73,14 +73,13 @@ const profileFormSchema = z.object({
   bio: z.string().max(500, {
     message: 'Bio cannot be longer than 500 characters.',
   }).optional(),
-  email: z.string().email({
-    message: 'Please enter a valid email address.',
-  }),
-  avatar: z.string().url({
-    message: 'Please enter a valid URL for your avatar.',
-  }).optional(),
+  // Removed email field since it's already in registration
+  avatar: z.string().optional(), // Removed URL validation to allow file uploads
   discordUsername: z.string().max(50).optional(),
   twitterUsername: z.string().max(50).optional(),
+  twitchUsername: z.string().max(50).optional(),
+  kickUsername: z.string().max(50).optional(),
+  youtubeChannel: z.string().max(100).optional(),
   gameIds: z.array(z.string()).optional(),
   preferences: z.object({
     emailNotifications: z.boolean().default(true),

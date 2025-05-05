@@ -123,6 +123,9 @@ export const userProfiles = pgTable("user_profiles", {
   avatar: text("avatar"),
   discordUsername: text("discord_username"),
   twitterUsername: text("twitter_username"),
+  twitchUsername: text("twitch_username"),
+  kickUsername: text("kick_username"),
+  youtubeChannel: text("youtube_channel"),
   gameIds: text("game_ids").array(),
   preferences: jsonb("preferences").notNull().default({
     emailNotifications: true,
