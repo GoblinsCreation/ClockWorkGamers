@@ -133,7 +133,7 @@ export default function CalculatorsPage() {
                   </li>
                   <li className="flex items-start">
                     <span className="text-[hsl(var(--cwg-blue))] mr-2">•</span>
-                    <span>Track market prices for in-game currencies and tokens</span>
+                    <span>Analyze optimal skill and gear configurations</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-[hsl(var(--cwg-blue))] mr-2">•</span>

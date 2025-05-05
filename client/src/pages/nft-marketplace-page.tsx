@@ -13,46 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const SAMPLE_NFTS = [
   {
     id: 1,
-    name: "Dragon Slayer Sword",
-    description: "Legendary weapon that deals extra damage to dragon enemies",
-    image: "https://placehold.co/300x300/252634/00A3FF?text=⚔️&font=montserrat",
-    price: "0.15",
-    rarity: "Legendary",
-    game: "Crypto Legends",
-    owner: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-  },
-  {
-    id: 2, 
-    name: "Space Cruiser X7",
-    description: "Fast interplanetary vehicle with enhanced shield capabilities",
-    image: "https://placehold.co/300x300/252634/00A3FF?text=🚀&font=montserrat",
-    price: "0.25",
-    rarity: "Epic",
-    game: "Galaxy Raiders",
-    owner: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
-  },
-  {
-    id: 3,
-    name: "Fire Mage Helmet",
-    description: "Increases fire spell damage by 15%",
-    image: "https://placehold.co/300x300/252634/FF6B00?text=🔥&font=montserrat",
-    price: "0.08",
-    rarity: "Rare",
-    game: "Crypto Legends",
-    owner: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
-  },
-  {
-    id: 4,
-    name: "Stealth Drone",
-    description: "Invisible reconnaissance unit that can spy on enemies",
-    image: "https://placehold.co/300x300/252634/00A3FF?text=🛸&font=montserrat",
-    price: "0.12",
-    rarity: "Epic",
-    game: "Galaxy Raiders",
-    owner: "0x90F79bf6EB2c4f870365E785982E1f101E93b906"
-  },
-  {
-    id: 5,
     name: "Titan Slayer Axe",
     description: "Massive battle axe that can stun titan enemies",
     image: "https://placehold.co/300x300/252634/FF6B00?text=🪓&font=montserrat",
@@ -62,13 +22,53 @@ const SAMPLE_NFTS = [
     owner: "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65"
   },
   {
+    id: 2, 
+    name: "KoKodi Charm",
+    description: "Rare talisman that increases luck and treasure drops",
+    image: "https://placehold.co/300x300/252634/00A3FF?text=🍀&font=montserrat",
+    price: "0.25",
+    rarity: "Epic",
+    game: "KoKodi",
+    owner: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+  },
+  {
+    id: 3,
+    name: "Nyan Helmet",
+    description: "Advanced protection headgear for feline heroes",
+    image: "https://placehold.co/300x300/252634/FF6B00?text=😺&font=montserrat",
+    price: "0.08",
+    rarity: "Rare",
+    game: "Nyan Heroes",
+    owner: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+  },
+  {
+    id: 4,
+    name: "Time Displacer",
+    description: "Allows brief manipulation of local time flow",
+    image: "https://placehold.co/300x300/252634/00A3FF?text=⏱️&font=montserrat",
+    price: "0.12",
+    rarity: "Epic",
+    game: "Big Time",
+    owner: "0x90F79bf6EB2c4f870365E785982E1f101E93b906"
+  },
+  {
+    id: 5,
+    name: "Shard Collector",
+    description: "Special container that can store and preserve world shards",
+    image: "https://placehold.co/300x300/252634/FF6B00?text=💎&font=montserrat",
+    price: "0.15",
+    rarity: "Legendary",
+    game: "WorldShards",
+    owner: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+  },
+  {
     id: 6,
-    name: "Healing Amulet",
-    description: "Regenerates health during battle",
-    image: "https://placehold.co/300x300/252634/00A3FF?text=✨&font=montserrat",
+    name: "Stealth Module",
+    description: "Advanced cloaking device for tactical advantage",
+    image: "https://placehold.co/300x300/252634/00A3FF?text=🔍&font=montserrat",
     price: "0.05",
     rarity: "Uncommon",
-    game: "Crypto Legends",
+    game: "Off The Grid",
     owner: "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc"
   }
 ];
@@ -158,7 +158,19 @@ export default function NFTMarketplacePage() {
                 <Gift className="h-3 w-3 mr-1" /> Transfer
               </Button>
             ) : (
-              <Button size="sm" className="text-xs bg-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-dark))]">
+              <Button 
+                size="sm" 
+                className="text-xs bg-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-dark))]"
+                onClick={() => {
+                  if (!connected) {
+                    // Request wallet connection first
+                    const connectBtn = document.querySelector('button.bg-\\[hsl\\(var\\(--cwg-blue\\)\\)]') as HTMLButtonElement;
+                    if (connectBtn) connectBtn.click();
+                  } else {
+                    window.open('/payment-options', '_blank');
+                  }
+                }}
+              >
                 <ShoppingCart className="h-3 w-3 mr-1" /> Buy
               </Button>
             )}
@@ -209,15 +221,15 @@ export default function NFTMarketplacePage() {
               <div className="mt-8 lg:mt-0">
                 <div className="flex items-center gap-4 flex-wrap">
                   <div className="bg-[hsl(var(--cwg-dark-blue))]/50 p-4 rounded-lg text-center min-w-[100px]">
-                    <div className="text-3xl font-orbitron text-[hsl(var(--cwg-blue))]">235</div>
+                    <div className="text-3xl font-orbitron text-[hsl(var(--cwg-blue))]">0</div>
                     <div className="text-xs text-[hsl(var(--cwg-muted))]">Total NFTs</div>
                   </div>
                   <div className="bg-[hsl(var(--cwg-dark-blue))]/50 p-4 rounded-lg text-center min-w-[100px]">
-                    <div className="text-3xl font-orbitron text-[hsl(var(--cwg-orange))]">45</div>
+                    <div className="text-3xl font-orbitron text-[hsl(var(--cwg-orange))]">0</div>
                     <div className="text-xs text-[hsl(var(--cwg-muted))]">Players</div>
                   </div>
                   <div className="bg-[hsl(var(--cwg-dark-blue))]/50 p-4 rounded-lg text-center min-w-[100px]">
-                    <div className="text-3xl font-orbitron text-[hsl(var(--cwg-blue))]">3</div>
+                    <div className="text-3xl font-orbitron text-[hsl(var(--cwg-blue))]">7</div>
                     <div className="text-xs text-[hsl(var(--cwg-muted))]">Games</div>
                   </div>
                 </div>
@@ -256,9 +268,13 @@ export default function NFTMarketplacePage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Games</SelectItem>
-                      <SelectItem value="Crypto Legends">Crypto Legends</SelectItem>
-                      <SelectItem value="Galaxy Raiders">Galaxy Raiders</SelectItem>
                       <SelectItem value="Boss Fighters">Boss Fighters</SelectItem>
+                      <SelectItem value="KoKodi">KoKodi</SelectItem>
+                      <SelectItem value="Nyan Heroes">Nyan Heroes</SelectItem>
+                      <SelectItem value="Big Time">Big Time</SelectItem>
+                      <SelectItem value="WorldShards">WorldShards</SelectItem>
+                      <SelectItem value="Off The Grid">Off The Grid</SelectItem>
+                      <SelectItem value="RavenQuest">RavenQuest</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
