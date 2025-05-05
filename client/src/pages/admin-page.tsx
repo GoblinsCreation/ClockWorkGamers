@@ -389,11 +389,21 @@ export default function AdminPage() {
                                       <DropdownMenuItem 
                                         className={user.role === "User" ? "bg-[hsl(var(--cwg-dark-blue))]/50" : ""}
                                         onClick={() => {
-                                          // Update user role API call would go here
-                                          toast({
-                                            title: "Role Updated",
-                                            description: `${user.username} is now a standard User`,
-                                          });
+                                          apiRequest("PATCH", `/api/admin/users/${user.id}/role`, { role: "User" })
+                                            .then(() => {
+                                              queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+                                              toast({
+                                                title: "Role Updated",
+                                                description: `${user.username} is now a standard User`,
+                                              });
+                                            })
+                                            .catch(error => {
+                                              toast({
+                                                title: "Update Failed",
+                                                description: error.message || "Could not update user role",
+                                                variant: "destructive"
+                                              });
+                                            });
                                         }}
                                       >
                                         User
@@ -401,11 +411,21 @@ export default function AdminPage() {
                                       <DropdownMenuItem 
                                         className={user.role === "Mod" ? "bg-[hsl(var(--cwg-dark-blue))]/50" : ""}
                                         onClick={() => {
-                                          // Update user role API call would go here
-                                          toast({
-                                            title: "Role Updated",
-                                            description: `${user.username} is now a Moderator`,
-                                          });
+                                          apiRequest("PATCH", `/api/admin/users/${user.id}/role`, { role: "Mod", isAdmin: false })
+                                            .then(() => {
+                                              queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+                                              toast({
+                                                title: "Role Updated",
+                                                description: `${user.username} is now a Moderator`,
+                                              });
+                                            })
+                                            .catch(error => {
+                                              toast({
+                                                title: "Update Failed",
+                                                description: error.message || "Could not update user role",
+                                                variant: "destructive"
+                                              });
+                                            });
                                         }}
                                       >
                                         Moderator
@@ -413,11 +433,21 @@ export default function AdminPage() {
                                       <DropdownMenuItem 
                                         className={user.role === "Admin" ? "bg-[hsl(var(--cwg-dark-blue))]/50" : ""}
                                         onClick={() => {
-                                          // Update user role API call would go here
-                                          toast({
-                                            title: "Role Updated",
-                                            description: `${user.username} is now an Admin`,
-                                          });
+                                          apiRequest("PATCH", `/api/admin/users/${user.id}/role`, { role: "Admin", isAdmin: true })
+                                            .then(() => {
+                                              queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+                                              toast({
+                                                title: "Role Updated",
+                                                description: `${user.username} is now an Admin`,
+                                              });
+                                            })
+                                            .catch(error => {
+                                              toast({
+                                                title: "Update Failed",
+                                                description: error.message || "Could not update user role",
+                                                variant: "destructive"
+                                              });
+                                            });
                                         }}
                                       >
                                         Admin

@@ -446,6 +446,20 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
   
+  async updateUserRole(userId: number, role: string, isAdmin: boolean): Promise<User | undefined> {
+    try {
+      const [user] = await db
+        .update(users)
+        .set({ role, isAdmin })
+        .where(eq(users.id, userId))
+        .returning();
+      return user;
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      return undefined;
+    }
+  }
+  
   async createReferral(referral: InsertReferral): Promise<Referral> {
     const [createdReferral] = await db.insert(referrals).values(referral).returning();
     return createdReferral;
