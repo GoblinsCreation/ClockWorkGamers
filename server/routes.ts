@@ -13,6 +13,7 @@ import {
   handlePasswordReset,
   servePhpAdminPanel
 } from "./php-integration";
+import { scheduleStreamStatusUpdates, updateStreamStatus, linkTwitchAccount } from "./twitch";
 
 import { WebSocketServer, WebSocket } from 'ws';
 
