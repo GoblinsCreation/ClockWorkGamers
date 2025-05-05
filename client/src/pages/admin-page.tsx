@@ -334,7 +334,7 @@ export default function AdminPage() {
                             <TableHead>Full Name</TableHead>
                             <TableHead>Email</TableHead>
                             <TableHead>Guild</TableHead>
-                            <TableHead>Admin</TableHead>
+                            <TableHead>Role</TableHead>
                             <TableHead>Actions</TableHead>
                           </TableRow>
                         </TableHeader>

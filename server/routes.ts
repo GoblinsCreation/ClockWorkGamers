@@ -421,9 +421,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin routes (requires admin authentication)
   app.use("/api/admin", (req, res, next) => {
-    if (!req.isAuthenticated() || !req.user!.isAdmin) {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    // Check for any admin role (isAdmin flag or role-based permission)
+    if (!req.user!.isAdmin && 
+        req.user!.role !== "Mod" && 
+        req.user!.role !== "Admin" && 
+        req.user!.role !== "Owner") {
       return res.status(403).json({ message: "Admin access required" });
     }
+    
     next();
   });
   

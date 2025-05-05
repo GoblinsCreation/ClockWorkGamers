@@ -30,7 +30,11 @@ export function ProtectedRoute({
   }
 
   // Additional check for admin-only routes
-  if (path === "/admin" && !user.isAdmin) {
+  if (path === "/admin" && 
+      !user.isAdmin && 
+      user.role !== "Mod" && 
+      user.role !== "Admin" && 
+      user.role !== "Owner") {
     return (
       <Route path={path}>
         <Redirect to="/" />
