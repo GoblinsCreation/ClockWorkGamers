@@ -9,10 +9,14 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Loader2, GraduationCap, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 export default function CoursesPage() {
   const [selectedGame, setSelectedGame] = useState("boss-fighters");
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
   
   const { data: courses = [], isLoading } = useQuery<Course[]>({
     queryKey: [`/api/courses?game=${selectedGame}`],
@@ -21,8 +25,12 @@ export default function CoursesPage() {
   // Available games for courses
   const games = [
     { id: "boss-fighters", name: "Boss Fighters" },
-    { id: "galaxy-raiders", name: "Galaxy Raiders" },
-    { id: "crypto-legends", name: "Crypto Legends" },
+    { id: "kokodi", name: "KoKodi" },
+    { id: "nyan-heroes", name: "Nyan Heroes" },
+    { id: "big-time", name: "Big Time" },
+    { id: "worldshards", name: "WorldShards" },
+    { id: "off-the-grid", name: "Off The Grid" },
+    { id: "ravenquest", name: "RavenQuest" },
   ];
   
   // Instructors information
@@ -31,19 +39,19 @@ export default function CoursesPage() {
       id: 1,
       name: "CWG | FrostiiGoblin",
       role: "Weapon & Combat Specialist",
-      expertise: "Boss Fighters, NFT Warriors",
+      expertise: "Boss Fighters, KoKodi, Nyan Heroes",
     },
     {
       id: 2,
       name: "CWG | YarblesTV",
       role: "Crafting & Economy Expert",
-      expertise: "Boss Fighters, Crypto Legends",
+      expertise: "Boss Fighters, Big Time, WorldShards",
     },
     {
       id: 3,
       name: "CWG | Nexion",
       role: "Strategy & Game Mechanics",
-      expertise: "Galaxy Raiders, Chain Battles",
+      expertise: "Off The Grid, RavenQuest",
     }
   ];
 
@@ -139,7 +147,24 @@ export default function CoursesPage() {
                           <p className="text-[hsl(var(--cwg-muted))] mb-4">
                             Specializes in: {instructor.expertise}
                           </p>
-                          <Button className="w-full bg-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-dark))] hover:bg-[hsl(var(--cwg-blue))]/90">
+                          <Button 
+                            className="w-full bg-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-dark))] hover:bg-[hsl(var(--cwg-blue))]/90"
+                            onClick={() => {
+                              if (!user) {
+                                toast({
+                                  title: "Authentication required",
+                                  description: "Please sign in to view instructor profiles",
+                                  variant: "destructive",
+                                });
+                                navigate("/auth");
+                              } else {
+                                toast({
+                                  title: "Coming soon!",
+                                  description: "Instructor profiles will be available in the next update",
+                                });
+                              }
+                            }}
+                          >
                             View Profile
                           </Button>
                         </div>
@@ -205,7 +230,24 @@ export default function CoursesPage() {
                         </ul>
                         
                         <div className="mt-6">
-                          <Button className="flex items-center gap-2 bg-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-dark))] hover:bg-[hsl(var(--cwg-orange))]/90">
+                          <Button 
+                            className="flex items-center gap-2 bg-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-dark))] hover:bg-[hsl(var(--cwg-orange))]/90"
+                            onClick={() => {
+                              if (!user) {
+                                toast({
+                                  title: "Authentication required",
+                                  description: "Please sign in to request information",
+                                  variant: "destructive",
+                                });
+                                navigate("/auth");
+                              } else {
+                                toast({
+                                  title: "Request submitted",
+                                  description: "We'll contact you soon with more information about our courses",
+                                });
+                              }
+                            }}
+                          >
                             <MessageSquare className="h-4 w-4" />
                             Request More Information
                           </Button>
