@@ -993,7 +993,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user!.id;
       const referrals = await storage.getUserReferrals(userId);
-      res.json(referrals);
+      
+      // Enhance referrals with username information
+      const enhancedReferrals = await Promise.all(referrals.map(async (referral) => {
+        const referredUser = await storage.getUser(referral.referredId);
+        return {
+          ...referral,
+          referredUsername: referredUser?.username || 'Unknown User'
+        };
+      }));
+      
+      res.json(enhancedReferrals);
     } catch (error) {
       console.error("Error fetching referrals:", error);
       res.status(500).json({ message: "Failed to fetch referrals" });

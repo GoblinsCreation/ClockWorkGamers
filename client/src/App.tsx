@@ -23,7 +23,7 @@ import GamesPage from "@/pages/games-page";
 import InvestmentsPage from "@/pages/investments-page";
 import ProfilePage from "@/pages/profile-page";
 import ChatPage from "@/pages/chat-page";
-import ReferralPage from "@/pages/referral-page";
+import ReferralsPage from "@/pages/referrals-page";
 import NewsPage from "@/pages/news-page";
 import AchievementsPage from "@/pages/achievements-page";
 import PrivacyPolicyPage from "@/pages/privacy-policy-page";
@@ -63,7 +63,7 @@ function Router() {
       <ProtectedRoute path="/contact" component={ContactPage} />
       <ProtectedRoute path="/news" component={NewsPage} />
       <ProtectedRoute path="/chat" component={ChatPage} />
-      <ProtectedRoute path="/referrals" component={ReferralPage} />
+      <ProtectedRoute path="/referrals" component={ReferralsPage} />
       <ProtectedRoute path="/achievements" component={AchievementsPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/admin" component={AdminPage} />

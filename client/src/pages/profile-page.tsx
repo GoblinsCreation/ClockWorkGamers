@@ -42,6 +42,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { 
   User, 
+  Users,
+  Copy,
   Pencil, 
   Shield, 
   Trophy, 
@@ -192,6 +194,28 @@ export default function ProfilePage() {
       toast({
         title: "Failed to update profile",
         description: error.message || "An error occurred while updating your profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Generate referral code mutation
+  const generateReferralCodeMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/referrals/generate-code');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Referral Code Generated",
+        description: "Your referral code has been created successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to generate referral code",
+        description: error.message || "An error occurred. Please try again.",
         variant: "destructive",
       });
     },
