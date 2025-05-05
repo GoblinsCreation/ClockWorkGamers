@@ -755,14 +755,15 @@ export default function ProfilePage() {
                                 <p className="font-medium">{initialData.displayName || '-'}</p>
                               </div>
                               
-                              <div>
-                                <Label className="text-[hsl(var(--cwg-muted))]">Email</Label>
-                                <p className="font-medium">{initialData.email || '-'}</p>
-                              </div>
-                              
-                              <div>
-                                <Label className="text-[hsl(var(--cwg-muted))]">Avatar URL</Label>
-                                <p className="font-medium text-xs break-all">{initialData.avatar || '-'}</p>
+                                <div>
+                                <Label className="text-[hsl(var(--cwg-muted))]">Avatar</Label>
+                                {initialData.avatar ? (
+                                  <div className="mt-1">
+                                    <img src={initialData.avatar} alt="Avatar" className="w-16 h-16 rounded-md object-cover" />
+                                  </div>
+                                ) : (
+                                  <p className="font-medium">-</p>
+                                )}
                               </div>
                             </div>
                           </div>
