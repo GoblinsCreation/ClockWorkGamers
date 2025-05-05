@@ -81,6 +81,9 @@ export function setupAuth(app: Express) {
     fullName: z.string().min(2, "Full name must be at least 2 characters long"),
     guild: z.string(),
     dateOfBirth: z.string(),
+    referralCode: z.string().optional(),
+    discordUsername: z.string().optional(),
+    twitchHandle: z.string().optional(),
   });
 
   app.post("/api/register", async (req, res, next) => {
@@ -106,6 +109,39 @@ export function setupAuth(app: Express) {
         password: await hashPassword(validatedData.password),
       });
       
+      // Handle referral code if provided
+      if (validatedData.referralCode) {
+        try {
+          // Find the referrer user
+          const referrer = await storage.getUserByReferralCode(validatedData.referralCode);
+          
+          if (referrer && referrer.id !== user.id) {
+            // Create the referral relationship
+            await storage.createReferral({
+              referrerId: referrer.id,
+              referredId: user.id,
+              status: "active",
+              rewardClaimed: false
+            });
+            
+            // Create notification for the referrer
+            if (typeof storage.createNotification === 'function') {
+              await storage.createNotification({
+                userId: referrer.id,
+                type: "REFERRAL",
+                title: "New Referral",
+                message: `${user.username} joined using your referral code!`,
+                isRead: false,
+                data: JSON.stringify({ referredId: user.id })
+              });
+            }
+          }
+        } catch (referralError) {
+          console.error("Error processing referral:", referralError);
+          // Don't fail registration if referral processing fails
+        }
+      }
+      
       // Log the user in
       req.login(user, (err) => {
         if (err) return next(err);
@@ -120,11 +156,11 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: any, user: SelectUser | false, info: any) => {
       if (err) return next(err);
       if (!user) return res.status(401).json({ message: "Invalid username or password" });
       
-      req.login(user, (err) => {
+      req.login(user, (err: any) => {
         if (err) return next(err);
         return res.status(200).json(user);
       });
