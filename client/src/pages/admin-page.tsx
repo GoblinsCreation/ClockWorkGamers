@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { User, RentalRequest, News } from "@shared/schema";
+import { User, RentalRequest, News, Streamer, StreamerSchedule } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -23,6 +23,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { 
   Check, 
   X, 
@@ -43,7 +52,22 @@ export default function AdminPage() {
   const [userFilter, setUserFilter] = useState("");
   const [rentalFilter, setRentalFilter] = useState("");
   const [streamerFilter, setStreamerFilter] = useState("");
+  const [selectedStreamer, setSelectedStreamer] = useState<Streamer | null>(null);
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  const [newSchedule, setNewSchedule] = useState({
+    day: "",
+    startTime: "",
+    endTime: "",
+    game: "",
+    isSubmitting: false
+  });
   const { toast } = useToast();
+  
+  // Fetch streamer schedules when a streamer is selected
+  const { data: streamerSchedules = [], isLoading: isLoadingSchedules } = useQuery<StreamerSchedule[]>({
+    queryKey: ["/api/streamer-schedules", selectedStreamer?.id],
+    enabled: !!selectedStreamer,
+  });
   
   // Fetch users
   const { data: users = [], isLoading: isLoadingUsers } = useQuery<User[]>({
@@ -61,7 +85,7 @@ export default function AdminPage() {
   });
   
   // Fetch streamers
-  const { data: streamers = [], isLoading: isLoadingStreamers } = useQuery({
+  const { data: streamers = [], isLoading: isLoadingStreamers } = useQuery<Streamer[]>({
     queryKey: ["/api/streamers"],
   });
   
@@ -80,8 +104,8 @@ export default function AdminPage() {
   // Filter streamers based on search
   const filteredStreamers = streamers.filter(streamer => 
     streamer.displayName.toLowerCase().includes(streamerFilter.toLowerCase()) ||
-    (streamer.description && streamer.description.toLowerCase().includes(streamerFilter.toLowerCase())) ||
-    (streamer.game && streamer.game.toLowerCase().includes(streamerFilter.toLowerCase()))
+    (streamer.streamTitle && streamer.streamTitle.toLowerCase().includes(streamerFilter.toLowerCase())) ||
+    (streamer.currentGame && streamer.currentGame.toLowerCase().includes(streamerFilter.toLowerCase()))
   );
   
   // Handle rental request status change
@@ -110,6 +134,58 @@ export default function AdminPage() {
     category: "",
     isSubmitting: false
   });
+  
+  // Open schedule dialog
+  const openScheduleDialog = (streamer: Streamer) => {
+    setSelectedStreamer(streamer);
+    setIsScheduleDialogOpen(true);
+  };
+  
+  // Create new schedule
+  const handleCreateSchedule = async () => {
+    if (!selectedStreamer || !newSchedule.day || !newSchedule.startTime || !newSchedule.endTime || !newSchedule.game) {
+      toast({
+        title: "Validation error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setNewSchedule({ ...newSchedule, isSubmitting: true });
+    
+    try {
+      await apiRequest("POST", "/api/streamer-schedules", {
+        streamerId: selectedStreamer.id,
+        day: newSchedule.day,
+        startTime: newSchedule.startTime,
+        endTime: newSchedule.endTime,
+        game: newSchedule.game
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/streamer-schedules", selectedStreamer.id] });
+      
+      toast({
+        title: "Schedule created",
+        description: "The streaming schedule has been added successfully",
+      });
+      
+      setNewSchedule({
+        day: "",
+        startTime: "",
+        endTime: "",
+        game: "",
+        isSubmitting: false
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to create schedule",
+        description: "An error occurred while adding the streaming schedule",
+        variant: "destructive",
+      });
+      setNewSchedule({ ...newSchedule, isSubmitting: false });
+    }
+  };
   
   const handleCreateNews = async () => {
     if (!newNewsPost.title || !newNewsPost.content || !newNewsPost.category) {
@@ -447,8 +523,8 @@ export default function AdminPage() {
                               <TableCell>{streamer.id}</TableCell>
                               <TableCell className="font-medium">{streamer.displayName}</TableCell>
                               <TableCell>{streamer.userId}</TableCell>
-                              <TableCell>{streamer.game || "N/A"}</TableCell>
-                              <TableCell>{streamer.platform || "N/A"}</TableCell>
+                              <TableCell>{streamer.currentGame || "N/A"}</TableCell>
+                              <TableCell>{streamer.twitchId ? "Twitch" : "N/A"}</TableCell>
                               <TableCell>
                                 <span className={`px-2 py-1 rounded-full text-xs ${
                                   streamer.isLive 
@@ -607,16 +683,105 @@ export default function AdminPage() {
               {/* Messages Tab */}
               <TabsContent value="messages">
                 <div className="card-gradient rounded-xl p-6 border border-[hsl(var(--cwg-dark-blue))]">
-                  <h2 className="text-2xl font-orbitron font-semibold text-[hsl(var(--cwg-blue))] mb-6">Contact Messages</h2>
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-orbitron font-semibold text-[hsl(var(--cwg-blue))]">Contact Messages</h2>
+                    <div className="relative w-64">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[hsl(var(--cwg-muted))]" size={18} />
+                      <Input 
+                        type="text"
+                        placeholder="Search messages..."
+                        className="pl-10 bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-text))]"
+                      />
+                    </div>
+                  </div>
                   
-                  <div className="text-center py-16">
-                    <MessageSquare className="mx-auto h-16 w-16 text-[hsl(var(--cwg-muted))] mb-4" />
-                    <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-text))] mb-2">
-                      Contact Form Integration
-                    </h3>
-                    <p className="text-[hsl(var(--cwg-muted))] max-w-lg mx-auto">
-                      Messages from the contact form will appear here. Setup your contact form to store messages in the database.
-                    </p>
+                  {/* Sample contact messages - in production, these would come from the database */}
+                  <div className="space-y-4 max-h-[550px] overflow-y-auto pr-2">
+                    {[
+                      {
+                        id: 1,
+                        name: "John Doe",
+                        email: "john@example.com",
+                        subject: "Question about NFT Rentals",
+                        message: "I'm interested in renting some NFTs for the KoKodi game. Can you tell me more about the rental process and costs?",
+                        createdAt: "2023-12-15T14:30:00Z",
+                        status: "unread"
+                      },
+                      {
+                        id: 2,
+                        name: "Alice Smith",
+                        email: "alice@example.com",
+                        subject: "Partnership Opportunity",
+                        message: "We have a Web3 gaming community and would like to discuss potential partnership opportunities with ClockWork Gamers. Please let me know when we can schedule a call.",
+                        createdAt: "2023-12-14T09:15:00Z",
+                        status: "read"
+                      },
+                      {
+                        id: 3,
+                        name: "Mike Johnson",
+                        email: "mike@example.com",
+                        subject: "Technical Support",
+                        message: "I'm having trouble connecting my wallet to your platform. I'm using MetaMask with the latest version. The connect button doesn't seem to be working correctly.",
+                        createdAt: "2023-12-13T16:45:00Z",
+                        status: "replied"
+                      }
+                    ].map((message) => (
+                      <div 
+                        key={message.id} 
+                        className={`p-4 rounded-lg border ${
+                          message.status === 'unread' 
+                            ? 'bg-[hsl(var(--cwg-orange))]/5 border-[hsl(var(--cwg-orange))]/30' 
+                            : 'bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h3 className="font-orbitron font-semibold text-[hsl(var(--cwg-text))]">
+                              {message.subject}
+                              {message.status === 'unread' && (
+                                <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-[hsl(var(--cwg-orange))]/20 text-[hsl(var(--cwg-orange))]">
+                                  New
+                                </span>
+                              )}
+                            </h3>
+                            <p className="text-sm text-[hsl(var(--cwg-muted))]">
+                              From: {message.name} ({message.email})
+                            </p>
+                          </div>
+                          <span className="text-xs text-[hsl(var(--cwg-muted))]">
+                            {new Date(message.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-[hsl(var(--cwg-text))] mb-3">
+                          {message.message}
+                        </p>
+                        <div className="flex justify-end space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 text-xs border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))]"
+                          >
+                            Reply
+                          </Button>
+                          {message.status === 'unread' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-7 text-xs border-green-500 text-green-500"
+                            >
+                              Mark as Read
+                            </Button>
+                          )}
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 text-xs border-red-500 text-red-500"
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </TabsContent>
