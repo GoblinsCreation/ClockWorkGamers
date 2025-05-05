@@ -1,151 +1,207 @@
-import { useQuery } from "@tanstack/react-query";
-import { Streamer } from "@shared/schema";
-import { Link } from "wouter";
-import { Twitch, Eye, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2, WifiOff } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Streamer } from '@shared/schema';
 
-export default function LiveStreamers() {
-  const { data: liveStreamers = [], isLoading } = useQuery<Streamer[]>({
-    queryKey: ["/api/streamers/live"],
+export function LiveStreamers() {
+  const { data: liveStreamers, isLoading, error } = useQuery({
+    queryKey: ['/api/streamers/live'],
+    queryFn: () => fetch('/api/streamers/live').then(res => res.json()),
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    refetchInterval: 1000 * 60 * 3, // 3 minutes
   });
-  
+
   if (isLoading) {
     return (
-      <div className="animate-pulse flex space-x-4">
-        <div className="flex-1 space-y-4 py-1">
-          <div className="h-4 bg-[hsl(var(--cwg-dark-blue))] rounded w-3/4"></div>
-          <div className="space-y-2">
-            <div className="h-32 bg-[hsl(var(--cwg-dark-blue))] rounded"></div>
-          </div>
+      <div className="mt-10 container">
+        <h2 className="text-3xl font-bold mb-6">Live Streamers</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, index) => (
+            <Card key={index} className="overflow-hidden border-2 border-orange-400/20">
+              <Skeleton className="h-48 w-full" />
+              <CardHeader>
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-24 mt-1" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-full" />
+              </CardContent>
+              <CardFooter>
+                <Skeleton className="h-10 w-32" />
+              </CardFooter>
+            </Card>
+          ))}
         </div>
       </div>
     );
   }
-  
-  if (liveStreamers.length === 0) {
-    return null; // Don't show this section if no streamers are live
-  }
-  
-  return (
-    <section className="py-12 bg-[hsl(var(--cwg-dark))] relative overflow-hidden">
-      {/* Background effect */}
-      <div className="absolute inset-0 bg-web3-grid opacity-10"></div>
-      <div className="absolute top-0 right-0 w-32 h-32 bg-[hsl(var(--cwg-orange))]/10 blur-3xl rounded-full"></div>
-      <div className="absolute bottom-0 left-0 w-32 h-32 bg-[hsl(var(--cwg-blue))]/10 blur-3xl rounded-full"></div>
-      
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse"></div>
-              <h2 className="text-2xl font-orbitron font-bold neon-text-orange">Live Now</h2>
-            </div>
-            <p className="mt-2 text-[hsl(var(--cwg-muted))]">
-              CWG members streaming right now. Join and support our community!
+
+  if (error) {
+    return (
+      <div className="mt-10 container">
+        <h2 className="text-3xl font-bold mb-6">Live Streamers</h2>
+        <Card className="p-6 border-orange-400/20">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <WifiOff className="h-12 w-12 text-orange-500" />
+            <h3 className="text-xl font-semibold">Unable to load live streamers</h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              There was an error connecting to the server. Please try again later.
             </p>
           </div>
-          
-          <Link href="/streamers">
-            <Button variant="outline" className="mt-4 sm:mt-0 group web3-chip">
-              View All Streamers
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {liveStreamers.slice(0, 3).map((streamer) => (
-            <div 
-              key={streamer.id} 
-              className="relative rounded-xl overflow-hidden border-2 border-[hsl(var(--cwg-orange))]/50 bg-[hsl(var(--cwg-dark-blue))]/50 hover:border-[hsl(var(--cwg-orange))] transition-all duration-300 web3-chip"
-            >
-              <div className="relative">
-                {/* Stream preview */}
-                <div className="w-full h-40 bg-[hsl(var(--cwg-dark-blue))] relative overflow-hidden">
-                  <div className="absolute inset-0 bg-web3-circuit opacity-20 animate-cyber-scan"></div>
-                  
-                  {/* Animated glitch effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--cwg-orange))]/5 to-[hsl(var(--cwg-blue))]/5 animate-pulse-glow"></div>
-                  
-                  {/* Live indicator */}
-                  <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-red-600 text-white text-xs font-orbitron flex items-center neon-glow">
-                    <span className="inline-block w-2 h-2 rounded-full bg-white mr-1 animate-pulse"></span> LIVE
-                  </div>
-                  
-                  {/* Viewer count */}
-                  <div className="absolute bottom-3 right-3 px-2 py-1 rounded-full bg-black/70 backdrop-blur-sm text-white text-xs">
-                    {streamer.viewerCount} viewers
-                  </div>
-                </div>
-                
-                <div className="p-4">
-                  <div className="flex items-center mb-2">
-                    {/* Streamer profile image */}
-                    <div className="w-10 h-10 rounded-full bg-[hsl(var(--cwg-dark-blue))] border-2 border-[hsl(var(--cwg-orange))] flex items-center justify-center neon-glow">
-                      {streamer.profileImageUrl ? (
-                        <img 
-                          src={streamer.profileImageUrl} 
-                          alt={streamer.displayName} 
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-xl font-orbitron text-[hsl(var(--cwg-orange))]">
-                          {streamer.displayName.charAt(0)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="font-orbitron text-[hsl(var(--cwg-text))]">{streamer.displayName}</h3>
-                      {streamer.currentGame && (
-                        <p className="text-sm text-[hsl(var(--cwg-muted))]">{streamer.currentGame}</p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {streamer.streamTitle && (
-                    <p className="text-sm text-[hsl(var(--cwg-text))] mb-3 line-clamp-2">{streamer.streamTitle}</p>
-                  )}
-                  
-                  <div className="flex items-center gap-2">
-                    <a 
-                      href={`https://twitch.tv/${streamer.twitchId}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex-1 bg-gradient-to-r from-[hsl(var(--cwg-orange))] to-[hsl(var(--cwg-orange-dark))] text-white font-orbitron py-2 px-4 rounded-lg text-center neon-border-orange btn-hover transition-all duration-300"
-                    >
-                      <div className="flex items-center justify-center">
-                        <Eye className="mr-2 h-4 w-4" />
-                        Watch Stream
-                      </div>
-                    </a>
-                    
-                    <Link 
-                      href={`/streamers/${streamer.id}`}
-                      className="bg-[hsl(var(--cwg-dark-blue))] hover:bg-[hsl(var(--cwg-dark-blue))]/80 text-[hsl(var(--cwg-blue))] py-2 px-3 rounded-lg transition-colors border border-[hsl(var(--cwg-blue))]/20 hover:border-[hsl(var(--cwg-blue))]/50"
-                    >
-                      <Twitch className="h-5 w-5" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!liveStreamers || liveStreamers.length === 0) {
+    return (
+      <div className="mt-10 container">
+        <h2 className="text-3xl font-bold mb-6">Live Streamers</h2>
+        <Card className="p-6 border-orange-400/20">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="rounded-full bg-orange-100 dark:bg-orange-900/30 p-3">
+              <WifiOff className="h-6 w-6 text-orange-500" />
             </div>
-          ))}
-        </div>
+            <h3 className="text-xl font-semibold">No Streamers Live</h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              Check back later to see when our guild members go live!
+            </p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-10 container">
+      <h2 className="text-3xl font-bold mb-6 flex items-center">
+        <span className="relative mr-3 flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+        </span>
+        Live Streamers
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {(liveStreamers as (Streamer & { startedAt?: string; thumbnailUrl?: string; description?: string })[]).map((streamer) => (
+          <StreamerCard key={streamer.id} streamer={streamer} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface StreamerCardProps {
+  streamer: Streamer & {
+    startedAt?: string;
+    thumbnailUrl?: string;
+    description?: string;
+  }
+}
+
+function StreamerCard({ streamer }: StreamerCardProps) {
+  const {
+    id,
+    displayName,
+    twitchId,
+    profileImageUrl,
+    isLive,
+    currentGame,
+    viewerCount,
+    streamTitle,
+    thumbnailUrl
+  } = streamer;
+
+  return (
+    <Card className={cn(
+      "overflow-hidden transition-all border-2",
+      isLive ? "border-red-500/50 shadow-lg shadow-red-500/10" : "border-gray-200 dark:border-gray-800"
+    )}>
+      <div className="aspect-video relative overflow-hidden bg-black">
+        {thumbnailUrl ? (
+          <img 
+            src={thumbnailUrl} 
+            alt={`${displayName}'s stream`} 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900/60 to-orange-900/60">
+            <img 
+              src={profileImageUrl || "https://static-cdn.jtvnw.net/user-default-pictures-uv/75305d54-c7cc-40d1-bb9c-91fbe85943c7-profile_image-300x300.png"} 
+              alt={displayName}
+              className="w-24 h-24 rounded-full"
+            />
+          </div>
+        )}
         
-        {liveStreamers.length > 3 && (
-          <div className="mt-8 text-center">
-            <Link href="/streamers?tab=live">
-              <Button 
-                variant="outline" 
-                className="group web3-chip border-[hsl(var(--cwg-orange))]/50 hover:border-[hsl(var(--cwg-orange))]"
-              >
-                View All Live Streams ({liveStreamers.length})
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
+        {isLive && (
+          <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold flex items-center">
+            <span className="relative mr-1 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+            </span>
+            LIVE
+            {viewerCount !== undefined && (
+              <span className="ml-2">· {viewerCount} viewers</span>
+            )}
           </div>
         )}
       </div>
-    </section>
+      
+      <CardHeader className="pb-2">
+        <div className="flex items-center gap-2">
+          <img 
+            src={profileImageUrl || "https://static-cdn.jtvnw.net/user-default-pictures-uv/75305d54-c7cc-40d1-bb9c-91fbe85943c7-profile_image-300x300.png"} 
+            alt={displayName}
+            className="w-8 h-8 rounded-full"
+          />
+          <CardTitle className="text-xl truncate">{displayName}</CardTitle>
+        </div>
+        {currentGame && (
+          <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+            Playing: {currentGame}
+          </div>
+        )}
+      </CardHeader>
+      
+      <CardContent className="pb-3">
+        {streamTitle ? (
+          <p className="text-sm text-gray-700 dark:text-gray-300 truncate">{streamTitle}</p>
+        ) : (
+          <p className="text-sm text-gray-500 italic">
+            {isLive ? "No stream title" : "Currently offline"}
+          </p>
+        )}
+      </CardContent>
+      
+      <CardFooter className="flex justify-between gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          asChild
+        >
+          <Link to={`/streamers/${id}`}>View Profile</Link>
+        </Button>
+        
+        {isLive && twitchId && (
+          <Button
+            className="bg-[#9146FF] hover:bg-[#7d2ff4]"
+            size="sm"
+            asChild
+          >
+            <a 
+              href={`https://twitch.tv/${twitchId}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              Watch Now
+            </a>
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
   );
 }

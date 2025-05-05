@@ -78,6 +78,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { TwitchIntegrationPanel } from "@/components/admin/TwitchIntegrationPanel";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("analytics");
@@ -1247,98 +1248,103 @@ export default function AdminPage() {
               
               {/* Streamers Tab */}
               <TabsContent value="streamers">
-                <div className="card-gradient rounded-xl p-6 border border-[hsl(var(--cwg-dark-blue))]">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-orbitron font-semibold text-[hsl(var(--cwg-blue))]">Streamer Management</h2>
-                    <div className="relative w-64">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[hsl(var(--cwg-muted))]" size={18} />
-                      <Input 
-                        type="text"
-                        placeholder="Search streamers..."
-                        value={streamerFilter}
-                        onChange={(e) => setStreamerFilter(e.target.value)}
-                        className="pl-10 bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-text))]"
-                      />
+                <div className="grid gap-6">
+                  {/* Twitch Integration Panel */}
+                  <TwitchIntegrationPanel />
+                
+                  <div className="card-gradient rounded-xl p-6 border border-[hsl(var(--cwg-dark-blue))]">
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-2xl font-orbitron font-semibold text-[hsl(var(--cwg-blue))]">Streamer Management</h2>
+                      <div className="relative w-64">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[hsl(var(--cwg-muted))]" size={18} />
+                        <Input 
+                          type="text"
+                          placeholder="Search streamers..."
+                          value={streamerFilter}
+                          onChange={(e) => setStreamerFilter(e.target.value)}
+                          className="pl-10 bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-text))]"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="mb-6">
-                    <Button 
-                      className="bg-[hsl(var(--cwg-orange))] hover:bg-[hsl(var(--cwg-orange))]/90"
-                      onClick={() => setIsAddStreamerDialogOpen(true)}
-                    >
-                      Add New Streamer
-                    </Button>
-                  </div>
-                  
-                  {isLoadingStreamers ? (
-                    <div className="flex justify-center items-center py-16">
-                      <Loader2 className="h-10 w-10 animate-spin text-[hsl(var(--cwg-orange))]" />
-                    </div>
-                  ) : filteredStreamers.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="hover:bg-[hsl(var(--cwg-dark-blue))]/50">
-                            <TableHead>ID</TableHead>
-                            <TableHead>Display Name</TableHead>
-                            <TableHead>User</TableHead>
-                            <TableHead>Game</TableHead>
-                            <TableHead>Platform</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredStreamers.map((streamer) => (
-                            <TableRow key={streamer.id} className="hover:bg-[hsl(var(--cwg-dark-blue))]/50">
-                              <TableCell>{streamer.id}</TableCell>
-                              <TableCell className="font-medium">{streamer.displayName}</TableCell>
-                              <TableCell>{streamer.userId}</TableCell>
-                              <TableCell>{streamer.currentGame || "N/A"}</TableCell>
-                              <TableCell>{streamer.twitchId ? "Twitch" : "N/A"}</TableCell>
-                              <TableCell>
-                                <span className={`px-2 py-1 rounded-full text-xs ${
-                                  streamer.isLive 
-                                    ? "bg-green-500/20 text-green-500"
-                                    : "bg-[hsl(var(--cwg-muted))]/20 text-[hsl(var(--cwg-muted))]"
-                                }`}>
-                                  {streamer.isLive ? "Live" : "Offline"}
-                                </span>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex space-x-2">
-                                  <Button variant="outline" size="sm" className="h-8 border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))]">
-                                    Edit
-                                  </Button>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="h-8 border-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-orange))]"
-                                    onClick={() => openScheduleDialog(streamer)}
-                                  >
-                                    Schedules
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  ) : (
-                    <div className="text-center py-16">
-                      <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-muted))]">
-                        No streamers match your search
-                      </h3>
-                      <button 
-                        onClick={() => setStreamerFilter("")}
-                        className="mt-4 text-[hsl(var(--cwg-orange))]"
+                    
+                    <div className="mb-6">
+                      <Button 
+                        className="bg-[hsl(var(--cwg-orange))] hover:bg-[hsl(var(--cwg-orange))]/90"
+                        onClick={() => setIsAddStreamerDialogOpen(true)}
                       >
-                        Clear search
-                      </button>
+                        Add New Streamer
+                      </Button>
                     </div>
-                  )}
+                    
+                    {isLoadingStreamers ? (
+                      <div className="flex justify-center items-center py-16">
+                        <Loader2 className="h-10 w-10 animate-spin text-[hsl(var(--cwg-orange))]" />
+                      </div>
+                    ) : filteredStreamers.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="hover:bg-[hsl(var(--cwg-dark-blue))]/50">
+                              <TableHead>ID</TableHead>
+                              <TableHead>Display Name</TableHead>
+                              <TableHead>User</TableHead>
+                              <TableHead>Game</TableHead>
+                              <TableHead>Platform</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredStreamers.map((streamer) => (
+                              <TableRow key={streamer.id} className="hover:bg-[hsl(var(--cwg-dark-blue))]/50">
+                                <TableCell>{streamer.id}</TableCell>
+                                <TableCell className="font-medium">{streamer.displayName}</TableCell>
+                                <TableCell>{streamer.userId}</TableCell>
+                                <TableCell>{streamer.currentGame || "N/A"}</TableCell>
+                                <TableCell>{streamer.twitchId ? "Twitch" : "N/A"}</TableCell>
+                                <TableCell>
+                                  <span className={`px-2 py-1 rounded-full text-xs ${
+                                    streamer.isLive 
+                                      ? "bg-green-500/20 text-green-500"
+                                      : "bg-[hsl(var(--cwg-muted))]/20 text-[hsl(var(--cwg-muted))]"
+                                  }`}>
+                                    {streamer.isLive ? "Live" : "Offline"}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex space-x-2">
+                                    <Button variant="outline" size="sm" className="h-8 border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))]">
+                                      Edit
+                                    </Button>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="h-8 border-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-orange))]"
+                                      onClick={() => openScheduleDialog(streamer)}
+                                    >
+                                      Schedules
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-16">
+                        <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-muted))]">
+                          No streamers match your search
+                        </h3>
+                        <button 
+                          onClick={() => setStreamerFilter("")}
+                          className="mt-4 text-[hsl(var(--cwg-orange))]"
+                        >
+                          Clear search
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </TabsContent>
               

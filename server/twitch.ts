@@ -7,11 +7,11 @@ import { log } from './vite';
 // Twitch API configuration
 const TWITCH_API_URL = 'https://api.twitch.tv/helix';
 const TWITCH_AUTH_URL = 'https://id.twitch.tv/oauth2/token';
-const CLIENT_ID = process.env.TWITCH_CLIENT_ID;
-const CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
+const CLIENT_ID = process.env.TWITCH_CLIENT_ID || '';
+const CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET || '';
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
-  throw new Error('Twitch API credentials are not configured. Please set TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET environment variables.');
+  console.warn('Twitch API credentials are not configured. Please set TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET environment variables.');
 }
 
 // Cache for Twitch access token
@@ -42,7 +42,7 @@ async function getAccessToken(): Promise<string> {
     tokenExpiry = Date.now() + (data.expires_in * 1000) - (5 * 60 * 1000);
     
     return accessToken;
-  } catch (error) {
+  } catch (error: any) {
     log(`Error getting Twitch access token: ${error.message}`, 'twitch');
     throw error;
   }
@@ -74,7 +74,7 @@ async function getStreams(twitchIds: string[]): Promise<any[]> {
 
     const data = await response.json() as { data: any[] };
     return data.data || [];
-  } catch (error) {
+  } catch (error: any) {
     log(`Error fetching Twitch streams: ${error.message}`, 'twitch');
     return [];
   }
@@ -106,7 +106,7 @@ async function getChannelInfo(twitchIds: string[]): Promise<any[]> {
 
     const data = await response.json() as { data: any[] };
     return data.data || [];
-  } catch (error) {
+  } catch (error: any) {
     log(`Error fetching Twitch channels: ${error.message}`, 'twitch');
     return [];
   }
@@ -122,7 +122,7 @@ export async function updateStreamStatus(): Promise<void> {
     
     // Filter out streamers without Twitch IDs
     const streamersWithTwitchIds = streamersList.filter(streamer => streamer.twitchId);
-    const twitchIds = streamersWithTwitchIds.map(streamer => streamer.twitchId!);
+    const twitchIds = streamersWithTwitchIds.map(streamer => streamer.twitchId as string).filter(Boolean);
     
     if (twitchIds.length === 0) {
       log('No streamers with Twitch IDs found', 'twitch');
@@ -135,15 +135,17 @@ export async function updateStreamStatus(): Promise<void> {
     
     // Process each streamer
     for (const streamer of streamersWithTwitchIds) {
+      if (!streamer.twitchId) continue;
+      
       // Find stream data for this streamer
       const stream = streamData.find(s => s.user_login.toLowerCase() === streamer.twitchId!.toLowerCase());
       const channel = channelData.find(c => c.broadcaster_login.toLowerCase() === streamer.twitchId!.toLowerCase());
       
       // Prepare update data
-      const updates: any = {
+      const updates = {
         isLive: !!stream,
         lastUpdated: new Date()
-      };
+      } as any;
       
       if (stream) {
         updates.streamTitle = stream.title;
@@ -168,7 +170,7 @@ export async function updateStreamStatus(): Promise<void> {
     }
     
     log(`Successfully updated status for ${streamersWithTwitchIds.length} streamers`, 'twitch');
-  } catch (error) {
+  } catch (error: any) {
     log(`Error updating stream status: ${error.message}`, 'twitch');
   }
 }
@@ -179,12 +181,12 @@ export async function updateStreamStatus(): Promise<void> {
  */
 export function scheduleStreamStatusUpdates(intervalMinutes: number = 5): NodeJS.Timer {
   // Run immediately on startup
-  updateStreamStatus().catch(err => log(`Initial stream status update failed: ${err.message}`, 'twitch'));
+  updateStreamStatus().catch((err: any) => log(`Initial stream status update failed: ${err.message}`, 'twitch'));
   
   // Then schedule regular updates
   const intervalMs = intervalMinutes * 60 * 1000;
   return setInterval(() => {
-    updateStreamStatus().catch(err => log(`Scheduled stream status update failed: ${err.message}`, 'twitch'));
+    updateStreamStatus().catch((err: any) => log(`Scheduled stream status update failed: ${err.message}`, 'twitch'));
   }, intervalMs);
 }
 
@@ -226,7 +228,7 @@ export async function linkTwitchAccount(code: string, redirectUri: string, userI
     const twitchUser = userData.data[0];
     
     // Check if this Twitch account is already linked to another CWG user
-    const existingStreamers = await db.select().from(streamers).where(eq(streamers.twitchId, twitchUser.login));
+    const existingStreamers = await db.select().from(streamers).where(eq(streamers.twitchId as any, twitchUser.login));
     
     if (existingStreamers.length > 0 && existingStreamers[0].userId !== userId) {
       throw new Error('This Twitch account is already linked to another user');
@@ -242,24 +244,23 @@ export async function linkTwitchAccount(code: string, redirectUri: string, userI
           twitchId: twitchUser.login,
           displayName: twitchUser.display_name,
           profileImageUrl: twitchUser.profile_image_url,
-          lastUpdated: new Date()
+          isLive: false
         })
         .where(eq(streamers.userId, userId));
     } else {
       // Create new streamer profile
       await db.insert(streamers)
         .values({
-          userId,
+          userId: userId,
           twitchId: twitchUser.login,
           displayName: twitchUser.display_name,
           profileImageUrl: twitchUser.profile_image_url,
-          isLive: false,
-          lastUpdated: new Date()
+          isLive: false
         });
     }
     
     return true;
-  } catch (error) {
+  } catch (error: any) {
     log(`Error linking Twitch account: ${error.message}`, 'twitch');
     return false;
   }

@@ -724,6 +724,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     servePhpAdminPanel(req, res);
   });
 
+  // Twitch API routes
+  app.get("/api/streamers/update-status", async (req, res) => {
+    try {
+      // Only allow admin users to manually trigger update
+      if (!req.isAuthenticated() || !req.user!.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      await updateStreamStatus();
+      res.json({ message: "Stream status update triggered successfully" });
+    } catch (error) {
+      console.error("Error updating stream status:", error);
+      res.status(500).json({ message: "Failed to update stream status" });
+    }
+  });
+  
+  app.post("/api/streamers/link-twitch", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const { code, redirectUri } = req.body;
+      
+      if (!code || !redirectUri) {
+        return res.status(400).json({ message: "Missing required parameters" });
+      }
+      
+      const success = await linkTwitchAccount(code, redirectUri, req.user!.id);
+      
+      if (success) {
+        res.json({ message: "Twitch account linked successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to link Twitch account" });
+      }
+    } catch (error) {
+      console.error("Error linking Twitch account:", error);
+      res.status(500).json({ message: "Failed to link Twitch account" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Set up WebSocket server for real-time chat
@@ -734,6 +775,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Store connected clients with their user info
   const clients = new Map();
+  
+  // Start scheduled Twitch stream status updates (every 5 minutes)
+  scheduleStreamStatusUpdates(5);
   
   wss.on('connection', (ws, req) => {
     console.log('Client connected to chat WebSocket');
