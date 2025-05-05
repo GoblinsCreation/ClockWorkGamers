@@ -25,7 +25,28 @@ interface ChatRoomProps {
   isLoading: boolean;
 }
 
-const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onSendMessage, messages, isLoading }) => {
+interface ChatRoomProps {
+  roomId: string;
+  onSendMessage: (message: string, roomId: string) => void;
+  messages: Message[];
+  isLoading: boolean;
+  isConnected?: boolean;
+  onReconnect?: () => void;
+}
+
+const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onSendMessage, messages, isLoading, isConnected = true, onReconnect }) => {
+  // Local state for reconnection animation
+  const [isReconnectingLocal, setIsReconnectingLocal] = useState(false);
+  
+  // Handle reconnect click with local animation state
+  const handleReconnect = () => {
+    if (onReconnect) {
+      setIsReconnectingLocal(true);
+      onReconnect();
+      // Reset animation after a timeout in case the onReconnect doesn't change parent state
+      setTimeout(() => setIsReconnectingLocal(false), 5000);
+    }
+  };
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { translate, language } = useTranslation();
@@ -114,12 +135,29 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onSendMessage, messages, is
         <div ref={messagesEndRef} />
       </div>
       
+      {!isConnected && onReconnect && (
+        <div className="flex items-center justify-center p-2 bg-yellow-50 dark:bg-yellow-900/20 border-t border-yellow-200 dark:border-yellow-900">
+          <div className="flex-1 text-yellow-800 dark:text-yellow-300 text-sm">
+            Connection lost. Messages may not be delivered.
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleReconnect} 
+            className="ml-2 text-xs border-yellow-300 text-yellow-800 hover:bg-yellow-100"
+          >
+            <Loader2 className={`h-3 w-3 mr-1 ${isReconnectingLocal ? 'animate-spin' : ''}`} />
+            Reconnect
+          </Button>
+        </div>
+      )}
+      
       <form onSubmit={handleSendMessage} className="chat-input">
         <textarea 
           className="input-field"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Type your message..."
+          placeholder={isConnected ? "Type your message..." : "Connection lost, attempting to reconnect..."}
           rows={1}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -127,11 +165,12 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onSendMessage, messages, is
               handleSendMessage(e);
             }
           }}
+          disabled={!isConnected}
         />
         <button 
           type="submit" 
           className="send-button"
-          disabled={!newMessage.trim()}
+          disabled={!newMessage.trim() || !isConnected}
         >
           <Send className="h-4 w-4" />
         </button>
@@ -307,6 +346,9 @@ const FloatingChat: React.FC = () => {
       socketRef.current.onclose = (event) => {
         console.log('Disconnected from chat WebSocket', event.code, event.reason);
         
+        // Update connection status
+        setIsConnected(false);
+        
         // Toast notification for disconnect if the chat is open
         if (isOpen) {
           toast({
@@ -320,6 +362,7 @@ const FloatingChat: React.FC = () => {
         const reconnectDelay = reconnectTimeoutRef.current ? 6000 : 3000;
         console.log(`Attempting to reconnect in ${reconnectDelay/1000} seconds...`);
         
+        setIsReconnecting(true);
         reconnectTimeoutRef.current = setTimeout(() => {
           connectWebSocket();
         }, reconnectDelay);
@@ -465,6 +508,14 @@ const FloatingChat: React.FC = () => {
                   messages={messages.public || []}
                   onSendMessage={handleSendMessage}
                   isLoading={isLoading.public}
+                  isConnected={isConnected}
+                  onReconnect={() => {
+                    setIsReconnecting(true);
+                    if (reconnectTimeoutRef.current) {
+                      clearTimeout(reconnectTimeoutRef.current);
+                    }
+                    connectWebSocket();
+                  }}
                 />
               </TabsContent>
               
@@ -474,6 +525,14 @@ const FloatingChat: React.FC = () => {
                   messages={messages.support || []}
                   onSendMessage={handleSendMessage}
                   isLoading={isLoading.support}
+                  isConnected={isConnected}
+                  onReconnect={() => {
+                    setIsReconnecting(true);
+                    if (reconnectTimeoutRef.current) {
+                      clearTimeout(reconnectTimeoutRef.current);
+                    }
+                    connectWebSocket();
+                  }}
                 />
               </TabsContent>
               
@@ -484,6 +543,14 @@ const FloatingChat: React.FC = () => {
                     messages={messages.private || []}
                     onSendMessage={handleSendMessage}
                     isLoading={isLoading.private}
+                    isConnected={isConnected}
+                    onReconnect={() => {
+                      setIsReconnecting(true);
+                      if (reconnectTimeoutRef.current) {
+                        clearTimeout(reconnectTimeoutRef.current);
+                      }
+                      connectWebSocket();
+                    }}
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full p-4 text-center">
