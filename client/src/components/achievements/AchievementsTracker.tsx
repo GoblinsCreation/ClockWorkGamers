@@ -45,15 +45,8 @@ const AchievementsTracker: React.FC = () => {
   const [animatedAchievementId, setAnimatedAchievementId] = useState<number | null>(null);
 
   // Fetch all achievements with user's progress
-  const { data: achievements, isLoading } = useQuery<UserAchievement[]>({
+  const { data: achievements, isLoading } = useQuery({
     queryKey: ['/api/user/achievements'],
-    onError: (error) => {
-      toast({
-        title: 'Error fetching achievements',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
   });
 
   // Claim reward mutation
@@ -103,13 +96,13 @@ const AchievementsTracker: React.FC = () => {
   });
 
   // Get distinct categories
-  const categories = achievements
-    ? ['all', ...new Set(achievements.map((a) => a.category))]
+  const categories = achievements && Array.isArray(achievements)
+    ? ['all', ...Array.from(new Set(achievements.map((a: any) => a.category)))]
     : ['all'];
 
   // Filter achievements by selected category and completion status
-  const filteredAchievements = achievements
-    ? achievements.filter((achievement) => {
+  const filteredAchievements = achievements && Array.isArray(achievements)
+    ? achievements.filter((achievement: any) => {
         const matchesCategory = selectedCategory === 'all' || achievement.category === selectedCategory;
         const matchesCompletion = !showOnlyCompleted || (achievement.progress && achievement.progress.isCompleted);
         return matchesCategory && matchesCompletion;

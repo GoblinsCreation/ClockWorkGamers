@@ -33,7 +33,7 @@ const RecentAchievements: React.FC = () => {
   const { toast } = useToast();
 
   // Fetch recently completed achievements
-  const { data: achievements, isLoading } = useQuery<Achievement[]>({
+  const { data: achievements, isLoading } = useQuery({
     queryKey: ['/api/user/achievements/completed'],
     queryFn: async () => {
       const response = await fetch('/api/user/achievements/completed?limit=5');
@@ -41,13 +41,6 @@ const RecentAchievements: React.FC = () => {
         throw new Error('Failed to fetch recent achievements');
       }
       return response.json();
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error fetching recent achievements',
-        description: error.message,
-        variant: 'destructive',
-      });
     },
   });
 
@@ -75,7 +68,7 @@ const RecentAchievements: React.FC = () => {
     );
   }
 
-  if (!achievements || achievements.length === 0) {
+  if (!achievements || !Array.isArray(achievements) || achievements.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -98,7 +91,7 @@ const RecentAchievements: React.FC = () => {
       <CardContent>
         <ScrollArea className="h-[220px] pr-4">
           <div className="space-y-3">
-            {achievements.map((achievement) => (
+            {achievements.map((achievement: any) => (
               <div
                 key={achievement.id}
                 className="flex items-start gap-3 p-2 rounded-md border border-muted hover:bg-muted/50 transition-colors"
