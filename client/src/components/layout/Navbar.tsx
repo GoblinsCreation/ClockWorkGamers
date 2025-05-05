@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Menu, LogOut, User, MessageSquare, Gift, ChevronDown } from "lucide-react";
 import { WalletConnect } from "@/components/web3/WalletConnect";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -78,6 +79,12 @@ export function Navbar() {
             <div className="mr-1 sm:mr-3 w-12 sm:w-40">
               <WalletConnect />
             </div>
+            
+            {user && (
+              <div className="mr-2">
+                <NotificationBell />
+              </div>
+            )}
             
             {user ? (
               <DropdownMenu>
