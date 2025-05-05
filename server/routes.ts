@@ -5,6 +5,14 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { createPaymentIntent, createSubscription, handleWebhook } from "./stripe";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
+import { 
+  handleDbReport, 
+  handleDbQuery, 
+  handleUserActivityReport, 
+  handleReferralReport, 
+  handlePasswordReset,
+  servePhpAdminPanel
+} from "./php-integration";
 
 import { WebSocketServer, WebSocket } from 'ws';
 
@@ -670,6 +678,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create HTTP server
+  // PHP Integration Routes
+  app.get("/api/php/db-report", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user!.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    await handleDbReport(req, res);
+  });
+  
+  app.post("/api/php/db-query", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user!.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    await handleDbQuery(req, res);
+  });
+  
+  app.get("/api/php/user-activity", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user!.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    await handleUserActivityReport(req, res);
+  });
+  
+  app.get("/api/php/referral-report", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user!.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    await handleReferralReport(req, res);
+  });
+  
+  app.post("/api/php/reset-password", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user!.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    await handlePasswordReset(req, res);
+  });
+  
+  // Serve PHP Admin Panel
+  app.get("/php-admin", (req, res) => {
+    // Simple check for authentication
+    if (!req.isAuthenticated() || !req.user!.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    servePhpAdminPanel(req, res);
+  });
+
   const httpServer = createServer(app);
   
   // Set up WebSocket server for real-time chat
