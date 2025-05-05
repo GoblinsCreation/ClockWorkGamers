@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, LogOut, User, UserCircle, ChevronDown } from "lucide-react";
+import { Menu, LogOut, User, MessageSquare, Gift, ChevronDown } from "lucide-react";
 import { WalletConnect } from "@/components/web3/WalletConnect";
 
 export function Navbar() {
@@ -102,6 +102,16 @@ export function Navbar() {
                       <User className="mr-2 h-4 w-4" /> Profile
                     </DropdownMenuItem>
                   </Link>
+                  <Link href="/chat">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <MessageSquare className="mr-2 h-4 w-4" /> Chat
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/referrals">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <Gift className="mr-2 h-4 w-4" /> Referrals
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" /> Logout
@@ -143,6 +153,35 @@ export function Navbar() {
                 </a>
               </Link>
             ))}
+            
+            {user && (
+              <>
+                <Link href="/profile">
+                  <a 
+                    className={`block px-4 py-2.5 rounded-md font-orbitron text-base font-medium ${location === '/profile' ? 'text-[hsl(var(--cwg-orange))] bg-[hsl(var(--cwg-dark))/50]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Profile
+                  </a>
+                </Link>
+                <Link href="/chat">
+                  <a 
+                    className={`block px-4 py-2.5 rounded-md font-orbitron text-base font-medium ${location === '/chat' ? 'text-[hsl(var(--cwg-orange))] bg-[hsl(var(--cwg-dark))/50]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Chat
+                  </a>
+                </Link>
+                <Link href="/referrals">
+                  <a 
+                    className={`block px-4 py-2.5 rounded-md font-orbitron text-base font-medium ${location === '/referrals' ? 'text-[hsl(var(--cwg-orange))] bg-[hsl(var(--cwg-dark))/50]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Referrals
+                  </a>
+                </Link>
+              </>
+            )}
             
             {user?.isAdmin && (
               <Link href="/admin">
