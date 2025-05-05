@@ -16,6 +16,7 @@ export const users = pgTable("users", {
   twitchHandle: text("twitch_handle"),
   referralCode: text("referral_code").unique(),
   isAdmin: boolean("is_admin").default(false).notNull(),
+  role: text("role").default("User").notNull(), // Can be "User", "Mod", "Admin", "Owner"
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

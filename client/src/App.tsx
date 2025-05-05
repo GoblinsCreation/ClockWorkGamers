@@ -28,8 +28,6 @@ import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from "./hooks/use-auth";
 import { Web3Provider } from "./hooks/use-web3";
 import FloatingChat from "@/components/chat/FloatingChat";
-import WebsiteTranslator from "@/components/translation/WebsiteTranslator";
-import { TranslationProvider } from "@/components/translation/WebsiteTranslator";
 
 function Router() {
   return (
@@ -64,16 +62,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Web3Provider>
-          <TranslationProvider>
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
               <TooltipProvider>
                 <Toaster />
                 <Router />
-                <WebsiteTranslator />
                 <FloatingChat />
               </TooltipProvider>
             </ThemeProvider>
-          </TranslationProvider>
         </Web3Provider>
       </AuthProvider>
     </QueryClientProvider>

@@ -108,6 +108,13 @@ export function Navbar() {
                       <Gift className="mr-2 h-4 w-4" /> Referrals
                     </DropdownMenuItem>
                   </Link>
+                  {(user?.isAdmin || user?.role === "Mod" || user?.role === "Admin" || user?.role === "Owner") && (
+                    <Link href="/admin">
+                      <DropdownMenuItem className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" /> Admin
+                      </DropdownMenuItem>
+                    </Link>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" /> Logout
@@ -172,7 +179,7 @@ export function Navbar() {
               </>
             )}
             
-            {user?.isAdmin && (
+            {(user?.isAdmin || user?.role === "Mod" || user?.role === "Admin" || user?.role === "Owner") && (
               <Link href="/admin">
                 <a 
                   className={`block px-4 py-2.5 rounded-md font-orbitron text-base font-medium ${location === '/admin' ? 'text-[hsl(var(--cwg-orange))] bg-[hsl(var(--cwg-dark))/50]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'}`}
