@@ -49,8 +49,8 @@ function Router() {
       <Route path="/calculators" component={CalculatorsPage} />
       <Route path="/contact" component={ContactPage} />
       <Route path="/news" component={NewsPage} />
-      {/* We're using the floating chat, so no need for these separate pages */}
-      {/* <Route path="/chat" component={() => ChatPage() as React.ReactElement} /> */}
+      {/* We're using the floating chat, but keep route for direct access */}
+      <Route path="/chat" component={ChatPage} />
       <Route path="/referrals" component={ReferralPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/admin" component={AdminPage} />
