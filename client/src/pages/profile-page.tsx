@@ -129,10 +129,12 @@ export default function ProfilePage() {
       username: user?.username || '',
       displayName: '',
       bio: '',
-      email: '',
       avatar: '',
       discordUsername: '',
       twitterUsername: '',
+      twitchUsername: '',
+      kickUsername: '',
+      youtubeChannel: '',
       gameIds: [],
       preferences: {
         emailNotifications: true,
@@ -149,10 +151,12 @@ export default function ProfilePage() {
         username: user?.username || '',
         displayName: profileData.displayName || '',
         bio: profileData.bio || '',
-        email: profileData.email || '',
         avatar: profileData.avatar || '',
         discordUsername: profileData.discordUsername || '',
         twitterUsername: profileData.twitterUsername || '',
+        twitchUsername: profileData.twitchUsername || '',
+        kickUsername: profileData.kickUsername || '',
+        youtubeChannel: profileData.youtubeChannel || '',
         gameIds: profileData.gameIds || [],
         preferences: {
           emailNotifications: profileData.preferences?.emailNotifications !== undefined 
@@ -208,11 +212,13 @@ export default function ProfilePage() {
   
   const initialData = profileData || {
     displayName: '',
-    email: '',
     avatar: '',
     bio: '',
     discordUsername: '',
     twitterUsername: '',
+    twitchUsername: '',
+    kickUsername: '',
+    youtubeChannel: '',
     gameIds: [],
     preferences: {
       emailNotifications: true,
@@ -278,13 +284,6 @@ export default function ProfilePage() {
                         </div>
                       )}
                       
-                      {initialData.email && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-[hsl(var(--cwg-muted))]">Email</span>
-                          <span className="text-sm">{initialData.email}</span>
-                        </div>
-                      )}
-                      
                       {initialData.discordUsername && (
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-[hsl(var(--cwg-muted))]">Discord</span>
@@ -296,6 +295,27 @@ export default function ProfilePage() {
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-[hsl(var(--cwg-muted))]">Twitter</span>
                           <span className="text-sm">@{initialData.twitterUsername}</span>
+                        </div>
+                      )}
+                      
+                      {initialData.twitchUsername && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-[hsl(var(--cwg-muted))]">Twitch</span>
+                          <span className="text-sm">{initialData.twitchUsername}</span>
+                        </div>
+                      )}
+                      
+                      {initialData.kickUsername && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-[hsl(var(--cwg-muted))]">Kick</span>
+                          <span className="text-sm">{initialData.kickUsername}</span>
+                        </div>
+                      )}
+                      
+                      {initialData.youtubeChannel && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-[hsl(var(--cwg-muted))]">YouTube</span>
+                          <span className="text-sm">{initialData.youtubeChannel}</span>
                         </div>
                       )}
                     </div>
@@ -413,32 +433,53 @@ export default function ProfilePage() {
                             
                             <FormField
                               control={form.control}
-                              name="email"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Email</FormLabel>
-                                  <FormControl>
-                                    <Input type="email" placeholder="your.email@example.com" {...field} />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Your contact email.
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={form.control}
                               name="avatar"
-                              render={({ field }) => (
+                              render={({ field: { value, onChange, ...field } }) => (
                                 <FormItem>
-                                  <FormLabel>Avatar URL</FormLabel>
+                                  <FormLabel>Profile Image</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="https://example.com/avatar.png" {...field} />
+                                    <div className="flex flex-col space-y-2">
+                                      {value && (
+                                        <div className="relative w-24 h-24 mx-auto mb-2">
+                                          <img 
+                                            src={value} 
+                                            alt="Avatar preview" 
+                                            className="w-full h-full object-cover rounded-md border border-border"
+                                          />
+                                        </div>
+                                      )}
+                                      <Input 
+                                        placeholder="Enter image URL or upload a file" 
+                                        value={value || ''} 
+                                        onChange={onChange}
+                                        {...field} 
+                                      />
+                                      <Button 
+                                        type="button" 
+                                        variant="outline" 
+                                        className="w-full"
+                                        onClick={() => document.getElementById('avatar-upload')?.click()}
+                                      >
+                                        Choose File
+                                      </Button>
+                                      <input
+                                        id="avatar-upload"
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) {
+                                            // Create a URL for the file
+                                            const url = URL.createObjectURL(file);
+                                            onChange(url);
+                                          }
+                                        }}
+                                      />
+                                    </div>
                                   </FormControl>
                                   <FormDescription>
-                                    Link to your profile image.
+                                    Upload or link to your profile image. Supports JPG, PNG, and GIF.
                                   </FormDescription>
                                   <FormMessage />
                                 </FormItem>
@@ -467,34 +508,79 @@ export default function ProfilePage() {
                             )}
                           />
                           
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FormField
-                              control={form.control}
-                              name="discordUsername"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Discord Username</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="username#1234" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={form.control}
-                              name="twitterUsername"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Twitter Handle</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="username" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                          <div>
+                            <h3 className="text-lg font-medium mb-4">Social Media Profiles</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <FormField
+                                control={form.control}
+                                name="discordUsername"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Discord Username</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="username#1234" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={form.control}
+                                name="twitterUsername"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Twitter Handle</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="username" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={form.control}
+                                name="twitchUsername"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Twitch Username</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="twitchusername" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={form.control}
+                                name="kickUsername"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Kick Username</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="kickusername" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={form.control}
+                                name="youtubeChannel"
+                                render={({ field }) => (
+                                  <FormItem className="md:col-span-2">
+                                    <FormLabel>YouTube Channel</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Channel name or URL" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
                           </div>
                           
                           <div>
@@ -636,10 +722,14 @@ export default function ProfilePage() {
                       </Form>
                     ) : (
                       <Tabs defaultValue="info" className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 mb-6">
+                        <TabsList className="grid w-full grid-cols-4 mb-6">
                           <TabsTrigger value="info" className="flex items-center">
                             <UserCircle2 className="h-4 w-4 mr-2" />
                             Basic Info
+                          </TabsTrigger>
+                          <TabsTrigger value="social" className="flex items-center">
+                            <User className="h-4 w-4 mr-2" />
+                            Social
                           </TabsTrigger>
                           <TabsTrigger value="games" className="flex items-center">
                             <Gamepad2 className="h-4 w-4 mr-2" />
@@ -680,16 +770,16 @@ export default function ProfilePage() {
                           <Separator />
                           
                           <div>
-                            <h3 className="text-lg font-medium mb-4">Social Information</h3>
+                            <h3 className="text-lg font-medium mb-4">Profile Information</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
-                                <Label className="text-[hsl(var(--cwg-muted))]">Discord</Label>
-                                <p className="font-medium">{initialData.discordUsername || '-'}</p>
+                                <Label className="text-[hsl(var(--cwg-muted))]">Username</Label>
+                                <p className="font-medium">{initialData.username}</p>
                               </div>
                               
                               <div>
-                                <Label className="text-[hsl(var(--cwg-muted))]">Twitter</Label>
-                                <p className="font-medium">{initialData.twitterUsername ? `@${initialData.twitterUsername}` : '-'}</p>
+                                <Label className="text-[hsl(var(--cwg-muted))]">Display Name</Label>
+                                <p className="font-medium">{initialData.displayName || '-'}</p>
                               </div>
                             </div>
                           </div>
@@ -699,6 +789,75 @@ export default function ProfilePage() {
                           <div>
                             <h3 className="text-lg font-medium mb-4">Biography</h3>
                             <p className="text-sm">{initialData.bio || 'No biography provided yet.'}</p>
+                          </div>
+                        </TabsContent>
+                        
+                        <TabsContent value="social" className="space-y-6">
+                          <h3 className="text-lg font-medium mb-4">Social Media Profiles</h3>
+                          
+                          <div className="space-y-4">
+                            {initialData.discordUsername || initialData.twitterUsername || 
+                             initialData.twitchUsername || initialData.kickUsername || 
+                             initialData.youtubeChannel ? (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {initialData.discordUsername && (
+                                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                                    <div>
+                                      <h4 className="font-medium">Discord</h4>
+                                      <p className="text-sm text-[hsl(var(--cwg-orange))]">
+                                        {initialData.discordUsername}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {initialData.twitterUsername && (
+                                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                                    <div>
+                                      <h4 className="font-medium">Twitter</h4>
+                                      <p className="text-sm text-[hsl(var(--cwg-orange))]">
+                                        @{initialData.twitterUsername}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {initialData.twitchUsername && (
+                                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                                    <div>
+                                      <h4 className="font-medium">Twitch</h4>
+                                      <p className="text-sm text-[hsl(var(--cwg-orange))]">
+                                        {initialData.twitchUsername}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {initialData.kickUsername && (
+                                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                                    <div>
+                                      <h4 className="font-medium">Kick</h4>
+                                      <p className="text-sm text-[hsl(var(--cwg-orange))]">
+                                        {initialData.kickUsername}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {initialData.youtubeChannel && (
+                                  <div className="flex items-center justify-between p-4 border rounded-lg md:col-span-2">
+                                    <div>
+                                      <h4 className="font-medium">YouTube</h4>
+                                      <p className="text-sm text-[hsl(var(--cwg-orange))]">
+                                        {initialData.youtubeChannel}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-[hsl(var(--cwg-muted))]">No social media profiles added yet. Edit your profile to add your social media information.</p>
+                            )}
                           </div>
                         </TabsContent>
                         
