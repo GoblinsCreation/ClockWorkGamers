@@ -1582,13 +1582,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create a notification for the user about the claimed reward
-      await createSystemNotification(
-        userId,
-        "Achievement Reward Claimed",
-        "You have successfully claimed your reward!",
-        "achievement-claimed",
-        { achievementId }
-      );
+      const achievement = await storage.getGuildAchievement(achievementId);
+      if (achievement) {
+        await createAchievementClaimedNotification(
+          userId,
+          achievementId,
+          achievement.name,
+          achievement.rewardType, 
+          achievement.rewardValue
+        );
+      }
       
       res.json({ success: true });
     } catch (error) {
@@ -1629,12 +1632,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const achievement = await storage.getGuildAchievement(achievementId);
         
         if (achievement) {
-          await createSystemNotification(
+          await createAchievementUnlockedNotification(
             userId,
-            "Achievement Unlocked",
-            `You've earned the "${achievement.name}" achievement! ${achievement.description}`,
-            "achievement-unlocked",
-            { achievementId, achievementName: achievement.name }
+            achievementId,
+            achievement.name,
+            achievement.rewardType,
+            achievement.rewardValue
           );
         }
       }
