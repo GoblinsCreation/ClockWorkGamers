@@ -50,7 +50,9 @@ import {
   Wallet, 
   UserCircle2, 
   Loader2, 
-  CheckCircle, 
+  CheckCircle,
+  CheckCircle2, 
+  Settings,
   Save
 } from 'lucide-react';
 import { formatEthereumAddress } from '@/lib/utils';
@@ -59,6 +61,8 @@ import { queryClient, apiRequest } from '@/lib/queryClient';
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useLocation } from 'wouter';
+import StreamerTwitchIntegration from "@/components/streamers/StreamerTwitchIntegration";
+import TwitchStreamerStatus from "@/components/streamers/TwitchStreamerStatus";
 
 // Form schema validation
 const profileFormSchema = z.object({
@@ -722,7 +726,7 @@ export default function ProfilePage() {
                       </Form>
                     ) : (
                       <Tabs defaultValue="info" className="w-full">
-                        <TabsList className="grid w-full grid-cols-4 mb-6">
+                        <TabsList className="grid w-full grid-cols-5 mb-6">
                           <TabsTrigger value="info" className="flex items-center">
                             <UserCircle2 className="h-4 w-4 mr-2" />
                             Basic Info
@@ -735,8 +739,14 @@ export default function ProfilePage() {
                             <Gamepad2 className="h-4 w-4 mr-2" />
                             Games
                           </TabsTrigger>
+                          <TabsTrigger value="streaming" className="flex items-center">
+                            <svg viewBox="0 0 24 24" className="h-4 w-4 mr-2 fill-current">
+                              <path d="M11.64 5.93h1.43v4.28h-1.43m3.93-4.28H17v4.28h-1.43M7 2L3.43 5.57v12.86h4.28V22l3.58-3.57h2.85L20.57 12V2m-1.43 9.29l-2.85 2.85h-2.86l-2.5 2.5v-2.5H7.71V3.43h11.43z"/>
+                            </svg>
+                            Streaming
+                          </TabsTrigger>
                           <TabsTrigger value="preferences" className="flex items-center">
-                            <User className="h-4 w-4 mr-2" />
+                            <Settings className="h-4 w-4 mr-2" />
                             Preferences
                           </TabsTrigger>
                         </TabsList>
@@ -894,6 +904,68 @@ export default function ProfilePage() {
                                   </CardContent>
                                 </Card>
                               ))}
+                            </div>
+                          </div>
+                        </TabsContent>
+                        
+                        <TabsContent value="streaming" className="space-y-6">
+                          <h3 className="text-lg font-medium mb-4">Streaming Setup</h3>
+                          
+                          <div>
+                            <div className="flex items-center justify-between mb-6">
+                              <div>
+                                <h4 className="text-lg font-medium">Twitch Integration</h4>
+                                <p className="text-sm text-[hsl(var(--cwg-muted))]">
+                                  Connect your Twitch account to stream for ClockWork Gamers
+                                </p>
+                              </div>
+                              
+                              <TwitchStreamerStatus userId={user?.id} />
+                            </div>
+                            
+                            <div className="mt-6">
+                              <StreamerTwitchIntegration />
+                            </div>
+                            
+                            <div className="mt-8">
+                              <h4 className="text-lg font-medium mb-4">Streaming Benefits</h4>
+                              <div className="space-y-4">
+                                <div className="bg-[hsl(var(--cwg-dark-blue))]/30 p-4 rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
+                                  <div className="flex items-start">
+                                    <CheckCircle2 className="h-5 w-5 text-[hsl(var(--cwg-orange))] mt-0.5 mr-2" />
+                                    <div>
+                                      <h5 className="font-medium">Automatic status updates</h5>
+                                      <p className="text-sm text-[hsl(var(--cwg-muted))]">
+                                        We'll automatically detect when you're live and update your status
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="bg-[hsl(var(--cwg-dark-blue))]/30 p-4 rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
+                                  <div className="flex items-start">
+                                    <CheckCircle2 className="h-5 w-5 text-[hsl(var(--cwg-orange))] mt-0.5 mr-2" />
+                                    <div>
+                                      <h5 className="font-medium">Featured on the homepage</h5>
+                                      <p className="text-sm text-[hsl(var(--cwg-muted))]">
+                                        When you're live, your stream will be featured in our live streamers section
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="bg-[hsl(var(--cwg-dark-blue))]/30 p-4 rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
+                                  <div className="flex items-start">
+                                    <CheckCircle2 className="h-5 w-5 text-[hsl(var(--cwg-orange))] mt-0.5 mr-2" />
+                                    <div>
+                                      <h5 className="font-medium">Dedicated streamer profile</h5>
+                                      <p className="text-sm text-[hsl(var(--cwg-muted))]">
+                                        Get a customizable streamer profile page that showcases your content
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </TabsContent>

@@ -66,6 +66,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.get("/api/streamer/me", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const streamer = await storage.getStreamerByUserId(userId);
+      
+      if (!streamer) {
+        return res.status(404).json({ message: "Streamer profile not found" });
+      }
+      
+      res.json(streamer);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch streamer profile" });
+    }
+  });
+  
   // Streamer Schedule routes
   app.get("/api/streamers/:id/schedule", async (req, res) => {
     try {
