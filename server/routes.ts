@@ -770,7 +770,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up WebSocket server for real-time chat
   const wss = new WebSocketServer({ 
     server: httpServer, 
-    path: '/ws'
+    path: '/ws',
+    // Allow connections from any origin
+    verifyClient: (info: { origin: string }) => {
+      console.log('WebSocket connection attempt from:', info.origin);
+      return true; // Accept all connections for now
+    }
   });
   
   // Store connected clients with their user info

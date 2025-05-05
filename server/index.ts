@@ -1,8 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import cors from "cors";
 
 const app = express();
+// Enable CORS for all routes
+app.use(cors({
+  origin: true, // Allow the request origin (uses the Origin header in Access-Control-Allow-Origin)
+  credentials: true, // Allow cookies to be sent with requests
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
