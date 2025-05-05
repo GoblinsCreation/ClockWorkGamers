@@ -23,6 +23,8 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByReferralCode(referralCode: string): Promise<User | undefined>;
+  updateUserReferralCode(userId: number, referralCode: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   listUsers(): Promise<User[]>;
   
@@ -75,6 +77,18 @@ export interface IStorage {
   updateNews(id: number, data: Partial<News>): Promise<News | undefined>;
   deleteNews(id: number): Promise<boolean>;
   listNews(limit?: number): Promise<News[]>;
+  
+  // Chat operations
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  getChatMessages(roomId: string, limit?: number): Promise<ChatMessage[]>;
+  deleteChatMessage(id: number): Promise<boolean>;
+  
+  // Referral operations
+  createReferral(referral: InsertReferral): Promise<Referral>;
+  getReferral(id: number): Promise<Referral | undefined>;
+  updateReferral(id: number, data: Partial<Referral>): Promise<Referral | undefined>;
+  getUserReferrals(userId: number): Promise<Referral[]>;
+  getUserReferredUsers(userId: number): Promise<User[]>;
   
   // Session storage
   sessionStore: Store;

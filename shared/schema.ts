@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, primaryKey, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, primaryKey, jsonb, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -138,13 +138,42 @@ export const userProfiles = pgTable("user_profiles", {
 export const insertUserProfileSchema = createInsertSchema(userProfiles)
   .omit({ id: true, updatedAt: true });
 
+// Chat Messages model
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  roomId: text("room_id").default("public").notNull(),
+  message: text("message").notNull(),
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+});
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages)
+  .omit({ id: true, sentAt: true });
+
+// Referrals model
+export const referrals = pgTable("referrals", {
+  id: serial("id").primaryKey(),
+  referrerId: integer("referrer_id").notNull(),
+  referredId: integer("referred_id").notNull().unique(),
+  status: text("status").default("pending").notNull(),
+  rewardClaimed: boolean("reward_claimed").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertReferralSchema = createInsertSchema(referrals)
+  .omit({ id: true, createdAt: true, updatedAt: true });
+
 // Relations definitions
 export const usersRelations = relations(users, ({ many, one }) => ({
   streamers: many(streamers),
   rentalRequests: many(rentalRequests),
   newsAuthored: many(news, { relationName: "author" }),
   coursesInstructed: many(courses, { relationName: "instructor" }),
-  profile: one(userProfiles)
+  profile: one(userProfiles),
+  chatMessages: many(chatMessages),
+  referralsGiven: many(referrals, { relationName: "referrer" }),
+  referralsReceived: many(referrals, { relationName: "referred" })
 }));
 
 export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
@@ -196,6 +225,26 @@ export const streamerScheduleRelations = relations(streamerSchedules, ({ one }) 
   }),
 }));
 
+export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+  user: one(users, {
+    fields: [chatMessages.userId],
+    references: [users.id],
+  }),
+}));
+
+export const referralsRelations = relations(referrals, ({ one }) => ({
+  referrer: one(users, {
+    fields: [referrals.referrerId],
+    references: [users.id],
+    relationName: "referrer",
+  }),
+  referred: one(users, {
+    fields: [referrals.referredId],
+    references: [users.id],
+    relationName: "referred",
+  }),
+}));
+
 // Type exports
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -220,3 +269,9 @@ export type StreamerSchedule = typeof streamerSchedules.$inferSelect;
 
 export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
 export type UserProfile = typeof userProfiles.$inferSelect;
+
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+
+export type InsertReferral = z.infer<typeof insertReferralSchema>;
+export type Referral = typeof referrals.$inferSelect;
