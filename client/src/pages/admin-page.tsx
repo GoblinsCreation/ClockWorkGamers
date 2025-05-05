@@ -73,6 +73,28 @@ export default function AdminPage() {
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
   
+  // State for user editing
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
+  const [userFormData, setUserFormData] = useState({
+    username: "",
+    email: "",
+    fullName: "",
+    password: "",
+    isChangingPassword: false
+  });
+  
+  // State for streamer creation
+  const [isAddStreamerDialogOpen, setIsAddStreamerDialogOpen] = useState(false);
+  const [newStreamer, setNewStreamer] = useState({
+    displayName: "",
+    platform: "Twitch",
+    channelUrl: "",
+    description: "",
+    userId: 0,
+    isSubmitting: false
+  });
+  
   // Fetch streamer schedules when a streamer is selected
   const { data: streamerSchedules = [], isLoading: isLoadingSchedules } = useQuery<StreamerSchedule[]>({
     queryKey: ["/api/streamer-schedules", selectedStreamer?.id],
@@ -223,6 +245,127 @@ export default function AdminPage() {
     }
   };
   
+  // Handle user edit dialog
+  const openUserEditDialog = (user: User) => {
+    setEditingUser(user);
+    setUserFormData({
+      username: user.username,
+      email: user.email,
+      fullName: user.fullName || "",
+      password: "",
+      isChangingPassword: false
+    });
+    setIsEditUserDialogOpen(true);
+  };
+
+  // Handle user update
+  const handleUpdateUser = async () => {
+    if (!editingUser) return;
+    
+    try {
+      const updateData: any = {
+        username: userFormData.username,
+        email: userFormData.email,
+        fullName: userFormData.fullName,
+      };
+      
+      if (userFormData.isChangingPassword && userFormData.password) {
+        updateData.password = userFormData.password;
+      }
+      
+      await apiRequest("PATCH", `/api/admin/users/${editingUser.id}`, updateData);
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      
+      toast({
+        title: "User Updated",
+        description: `${editingUser.username}'s profile has been updated successfully`,
+      });
+      
+      setIsEditUserDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: "An error occurred while updating the user profile",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Handle sending password reset
+  const handleSendPasswordReset = async () => {
+    if (!editingUser) return;
+    
+    try {
+      await apiRequest("POST", `/api/admin/users/${editingUser.id}/reset-password`, {});
+      
+      toast({
+        title: "Password Reset Sent",
+        description: `Password reset link has been sent to ${editingUser.email}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Reset Failed",
+        description: "Failed to send password reset link",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Handle add streamer
+  const handleAddStreamer = async () => {
+    if (!newStreamer.displayName || !newStreamer.platform || !newStreamer.channelUrl || !newStreamer.userId) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setNewStreamer({ ...newStreamer, isSubmitting: true });
+    
+    try {
+      await apiRequest("POST", "/api/streamers", {
+        displayName: newStreamer.displayName,
+        platform: newStreamer.platform,
+        channelUrl: newStreamer.channelUrl,
+        description: newStreamer.description,
+        userId: newStreamer.userId,
+        isLive: false,
+        streamTitle: null,
+        currentGame: null,
+        viewerCount: 0,
+        lastStreamedAt: null
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/streamers"] });
+      
+      toast({
+        title: "Streamer Added",
+        description: "New streamer has been added successfully",
+      });
+      
+      setNewStreamer({
+        displayName: "",
+        platform: "Twitch",
+        channelUrl: "",
+        description: "",
+        userId: 0,
+        isSubmitting: false
+      });
+      
+      setIsAddStreamerDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: "Failed to Add Streamer",
+        description: "An error occurred while adding the streamer",
+        variant: "destructive",
+      });
+      setNewStreamer({ ...newStreamer, isSubmitting: false });
+    }
+  };
+
   const handleCreateNews = async () => {
     if (!newNewsPost.title || !newNewsPost.content || !newNewsPost.category) {
       toast({
@@ -236,8 +379,8 @@ export default function AdminPage() {
     setNewNewsPost({ ...newNewsPost, isSubmitting: true });
     
     try {
-      // Use the first user ID as the author for now
-      const authorId = users.length > 0 ? users[0].id : 1;
+      // Use current user ID as the author
+      const authorId = currentUser?.id || 1;
       
       await apiRequest("POST", "/api/news", {
         title: newNewsPost.title,
@@ -488,7 +631,12 @@ export default function AdminPage() {
                                       </DropdownMenuItem>
                                     </DropdownMenuContent>
                                   </DropdownMenu>
-                                  <Button variant="outline" size="sm" className="h-8 border-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-orange))]">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="h-8 border-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-orange))]"
+                                    onClick={() => openUserEditDialog(user)}
+                                  >
                                     Edit Profile
                                   </Button>
                                 </div>
@@ -642,7 +790,10 @@ export default function AdminPage() {
                   </div>
                   
                   <div className="mb-6">
-                    <Button className="bg-[hsl(var(--cwg-orange))] hover:bg-[hsl(var(--cwg-orange))]/90">
+                    <Button 
+                      className="bg-[hsl(var(--cwg-orange))] hover:bg-[hsl(var(--cwg-orange))]/90"
+                      onClick={() => setIsAddStreamerDialogOpen(true)}
+                    >
                       Add New Streamer
                     </Button>
                   </div>
