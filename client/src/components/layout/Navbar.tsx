@@ -42,23 +42,21 @@ export function Navbar() {
             {/* Left side with logo */}
             <div className="flex-shrink-0 flex items-center">
               <Link href="/">
-                <a className="flex items-center">
-                  <div className="flex items-center">
-                    <img src="/assets/cwg.gif" alt="CWG Logo" className="h-10 mr-2" 
-                      onError={(e) => {
-                        // Fallback if image fails to load
-                        e.currentTarget.style.display = 'none';
-                        const fallback = document.createElement('div');
-                        fallback.className = 'h-10 w-10 bg-[hsl(var(--cwg-orange))] flex items-center justify-center';
-                        fallback.innerHTML = '<span class="text-white font-orbitron font-bold text-xs">CWG</span>';
-                        e.currentTarget.parentNode?.appendChild(fallback);
-                      }}
-                    />
-                    <span className="text-[hsl(var(--cwg-orange))] font-orbitron font-bold text-xl md:text-2xl">
-                      ClockWork Gamers
-                    </span>
-                  </div>
-                </a>
+                <div className="flex items-center cursor-pointer">
+                  <img src="/assets/cwg.gif" alt="CWG Logo" className="h-10 mr-2" 
+                    onError={(e) => {
+                      // Fallback if image fails to load
+                      e.currentTarget.style.display = 'none';
+                      const fallback = document.createElement('div');
+                      fallback.className = 'h-10 w-10 bg-[hsl(var(--cwg-orange))] flex items-center justify-center';
+                      fallback.innerHTML = '<span class="text-white font-orbitron font-bold text-xs">CWG</span>';
+                      e.currentTarget.parentNode?.appendChild(fallback);
+                    }}
+                  />
+                  <span className="text-[hsl(var(--cwg-orange))] font-orbitron font-bold text-xl md:text-2xl">
+                    ClockWork Gamers
+                  </span>
+                </div>
               </Link>
             </div>
           </div>
@@ -68,9 +66,9 @@ export function Navbar() {
             <div className="flex space-x-4 xl:space-x-6 overflow-x-auto px-4 py-2 scrollbar-hide">
               {navLinks.map((link) => (
                 <Link key={link.path} href={link.path}>
-                  <a className={`font-orbitron text-sm whitespace-nowrap ${location === link.path ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'} px-2 py-1 transition-colors duration-200`}>
+                  <div className={`font-orbitron text-sm cursor-pointer whitespace-nowrap ${location === link.path ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'} px-2 py-1 transition-colors duration-200`}>
                     {link.name}
-                  </a>
+                  </div>
                 </Link>
               ))}
             </div>
@@ -143,33 +141,33 @@ export function Navbar() {
           <div className="px-2 pt-3 pb-4 space-y-2 sm:px-4 max-h-[80vh] overflow-y-auto">
             {navLinks.map((link) => (
               <Link key={link.path} href={link.path}>
-                <a 
-                  className={`block px-4 py-2.5 rounded-md font-orbitron text-base font-medium ${location === link.path ? 'text-[hsl(var(--cwg-orange))] bg-[hsl(var(--cwg-dark))/50]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'}`}
+                <div 
+                  className={`block px-4 py-2.5 rounded-md font-orbitron text-base font-medium cursor-pointer ${location === link.path ? 'text-[hsl(var(--cwg-orange))] bg-[hsl(var(--cwg-dark))/50]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'}`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.name}
-                </a>
+                </div>
               </Link>
             ))}
             
             {user && (
               <>
                 <Link href="/profile">
-                  <a 
-                    className={`block px-4 py-2.5 rounded-md font-orbitron text-base font-medium ${location === '/profile' ? 'text-[hsl(var(--cwg-orange))] bg-[hsl(var(--cwg-dark))/50]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'}`}
+                  <div 
+                    className={`block px-4 py-2.5 rounded-md font-orbitron text-base font-medium cursor-pointer ${location === '/profile' ? 'text-[hsl(var(--cwg-orange))] bg-[hsl(var(--cwg-dark))/50]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'}`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Profile
-                  </a>
+                  </div>
                 </Link>
                 {/* Chat is now available via floating widget */}
                 <Link href="/referrals">
-                  <a 
-                    className={`block px-4 py-2.5 rounded-md font-orbitron text-base font-medium ${location === '/referrals' ? 'text-[hsl(var(--cwg-orange))] bg-[hsl(var(--cwg-dark))/50]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'}`}
+                  <div 
+                    className={`block px-4 py-2.5 rounded-md font-orbitron text-base font-medium cursor-pointer ${location === '/referrals' ? 'text-[hsl(var(--cwg-orange))] bg-[hsl(var(--cwg-dark))/50]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'}`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Referrals
-                  </a>
+                  </div>
                 </Link>
               </>
             )}
