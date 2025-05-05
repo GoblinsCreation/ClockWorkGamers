@@ -389,7 +389,7 @@ export default function AdminPage() {
                                       <DropdownMenuItem 
                                         className={user.role === "User" ? "bg-[hsl(var(--cwg-dark-blue))]/50" : ""}
                                         onClick={() => {
-                                          apiRequest("PATCH", `/api/admin/users/${user.id}/role`, { role: "User" })
+                                          apiRequest("PATCH", `/api/admin/users/${user.id}/role`, { role: "User", isAdmin: false })
                                             .then(() => {
                                               queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
                                               toast({
@@ -454,14 +454,32 @@ export default function AdminPage() {
                                       </DropdownMenuItem>
                                       <DropdownMenuItem 
                                         className={user.role === "Owner" ? "bg-[hsl(var(--cwg-dark-blue))]/50" : ""}
-                                        disabled={true}
+                                        disabled={currentUser?.role !== "Owner"}
                                         onClick={() => {
-                                          // Owner role is restricted
-                                          toast({
-                                            title: "Cannot Change Owner",
-                                            description: "This role is restricted",
-                                            variant: "destructive"
-                                          });
+                                          if (currentUser?.role !== "Owner") {
+                                            toast({
+                                              title: "Cannot Change Owner",
+                                              description: "Only Owner can assign Owner role",
+                                              variant: "destructive"
+                                            });
+                                            return;
+                                          }
+                                          
+                                          apiRequest("PATCH", `/api/admin/users/${user.id}/role`, { role: "Owner", isAdmin: true })
+                                            .then(() => {
+                                              queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+                                              toast({
+                                                title: "Role Updated",
+                                                description: `${user.username} is now an Owner`,
+                                              });
+                                            })
+                                            .catch(error => {
+                                              toast({
+                                                title: "Update Failed",
+                                                description: error.message || "Could not update user role",
+                                                variant: "destructive"
+                                              });
+                                            });
                                         }}
                                       >
                                         Owner (Restricted)
