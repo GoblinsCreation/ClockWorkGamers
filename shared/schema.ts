@@ -303,3 +303,52 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
 
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = typeof notifications.$inferSelect;
+
+// Guild Achievements model
+export const guildAchievements = pgTable("guild_achievements", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  icon: text("icon").notNull(), // Path to achievement icon or icon name
+  requirementType: text("requirement_type").notNull(), // e.g., "rentals_count", "members_count", "streams_watched"
+  requirementValue: integer("requirement_value").notNull(), // The threshold value required to unlock
+  rewardType: text("reward_type").notNull(), // e.g., "tokens", "badge", "discount"
+  rewardValue: integer("reward_value").notNull(), // The amount of reward
+  tier: integer("tier").default(1).notNull(), // For achievements with multiple tiers (1, 2, 3, etc.)
+  isGlobal: boolean("is_global").default(true).notNull(), // Whether achievement applies guild-wide or individually
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertGuildAchievementSchema = createInsertSchema(guildAchievements)
+  .omit({ id: true, createdAt: true });
+
+// User Achievement Progress model
+export const userAchievementProgress = pgTable("user_achievement_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  achievementId: integer("achievement_id").notNull(),
+  currentValue: integer("current_value").default(0).notNull(), // Current progress towards requirement
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  completedAt: timestamp("completed_at"), // When the achievement was completed
+  rewardClaimed: boolean("reward_claimed").default(false).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserAchievementProgressSchema = createInsertSchema(userAchievementProgress)
+  .omit({ id: true, updatedAt: true });
+
+export const userAchievementProgressRelations = relations(userAchievementProgress, ({ one }) => ({
+  user: one(users, {
+    fields: [userAchievementProgress.userId],
+    references: [users.id],
+  }),
+  achievement: one(guildAchievements, {
+    fields: [userAchievementProgress.achievementId],
+    references: [guildAchievements.id],
+  }),
+}));
+
+export type InsertGuildAchievement = z.infer<typeof insertGuildAchievementSchema>;
+export type GuildAchievement = typeof guildAchievements.$inferSelect;
+export type InsertUserAchievementProgress = z.infer<typeof insertUserAchievementProgressSchema>;
+export type UserAchievementProgress = typeof userAchievementProgress.$inferSelect;
