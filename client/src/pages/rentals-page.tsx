@@ -11,7 +11,7 @@ import { Loader2 } from "lucide-react";
 
 export default function RentalsPage() {
   const [activeTab, setActiveTab] = useState("preset");
-  const [selectedGame, setSelectedGame] = useState("boss-fighters");
+  const [selectedGame, setSelectedGame] = useState("boss-fighters"); // Default to Boss Fighters
   
   const { data: rentals = [], isLoading } = useQuery<Rental[]>({
     queryKey: [`/api/rentals?game=${selectedGame}`],
@@ -20,9 +20,12 @@ export default function RentalsPage() {
   // Available games for rental items
   const games = [
     { id: "boss-fighters", name: "Boss Fighters" },
-    { id: "galaxy-raiders", name: "Galaxy Raiders" },
-    { id: "crypto-legends", name: "Crypto Legends" },
-    { id: "nft-warriors", name: "NFT Warriors" },
+    { id: "kokodi", name: "KoKodi" },
+    { id: "nyan-heroes", name: "Nyan Heroes" },
+    { id: "big-time", name: "Big Time" },
+    { id: "worldshards", name: "WorldShards" },
+    { id: "off-the-grid", name: "Off The Grid" },
+    { id: "ravenquest", name: "RavenQuest" },
   ];
 
   return (

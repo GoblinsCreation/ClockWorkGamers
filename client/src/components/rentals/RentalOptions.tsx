@@ -108,7 +108,10 @@ export default function RentalOptions({ rentals, selectedGame }: { rentals: Rent
         <p className="text-[hsl(var(--cwg-muted))] max-w-lg mx-auto mb-6">
           We don't have any rental items available for {formatGameName(selectedGame)} at the moment. Please check back later or try another game.
         </p>
-        <Button className="bg-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-dark))] hover:bg-[hsl(var(--cwg-orange))]/90">
+        <Button 
+          className="bg-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-dark))] hover:bg-[hsl(var(--cwg-orange))]/90"
+          onClick={() => document.querySelector('[value="custom"]')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))}
+        >
           Try Custom Rental Request
         </Button>
       </div>
