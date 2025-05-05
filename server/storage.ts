@@ -93,6 +93,16 @@ export interface IStorage {
   getUserReferrals(userId: number): Promise<Referral[]>;
   getUserReferredUsers(userId: number): Promise<User[]>;
   
+  // Notification operations
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getNotification(id: number): Promise<Notification | undefined>;
+  updateNotification(id: number, data: Partial<Notification>): Promise<Notification | undefined>;
+  deleteNotification(id: number): Promise<boolean>;
+  getUserNotifications(userId: number, limit?: number): Promise<Notification[]>;
+  markNotificationAsRead(id: number): Promise<Notification | undefined>;
+  markAllUserNotificationsAsRead(userId: number): Promise<boolean>;
+  getUnreadNotificationCount(userId: number): Promise<number>;
+  
   // Session storage
   sessionStore: Store;
 }
@@ -502,6 +512,71 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(users)
       .where(inArray(users.id, referredUserIds));
+  }
+
+  // Notification methods
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [createdNotification] = await db.insert(notifications).values(notification).returning();
+    return createdNotification;
+  }
+
+  async getNotification(id: number): Promise<Notification | undefined> {
+    const [notification] = await db.select().from(notifications).where(eq(notifications.id, id));
+    return notification;
+  }
+
+  async updateNotification(id: number, data: Partial<Notification>): Promise<Notification | undefined> {
+    const [notification] = await db
+      .update(notifications)
+      .set(data)
+      .where(eq(notifications.id, id))
+      .returning();
+    return notification;
+  }
+
+  async deleteNotification(id: number): Promise<boolean> {
+    const deleted = await db.delete(notifications).where(eq(notifications.id, id)).returning();
+    return deleted.length > 0;
+  }
+
+  async getUserNotifications(userId: number, limit?: number): Promise<Notification[]> {
+    const query = db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt));
+    
+    if (limit) {
+      query.limit(limit);
+    }
+    
+    return await query;
+  }
+
+  async markNotificationAsRead(id: number): Promise<Notification | undefined> {
+    return this.updateNotification(id, { isRead: true });
+  }
+
+  async markAllUserNotificationsAsRead(userId: number): Promise<boolean> {
+    const result = await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.userId, userId))
+      .returning();
+    
+    return result.length > 0;
+  }
+
+  async getUnreadNotificationCount(userId: number): Promise<number> {
+    const result = await db
+      .select({ count: count() })
+      .from(notifications)
+      .where(and(
+        eq(notifications.userId, userId),
+        eq(notifications.isRead, false)
+      ));
+    
+    return result[0]?.count || 0;
   }
 }
 
