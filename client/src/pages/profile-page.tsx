@@ -380,6 +380,89 @@ export default function ProfilePage() {
                     </CardContent>
                   </Card>
                 )}
+                
+                {/* Referral Code Card */}
+                <Card className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))] mt-6">
+                  <CardHeader>
+                    <CardTitle className="text-[hsl(var(--cwg-orange))]">
+                      <div className="flex items-center">
+                        <Users className="h-5 w-5 mr-2" />
+                        Referral Program
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-[hsl(var(--cwg-muted))]">Your Referral Code</Label>
+                        {user?.referralCode ? (
+                          <div className="font-mono text-sm bg-[hsl(var(--cwg-dark))] p-2 rounded-md mt-1 overflow-x-auto flex items-center justify-between">
+                            <span>{user.referralCode}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                navigator.clipboard.writeText(user.referralCode || '');
+                                toast({
+                                  title: "Copied!",
+                                  description: "Referral code copied to clipboard",
+                                });
+                              }}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="mt-1 flex items-center">
+                            <span className="text-[hsl(var(--cwg-muted))]">No referral code generated yet</span>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="ml-2"
+                              onClick={() => {
+                                generateReferralCodeMutation.mutate(undefined, {
+                                  onSuccess: (data) => {
+                                    queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+                                    toast({
+                                      title: "Success!",
+                                      description: "Your referral code has been generated",
+                                    });
+                                  }
+                                });
+                              }}
+                              disabled={generateReferralCodeMutation.isPending}
+                            >
+                              {generateReferralCodeMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>Generate</>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div>
+                        <Label className="text-[hsl(var(--cwg-muted))]">How it works</Label>
+                        <p className="text-sm mt-1 text-[hsl(var(--cwg-muted))]">
+                          Share your referral code with friends. When they register using your code, 
+                          both of you will earn exclusive rewards and tokens!
+                        </p>
+                      </div>
+                      
+                      <Button 
+                        variant="default" 
+                        className="w-full bg-gradient-to-r from-[hsl(var(--cwg-orange))] to-[hsl(var(--cwg-orange))]/80" 
+                        onClick={() => setLocation('/referrals')}
+                      >
+                        View My Referrals
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
               
               {/* Profile Details */}

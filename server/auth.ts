@@ -5,7 +5,7 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { type Json, User as SelectUser, insertUserSchema } from "@shared/schema";
+import { User as SelectUser, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 
 declare global {
@@ -126,13 +126,15 @@ export function setupAuth(app: Express) {
             
             // Create notification for the referrer
             if (typeof storage.createNotification === 'function') {
+              // Create object and stringify for jsonb field
+              const metadataObj = { referredId: user.id };
               await storage.createNotification({
                 userId: referrer.id,
                 type: "REFERRAL",
                 title: "New Referral",
                 message: `${user.username} joined using your referral code!`,
                 isRead: false,
-                metadata: { referredId: user.id } as Json
+                metadata: metadataObj
               });
             }
           }
