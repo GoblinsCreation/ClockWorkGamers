@@ -9,7 +9,9 @@ import {
   userProfiles, type UserProfile, type InsertUserProfile,
   chatMessages, type ChatMessage, type InsertChatMessage,
   referrals, type Referral, type InsertReferral,
-  notifications, type Notification, type InsertNotification
+  notifications, type Notification, type InsertNotification,
+  guildAchievements, type GuildAchievement, type InsertGuildAchievement,
+  userAchievementProgress, type UserAchievementProgress, type InsertUserAchievementProgress
 } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
@@ -104,6 +106,22 @@ export interface IStorage {
   markAllUserNotificationsAsRead(userId: number): Promise<boolean>;
   getUnreadNotificationCount(userId: number): Promise<number>;
   
+  // Guild Achievement operations
+  createGuildAchievement(achievement: InsertGuildAchievement): Promise<GuildAchievement>;
+  getGuildAchievement(id: number): Promise<GuildAchievement | undefined>;
+  updateGuildAchievement(id: number, data: Partial<GuildAchievement>): Promise<GuildAchievement | undefined>;
+  deleteGuildAchievement(id: number): Promise<boolean>;
+  listGuildAchievements(): Promise<GuildAchievement[]>;
+  
+  // User Achievement Progress operations
+  getUserAchievementProgress(userId: number, achievementId: number): Promise<UserAchievementProgress | undefined>;
+  createUserAchievementProgress(progress: InsertUserAchievementProgress): Promise<UserAchievementProgress>;
+  updateUserAchievementProgress(userId: number, achievementId: number, data: Partial<UserAchievementProgress>): Promise<UserAchievementProgress | undefined>;
+  incrementUserAchievementProgress(userId: number, achievementId: number, incrementBy: number): Promise<UserAchievementProgress | undefined>;
+  listUserAchievements(userId: number): Promise<Array<GuildAchievement & { progress: UserAchievementProgress | null }>>;
+  getRecentlyCompletedAchievements(userId: number, limit?: number): Promise<Array<GuildAchievement & { progress: UserAchievementProgress }>>;
+  claimAchievementReward(userId: number, achievementId: number): Promise<boolean>;
+
   // Session storage
   sessionStore: Store;
 }
@@ -578,6 +596,198 @@ export class DatabaseStorage implements IStorage {
       ));
     
     return result[0]?.count || 0;
+  }
+
+  // Guild Achievement methods
+  async createGuildAchievement(achievement: InsertGuildAchievement): Promise<GuildAchievement> {
+    const [newAchievement] = await db.insert(guildAchievements).values(achievement).returning();
+    return newAchievement;
+  }
+
+  async getGuildAchievement(id: number): Promise<GuildAchievement | undefined> {
+    const [achievement] = await db.select().from(guildAchievements).where(eq(guildAchievements.id, id));
+    return achievement;
+  }
+
+  async updateGuildAchievement(id: number, data: Partial<GuildAchievement>): Promise<GuildAchievement | undefined> {
+    const [achievement] = await db
+      .update(guildAchievements)
+      .set(data)
+      .where(eq(guildAchievements.id, id))
+      .returning();
+    return achievement;
+  }
+
+  async deleteGuildAchievement(id: number): Promise<boolean> {
+    const deleted = await db.delete(guildAchievements).where(eq(guildAchievements.id, id)).returning();
+    return deleted.length > 0;
+  }
+
+  async listGuildAchievements(): Promise<GuildAchievement[]> {
+    return await db.select().from(guildAchievements);
+  }
+
+  // User Achievement Progress methods
+  async getUserAchievementProgress(userId: number, achievementId: number): Promise<UserAchievementProgress | undefined> {
+    const [progress] = await db
+      .select()
+      .from(userAchievementProgress)
+      .where(and(
+        eq(userAchievementProgress.userId, userId),
+        eq(userAchievementProgress.achievementId, achievementId)
+      ));
+    return progress;
+  }
+
+  async createUserAchievementProgress(progress: InsertUserAchievementProgress): Promise<UserAchievementProgress> {
+    const [newProgress] = await db.insert(userAchievementProgress).values(progress).returning();
+    return newProgress;
+  }
+
+  async updateUserAchievementProgress(
+    userId: number, 
+    achievementId: number, 
+    data: Partial<UserAchievementProgress>
+  ): Promise<UserAchievementProgress | undefined> {
+    const [progress] = await db
+      .update(userAchievementProgress)
+      .set(data)
+      .where(and(
+        eq(userAchievementProgress.userId, userId),
+        eq(userAchievementProgress.achievementId, achievementId)
+      ))
+      .returning();
+    return progress;
+  }
+
+  async incrementUserAchievementProgress(
+    userId: number, 
+    achievementId: number, 
+    incrementBy: number
+  ): Promise<UserAchievementProgress | undefined> {
+    // First, get the achievement to check requirements
+    const achievement = await this.getGuildAchievement(achievementId);
+    if (!achievement) return undefined;
+
+    // Get current progress or create if it doesn't exist
+    let progress = await this.getUserAchievementProgress(userId, achievementId);
+    
+    if (!progress) {
+      // Create new progress entry if it doesn't exist
+      progress = await this.createUserAchievementProgress({
+        userId,
+        achievementId,
+        currentValue: 0,
+        isCompleted: false,
+        rewardClaimed: false
+      });
+    }
+
+    // Calculate new value
+    const newValue = progress.currentValue + incrementBy;
+    const isCompleted = newValue >= achievement.requirementValue;
+    
+    // Update progress
+    const updatedData: Partial<UserAchievementProgress> = {
+      currentValue: newValue,
+      isCompleted,
+      completedAt: isCompleted && !progress.isCompleted ? new Date() : progress.completedAt
+    };
+    
+    // Update the progress
+    return await this.updateUserAchievementProgress(userId, achievementId, updatedData);
+  }
+
+  async listUserAchievements(userId: number): Promise<Array<GuildAchievement & { progress: UserAchievementProgress | null }>> {
+    const achievements = await db.select().from(guildAchievements);
+    
+    // Get all progress records for this user
+    const progresses = await db
+      .select()
+      .from(userAchievementProgress)
+      .where(eq(userAchievementProgress.userId, userId));
+    
+    // Create a map of achievement ID to progress
+    const progressMap = new Map();
+    progresses.forEach(progress => {
+      progressMap.set(progress.achievementId, progress);
+    });
+    
+    // Combine achievements with their progress
+    return achievements.map(achievement => {
+      const progress = progressMap.get(achievement.id) || null;
+      return {
+        ...achievement,
+        progress
+      };
+    });
+  }
+
+  async getRecentlyCompletedAchievements(
+    userId: number, 
+    limit: number = 5
+  ): Promise<Array<GuildAchievement & { progress: UserAchievementProgress }>> {
+    // Get completed achievements for this user
+    const completedProgresses = await db
+      .select()
+      .from(userAchievementProgress)
+      .where(and(
+        eq(userAchievementProgress.userId, userId),
+        eq(userAchievementProgress.isCompleted, true)
+      ))
+      .orderBy(desc(userAchievementProgress.completedAt))
+      .limit(limit);
+    
+    // Get the achievement details for each progress
+    const achievementIds = completedProgresses.map(p => p.achievementId);
+    
+    if (achievementIds.length === 0) {
+      return [];
+    }
+    
+    const achievements = await db
+      .select()
+      .from(guildAchievements)
+      .where(inArray(guildAchievements.id, achievementIds));
+    
+    // Create a map of achievement ID to achievement
+    const achievementMap = new Map();
+    achievements.forEach(achievement => {
+      achievementMap.set(achievement.id, achievement);
+    });
+    
+    // Combine progresses with their achievements
+    return completedProgresses
+      .map(progress => {
+        const achievement = achievementMap.get(progress.achievementId);
+        if (!achievement) return null; // Should never happen
+        
+        return {
+          ...achievement,
+          progress
+        };
+      })
+      .filter(item => item !== null) as Array<GuildAchievement & { progress: UserAchievementProgress }>;
+  }
+
+  async claimAchievementReward(userId: number, achievementId: number): Promise<boolean> {
+    // Get progress
+    const progress = await this.getUserAchievementProgress(userId, achievementId);
+    
+    // Check if progress exists and is completed but not claimed
+    if (!progress || !progress.isCompleted || progress.rewardClaimed) {
+      return false;
+    }
+    
+    // Mark as claimed
+    await this.updateUserAchievementProgress(userId, achievementId, {
+      rewardClaimed: true
+    });
+    
+    // In a real implementation, you would add the reward to the user here
+    // For example, if it's tokens, you would increase the user's token balance
+    
+    return true;
   }
 }
 

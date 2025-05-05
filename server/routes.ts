@@ -1436,5 +1436,215 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
 
+  // Guild Achievement API routes
+  app.get("/api/achievements", async (req, res) => {
+    try {
+      const achievements = await storage.listGuildAchievements();
+      res.json(achievements);
+    } catch (error) {
+      console.error("Error fetching achievements:", error);
+      res.status(500).json({ message: "Failed to fetch achievements" });
+    }
+  });
+
+  app.get("/api/achievements/:id", async (req, res) => {
+    try {
+      const achievementId = parseInt(req.params.id);
+      if (isNaN(achievementId)) {
+        return res.status(400).json({ message: "Invalid achievement ID" });
+      }
+      
+      const achievement = await storage.getGuildAchievement(achievementId);
+      if (!achievement) {
+        return res.status(404).json({ message: "Achievement not found" });
+      }
+      
+      res.json(achievement);
+    } catch (error) {
+      console.error("Error fetching achievement:", error);
+      res.status(500).json({ message: "Failed to fetch achievement" });
+    }
+  });
+
+  // Admin-only routes for managing achievements
+  app.post("/api/achievements", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user!.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    try {
+      const newAchievement = await storage.createGuildAchievement(req.body);
+      res.status(201).json(newAchievement);
+    } catch (error) {
+      console.error("Error creating achievement:", error);
+      res.status(500).json({ message: "Failed to create achievement" });
+    }
+  });
+
+  app.put("/api/achievements/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user!.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    try {
+      const achievementId = parseInt(req.params.id);
+      if (isNaN(achievementId)) {
+        return res.status(400).json({ message: "Invalid achievement ID" });
+      }
+      
+      const updatedAchievement = await storage.updateGuildAchievement(achievementId, req.body);
+      if (!updatedAchievement) {
+        return res.status(404).json({ message: "Achievement not found" });
+      }
+      
+      res.json(updatedAchievement);
+    } catch (error) {
+      console.error("Error updating achievement:", error);
+      res.status(500).json({ message: "Failed to update achievement" });
+    }
+  });
+
+  app.delete("/api/achievements/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user!.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    try {
+      const achievementId = parseInt(req.params.id);
+      if (isNaN(achievementId)) {
+        return res.status(400).json({ message: "Invalid achievement ID" });
+      }
+      
+      const success = await storage.deleteGuildAchievement(achievementId);
+      if (!success) {
+        return res.status(404).json({ message: "Achievement not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting achievement:", error);
+      res.status(500).json({ message: "Failed to delete achievement" });
+    }
+  });
+
+  // User Achievement Progress API routes
+  app.get("/api/user/achievements", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const achievements = await storage.listUserAchievements(userId);
+      res.json(achievements);
+    } catch (error) {
+      console.error("Error fetching user achievements:", error);
+      res.status(500).json({ message: "Failed to fetch user achievements" });
+    }
+  });
+
+  app.get("/api/user/achievements/completed", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      
+      const achievements = await storage.getRecentlyCompletedAchievements(userId, limit);
+      res.json(achievements);
+    } catch (error) {
+      console.error("Error fetching completed achievements:", error);
+      res.status(500).json({ message: "Failed to fetch completed achievements" });
+    }
+  });
+
+  app.post("/api/user/achievements/:id/claim", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const achievementId = parseInt(req.params.id);
+      
+      if (isNaN(achievementId)) {
+        return res.status(400).json({ message: "Invalid achievement ID" });
+      }
+      
+      const success = await storage.claimAchievementReward(userId, achievementId);
+      
+      if (!success) {
+        return res.status(400).json({ 
+          message: "Cannot claim reward. Achievement may not be completed or reward already claimed." 
+        });
+      }
+      
+      // Create a notification for the user about the claimed reward
+      await createSystemNotification(
+        userId,
+        "Achievement Reward Claimed",
+        "You have successfully claimed your reward!",
+        "achievement-claimed",
+        { achievementId }
+      );
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error claiming achievement reward:", error);
+      res.status(500).json({ message: "Failed to claim achievement reward" });
+    }
+  });
+
+  // For testing: Increment progress for a specific achievement
+  app.post("/api/user/achievements/:id/progress", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const achievementId = parseInt(req.params.id);
+      const { increment } = req.body;
+      
+      if (isNaN(achievementId)) {
+        return res.status(400).json({ message: "Invalid achievement ID" });
+      }
+      
+      if (typeof increment !== 'number' || increment <= 0) {
+        return res.status(400).json({ message: "Invalid increment value" });
+      }
+      
+      const progress = await storage.incrementUserAchievementProgress(userId, achievementId, increment);
+      
+      if (!progress) {
+        return res.status(404).json({ message: "Achievement not found" });
+      }
+      
+      // If the achievement was just completed, create a notification
+      if (progress.isCompleted && progress.completedAt && 
+          new Date(progress.completedAt).getTime() > Date.now() - 5000) {
+        // Get the achievement details
+        const achievement = await storage.getGuildAchievement(achievementId);
+        
+        if (achievement) {
+          await createSystemNotification(
+            userId,
+            "Achievement Unlocked",
+            `You've earned the "${achievement.name}" achievement! ${achievement.description}`,
+            "achievement-unlocked",
+            { achievementId, achievementName: achievement.name }
+          );
+        }
+      }
+      
+      res.json(progress);
+    } catch (error) {
+      console.error("Error updating achievement progress:", error);
+      res.status(500).json({ message: "Failed to update achievement progress" });
+    }
+  });
+
   return httpServer;
 }
