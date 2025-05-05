@@ -1,302 +1,164 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { MessageSquare, X, MinusSquare, Loader2, Send, Globe } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  MessageSquare, 
-  Send, 
-  Globe, 
-  X, 
-  Minimize2, 
-  Maximize2, 
-  HeadphonesIcon,
-  Users,
-  UserPlus
-} from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/components/translation/WebsiteTranslator';
+import { apiRequest } from '@/lib/queryClient';
+import './FloatingChat.css';
 
-const LANGUAGES = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Spanish' },
-  { code: 'fr', name: 'French' },
-  { code: 'de', name: 'German' },
-  { code: 'zh', name: 'Chinese' },
-  { code: 'ja', name: 'Japanese' },
-  { code: 'ko', name: 'Korean' },
-  { code: 'ru', name: 'Russian' },
-];
-
-interface ChatMessage {
-  id: number;
+interface Message {
+  id?: number;
   userId: number;
-  username?: string;
-  roomId: string;
+  username: string;
   message: string;
-  sentAt: string;
-  type?: 'chat' | 'system' | 'user_joined' | 'user_left';
+  timestamp: string;
   translatedText?: string;
 }
 
-interface PrivateChat {
-  userId: number;
-  username: string;
-  unreadCount: number;
-  lastMessage?: string;
+interface ChatRoomProps {
+  roomId: string;
+  onSendMessage: (message: string, roomId: string) => void;
+  messages: Message[];
+  isLoading: boolean;
 }
 
-const FloatingChat: React.FC = () => {
-  const { user } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
-  const [currentRoom, setCurrentRoom] = useState('public');
-  const [language, setLanguage] = useState('en');
-  const [privateChats, setPrivateChats] = useState<PrivateChat[]>([]);
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const socketRef = useRef<WebSocket | null>(null);
+const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onSendMessage, messages, isLoading }) => {
+  const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+  const { translate, language } = useTranslation();
 
-  // Connect to WebSocket
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Auto-scroll when new messages arrive
   useEffect(() => {
-    if (!user || !isOpen) return;
-
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
-    const socket = new WebSocket(wsUrl);
-    socketRef.current = socket;
-
-    socket.onopen = () => {
-      console.log('WebSocket connected');
-      setIsConnected(true);
-      
-      // Authenticate with the WebSocket server
-      socket.send(JSON.stringify({
-        type: 'auth',
-        userId: user.id,
-        username: user.username,
-      }));
-      
-      // Load initial messages from API
-      fetchMessages(currentRoom);
-    };
-
-    socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log('Received message:', data);
-        
-        if (data.type === 'chat') {
-          // Add the received message to our state
-          setMessages(prev => [...prev, {
-            id: data.id,
-            userId: data.userId,
-            username: data.username,
-            roomId: data.roomId || currentRoom,
-            message: data.message,
-            sentAt: data.timestamp,
-            type: 'chat',
-          }]);
-          
-          // If this is a private message, update the private chats list
-          if (data.roomId.startsWith('private-')) {
-            const senderId = data.userId;
-            if (senderId !== user?.id) {
-              updatePrivateChat(senderId, data.username, data.message);
-            }
-          }
-        } 
-        else if (data.type === 'system' || data.type === 'user_joined' || data.type === 'user_left') {
-          // Add system messages
-          setMessages(prev => [...prev, {
-            id: Date.now(),
-            userId: 0,
-            roomId: currentRoom,
-            message: data.message || 
-              (data.type === 'user_joined' ? `${data.username} joined the chat` : 
-               data.type === 'user_left' ? `${data.username} left the chat` : 
-               'System message'),
-            sentAt: data.timestamp,
-            type: data.type,
-          }]);
-        }
-        else if (data.type === 'translation') {
-          // Update message with translation
-          setMessages(prev => prev.map(msg => 
-            msg.id === data.messageId 
-              ? { ...msg, translatedText: data.translatedText }
-              : msg
-          ));
-        }
-        else if (data.type === 'error') {
-          toast({
-            title: 'Chat Error',
-            description: data.message,
-            variant: 'destructive',
-          });
-        }
-      } catch (error) {
-        console.error('Error parsing message:', error);
-      }
-    };
-
-    socket.onclose = () => {
-      console.log('WebSocket disconnected');
-      setIsConnected(false);
-    };
-
-    socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      toast({
-        title: 'Connection Error',
-        description: 'Failed to connect to chat. Please try again later.',
-        variant: 'destructive',
-      });
-      setIsConnected(false);
-    };
-
-    // Mock private chats for UI demonstration
-    setPrivateChats([
-      { userId: 2, username: 'Support', unreadCount: 0, lastMessage: 'How can we help you today?' },
-      { userId: 3, username: 'GameMaster42', unreadCount: 2, lastMessage: 'Are you joining the tournament?' },
-      { userId: 4, username: 'CryptoQueen', unreadCount: 0, lastMessage: 'Check out this new NFT!' },
-    ]);
-
-    return () => {
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.close();
-      }
-    };
-  }, [user, isOpen, currentRoom]);
-
-  // Update private chat list
-  const updatePrivateChat = (userId: number, username: string, lastMessage?: string) => {
-    setPrivateChats(prev => {
-      const existingChat = prev.find(chat => chat.userId === userId);
-      
-      if (existingChat) {
-        // Update existing chat
-        return prev.map(chat => 
-          chat.userId === userId 
-            ? { 
-                ...chat, 
-                lastMessage: lastMessage || chat.lastMessage,
-                unreadCount: currentRoom === `private-${userId}` ? 0 : chat.unreadCount + 1
-              }
-            : chat
-        );
-      } else {
-        // Add new chat
-        return [...prev, {
-          userId,
-          username,
-          unreadCount: 1,
-          lastMessage
-        }];
-      }
-    });
-  };
-
-  // Fetch messages from API
-  const fetchMessages = async (roomId: string) => {
-    try {
-      const response = await apiRequest('GET', `/api/chat/${roomId}`);
-      const data = await response.json();
-      
-      if (Array.isArray(data)) {
-        setMessages(data.map(msg => ({
-          ...msg,
-          type: 'chat',
-        })));
-      }
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load chat messages',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  // Send message
-  const sendMessage = () => {
-    if (!message.trim() || !isConnected || !socketRef.current) return;
-    
-    socketRef.current.send(JSON.stringify({
-      type: 'chat',
-      roomId: currentRoom,
-      message: message.trim(),
-    }));
-    
-    setMessage('');
-  };
-
-  // Request translation
-  const translateMessage = (messageId: number, originalText: string) => {
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
-    
-    socketRef.current.send(JSON.stringify({
-      type: 'translate',
-      messageId,
-      originalText,
-      targetLanguage: language,
-    }));
-  };
-
-  // Auto-scroll to bottom on new messages
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    scrollToBottom();
   }, [messages]);
 
-  // Form submit handler
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    sendMessage();
+    
+    if (newMessage.trim()) {
+      onSendMessage(newMessage, roomId);
+      setNewMessage('');
+    }
   };
 
-  // Change room handler
-  const handleRoomChange = (value: string) => {
-    if (value === 'private') {
-      // Don't change room, just show the private chats tab
-      return;
-    }
+  const translateMessage = async (message: Message) => {
+    if (message.translatedText || language === 'en') return;
     
-    // If selecting a private chat with a user
-    if (value.startsWith('user-')) {
-      const userId = value.replace('user-', '');
-      setSelectedUser(userId);
-      const privateRoomId = `private-${userId}`;
-      setCurrentRoom(privateRoomId);
+    try {
+      const translatedText = await translate(message.message);
+      // Update message with translated text in the local state
+      message.translatedText = translatedText;
+      // Force a re-render
+      forceUpdate();
+    } catch (error) {
+      console.error('Translation error:', error);
+    }
+  };
+
+  // Hack to force re-render when translations are updated
+  const [, updateState] = useState({});
+  const forceUpdate = () => updateState({});
+
+  return (
+    <div className="chat-body">
+      <div className="chat-messages">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="flex justify-center items-center h-full text-muted-foreground text-sm">
+            No messages yet in this room.
+          </div>
+        ) : (
+          messages.map((msg, index) => (
+            <div 
+              key={msg.id || index} 
+              className={`chat-message ${msg.userId === -1 ? 'system' : msg.userId === 0 ? 'incoming' : 'outgoing'}`}
+            >
+              {msg.userId !== -1 && (
+                <div className="message-header">
+                  <span className="message-sender">{msg.username}</span>
+                  <span className="message-time">
+                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              )}
+              <div className="message-content">
+                {msg.message}
+                {msg.translatedText && (
+                  <div className="translated-text">
+                    {msg.translatedText}
+                  </div>
+                )}
+              </div>
+              
+              {language !== 'en' && !msg.translatedText && msg.userId !== -1 && (
+                <button 
+                  onClick={() => translateMessage(msg)} 
+                  className="translate-button"
+                >
+                  <Globe className="h-3 w-3" /> Translate
+                </button>
+              )}
+            </div>
+          ))
+        )}
+        <div ref={messagesEndRef} />
+      </div>
       
-      // Reset unread count for this chat
-      setPrivateChats(prev => 
-        prev.map(chat => 
-          chat.userId === parseInt(userId) 
-            ? { ...chat, unreadCount: 0 }
-            : chat
-        )
-      );
-    } else {
-      setCurrentRoom(value);
-      setSelectedUser(null);
-    }
-    
-    setMessages([]);
-    fetchMessages(value);
-  };
+      <form onSubmit={handleSendMessage} className="chat-input">
+        <textarea 
+          className="input-field"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          placeholder="Type your message..."
+          rows={1}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSendMessage(e);
+            }
+          }}
+        />
+        <button 
+          type="submit" 
+          className="send-button"
+          disabled={!newMessage.trim()}
+        >
+          <Send className="h-4 w-4" />
+        </button>
+      </form>
+    </div>
+  );
+};
 
-  // Toggle chat
+const FloatingChat: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [activeTab, setActiveTab] = useState('public');
+  const [messages, setMessages] = useState<Record<string, Message[]>>({
+    public: [],
+    support: [],
+    private: []
+  });
+  const [isLoading, setIsLoading] = useState<Record<string, boolean>>({
+    public: false,
+    support: false,
+    private: false
+  });
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const socketRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+
   const toggleChat = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
@@ -304,272 +166,299 @@ const FloatingChat: React.FC = () => {
     }
   };
 
-  // Toggle minimize
-  const toggleMinimize = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const toggleMinimize = () => {
     setIsMinimized(!isMinimized);
   };
 
-  // Get room title
-  const getRoomTitle = () => {
-    if (currentRoom === 'public') return 'Public Chat';
-    if (currentRoom === 'support') return 'Support Chat';
-    if (currentRoom.startsWith('private-')) {
-      const userId = currentRoom.replace('private-', '');
-      const chatUser = privateChats.find(chat => chat.userId === parseInt(userId));
-      return chatUser ? `Chat with ${chatUser.username}` : 'Private Chat';
+  const fetchMessages = async (roomId: string) => {
+    if (!roomId) return;
+    
+    setIsLoading(prev => ({ ...prev, [roomId]: true }));
+    
+    try {
+      const response = await apiRequest("GET", `/api/chat/${roomId}`);
+      const data = await response.json();
+      
+      setMessages(prev => ({
+        ...prev,
+        [roomId]: Array.isArray(data) ? data : []
+      }));
+    } catch (error) {
+      console.error(`Error fetching messages for ${roomId}:`, error);
+      toast({
+        title: 'Error',
+        description: `Could not load chat history for ${roomId}.`,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(prev => ({ ...prev, [roomId]: false }));
     }
-    return 'Chat';
   };
 
-  if (!user) {
-    return (
-      <div className="fixed bottom-6 right-6 z-50">
-        <Button onClick={toggleChat} className="rounded-full h-14 w-14 p-0 flex items-center justify-center shadow-lg bg-[hsl(var(--cwg-orange))] text-white hover:bg-[hsl(var(--cwg-orange))/90]">
-          <MessageSquare className="h-6 w-6" />
-        </Button>
-      </div>
-    );
-  }
+  const connectWebSocket = () => {
+    if (socketRef.current?.readyState === WebSocket.OPEN) return;
+    
+    try {
+      // Clean up any existing socket
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+      
+      // Create a new WebSocket connection
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      socketRef.current = new WebSocket(wsUrl);
+      
+      // Setup WebSocket event handlers
+      socketRef.current.onopen = () => {
+        console.log('Connected to chat WebSocket');
+        
+        // Clear any reconnection attempts
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+        }
+        
+        // Authenticate if user is logged in
+        if (user) {
+          socketRef.current?.send(JSON.stringify({
+            type: 'auth',
+            userId: user.id,
+            username: user.username
+          }));
+        }
+      };
+      
+      socketRef.current.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        
+        // Handle different message types
+        if (data.type === 'chat') {
+          // Add the message to the appropriate room
+          const roomId = data.roomId || 'public';
+          
+          setMessages(prev => ({
+            ...prev,
+            [roomId]: [...(prev[roomId] || []), {
+              id: data.id,
+              userId: data.userId,
+              username: data.username,
+              message: data.message,
+              timestamp: data.timestamp
+            }]
+          }));
+        } 
+        else if (data.type === 'user_joined' || data.type === 'user_left') {
+          // Add system message to all rooms
+          const systemMessage = {
+            userId: -1,  // Special ID for system messages
+            username: 'System',
+            message: data.type === 'user_joined' 
+              ? `${data.username} has joined the chat`
+              : `${data.username} has left the chat`,
+            timestamp: data.timestamp
+          };
+          
+          setMessages(prev => ({
+            public: [...(prev.public || []), systemMessage],
+            support: [...(prev.support || []), systemMessage],
+            private: prev.private || []
+          }));
+        }
+        else if (data.type === 'translation') {
+          // Update a message with its translation
+          const roomIds = Object.keys(messages);
+          
+          roomIds.forEach(roomId => {
+            setMessages(prev => ({
+              ...prev,
+              [roomId]: prev[roomId].map(msg => 
+                msg.id === data.messageId 
+                  ? { ...msg, translatedText: data.translatedText }
+                  : msg
+              )
+            }));
+          });
+        }
+      };
+      
+      socketRef.current.onclose = () => {
+        console.log('Disconnected from chat WebSocket');
+        
+        // Attempt to reconnect after a delay
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connectWebSocket();
+        }, 3000);
+      };
+      
+      socketRef.current.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+    } catch (error) {
+      console.error('Error setting up WebSocket:', error);
+    }
+  };
+
+  const handleSendMessage = (message: string, roomId: string = 'public') => {
+    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+      toast({
+        title: 'Connection Error',
+        description: 'Not connected to chat. Attempting to reconnect...',
+        variant: 'destructive',
+      });
+      connectWebSocket();
+      return;
+    }
+    
+    // Make sure user is authenticated
+    if (!user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'You must be logged in to send messages.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Send the message
+    socketRef.current.send(JSON.stringify({
+      type: 'chat',
+      roomId,
+      message
+    }));
+    
+    // Optimistically add the message to the local state
+    const newMessage = {
+      userId: user.id,
+      username: user.username,
+      message,
+      timestamp: new Date().toISOString()
+    };
+    
+    setMessages(prev => ({
+      ...prev,
+      [roomId]: [...(prev[roomId] || []), newMessage]
+    }));
+  };
+
+  // Connect to WebSocket when component mounts
+  useEffect(() => {
+    connectWebSocket();
+    
+    // Load initial messages for the default room
+    fetchMessages('public');
+    
+    return () => {
+      // Close WebSocket connection when component unmounts
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+      
+      // Clear any reconnection attempts
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  // Re-authenticate when user changes
+  useEffect(() => {
+    if (socketRef.current?.readyState === WebSocket.OPEN && user) {
+      socketRef.current.send(JSON.stringify({
+        type: 'auth',
+        userId: user.id,
+        username: user.username
+      }));
+    }
+  }, [user]);
+  
+  // Load messages when active tab changes
+  useEffect(() => {
+    if (isOpen && !messages[activeTab]?.length) {
+      fetchMessages(activeTab);
+    }
+  }, [activeTab, isOpen]);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {isOpen ? (
-        <Card className={`w-80 md:w-96 shadow-lg transition-all duration-300 ${isMinimized ? 'h-14' : 'h-[500px]'}`}>
-          <CardHeader className="p-3 flex flex-row items-center justify-between border-b cursor-pointer" onClick={isMinimized ? () => setIsMinimized(false) : undefined}>
-            <CardTitle className="text-sm font-medium flex items-center">
+    <div className="chat-widget">
+      {!isOpen ? (
+        <div className="chat-button" onClick={toggleChat}>
+          <MessageSquare className="h-5 w-5" />
+        </div>
+      ) : (
+        <div className={`chat-window ${isMinimized ? 'minimized' : ''}`}>
+          <div className="chat-header" onClick={toggleMinimize}>
+            <div className="chat-title">
               <MessageSquare className="h-4 w-4 mr-2" />
-              {isConnected ? 'ClockWork Gamers Chat' : 'Chat (Disconnected)'}
-              {isConnected ? (
-                <Badge variant="outline" className="ml-2 bg-green-500 text-white text-xs py-0">Connected</Badge>
-              ) : (
-                <Badge variant="destructive" className="ml-2 text-xs py-0">Disconnected</Badge>
-              )}
-            </CardTitle>
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={toggleMinimize}>
-                {isMinimized ? <Maximize2 className="h-3 w-3" /> : <Minimize2 className="h-3 w-3" />}
+              {isMinimized ? 'Chat' : `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Chat`}
+            </div>
+            <div className="chat-header-actions">
+              <Button variant="ghost" size="icon" className="h-5 w-5 p-0" onClick={toggleMinimize} title={isMinimized ? 'Expand' : 'Minimize'}>
+                <MinusSquare className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={toggleChat}>
-                <X className="h-3 w-3" />
+              <Button variant="ghost" size="icon" className="h-5 w-5 p-0" onClick={toggleChat} title="Close">
+                <X className="h-4 w-4" />
               </Button>
             </div>
-          </CardHeader>
+          </div>
           
           {!isMinimized && (
-            <>
-              <div className="h-[430px] flex flex-col">
-                <div className="flex items-center justify-between px-3 py-1 bg-muted/50">
-                  <Select value={language} onValueChange={setLanguage}>
-                    <SelectTrigger className="w-[90px] h-7 text-xs">
-                      <Globe className="h-3 w-3 mr-1" />
-                      <SelectValue placeholder="Language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LANGUAGES.map((lang) => (
-                        <SelectItem key={lang.code} value={lang.code}>
-                          {lang.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <span className="text-xs font-medium">{getRoomTitle()}</span>
-                </div>
-                
-                <Tabs defaultValue="public" value={currentRoom.startsWith('private-') ? 'private' : currentRoom} onValueChange={handleRoomChange} className="flex-1 flex flex-col">
-                  <TabsList className="h-8 p-0 bg-background">
-                    <TabsTrigger value="public" className="text-xs rounded-none h-full data-[state=active]:bg-muted/50">
-                      <Globe className="h-3 w-3 mr-1" />
-                      Public
-                    </TabsTrigger>
-                    <TabsTrigger value="support" className="text-xs rounded-none h-full data-[state=active]:bg-muted/50">
-                      <HeadphonesIcon className="h-3 w-3 mr-1" />
-                      Support
-                    </TabsTrigger>
-                    <TabsTrigger value="private" className="text-xs rounded-none h-full data-[state=active]:bg-muted/50">
-                      <UserPlus className="h-3 w-3 mr-1" />
-                      Private
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="public" className="flex-1 p-0 m-0">
-                    <ChatMessages 
-                      messages={messages} 
-                      currentUser={user} 
-                      language={language} 
-                      translateMessage={translateMessage}
-                      messagesEndRef={messagesEndRef}
-                    />
-                  </TabsContent>
-                  
-                  <TabsContent value="support" className="flex-1 p-0 m-0">
-                    <ChatMessages 
-                      messages={messages} 
-                      currentUser={user} 
-                      language={language} 
-                      translateMessage={translateMessage}
-                      messagesEndRef={messagesEndRef}
-                    />
-                  </TabsContent>
-                  
-                  <TabsContent value="private" className="flex-1 p-0 m-0">
-                    {selectedUser ? (
-                      <ChatMessages 
-                        messages={messages} 
-                        currentUser={user} 
-                        language={language} 
-                        translateMessage={translateMessage}
-                        messagesEndRef={messagesEndRef}
-                      />
-                    ) : (
-                      <div className="h-full overflow-auto">
-                        <div className="p-2">
-                          <h4 className="text-xs font-medium mb-2">Private Chats</h4>
-                          {privateChats.length === 0 ? (
-                            <div className="text-center py-4 text-sm text-muted-foreground">
-                              No private chats yet
-                            </div>
-                          ) : (
-                            <div className="space-y-1">
-                              {privateChats.map((chat) => (
-                                <div 
-                                  key={chat.userId}
-                                  className="flex items-center p-2 rounded-md hover:bg-muted cursor-pointer"
-                                  onClick={() => handleRoomChange(`user-${chat.userId}`)}
-                                >
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between">
-                                      <p className="text-sm font-medium truncate">{chat.username}</p>
-                                      {chat.unreadCount > 0 && (
-                                        <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-medium rounded-full bg-primary text-primary-foreground">
-                                          {chat.unreadCount}
-                                        </span>
-                                      )}
-                                    </div>
-                                    {chat.lastMessage && (
-                                      <p className="text-xs text-muted-foreground truncate">
-                                        {chat.lastMessage}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </TabsContent>
-                </Tabs>
-                
-                <form onSubmit={handleSubmit} className="flex items-center gap-1 p-2 border-t">
-                  <Input
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Type your message..."
-                    disabled={!isConnected || currentRoom === 'private' || !user}
-                    className="flex-1 h-8 text-sm"
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="chat-tabs">
+                <TabsTrigger value="public" className={`chat-tab ${activeTab === 'public' ? 'active' : ''}`}>
+                  Public
+                </TabsTrigger>
+                <TabsTrigger value="support" className={`chat-tab ${activeTab === 'support' ? 'active' : ''}`}>
+                  Support
+                </TabsTrigger>
+                <TabsTrigger value="private" className={`chat-tab ${activeTab === 'private' ? 'active' : ''}`}>
+                  Private
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="public" className="flex-1 p-0 m-0 h-full">
+                <ChatRoom 
+                  roomId="public"
+                  messages={messages.public || []}
+                  onSendMessage={handleSendMessage}
+                  isLoading={isLoading.public}
+                />
+              </TabsContent>
+              
+              <TabsContent value="support" className="flex-1 p-0 m-0 h-full">
+                <ChatRoom 
+                  roomId="support"
+                  messages={messages.support || []}
+                  onSendMessage={handleSendMessage}
+                  isLoading={isLoading.support}
+                />
+              </TabsContent>
+              
+              <TabsContent value="private" className="flex-1 p-0 m-0 h-full">
+                {user ? (
+                  <ChatRoom 
+                    roomId="private"
+                    messages={messages.private || []}
+                    onSendMessage={handleSendMessage}
+                    isLoading={isLoading.private}
                   />
-                  <Button 
-                    type="submit" 
-                    size="icon"
-                    disabled={!isConnected || !message.trim() || currentRoom === 'private' || !user}
-                    className="h-8 w-8"
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </form>
-              </div>
-            </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full p-4 text-center">
+                    <MessageSquare className="h-12 w-12 text-muted mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Private Messaging</h3>
+                    <p className="text-muted-foreground text-sm mb-4">
+                      Please sign in to access private messaging.
+                    </p>
+                    <Button variant="default" asChild>
+                      <a href="/auth">Sign In</a>
+                    </Button>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           )}
-        </Card>
-      ) : (
-        <Button onClick={toggleChat} className="rounded-full h-14 w-14 p-0 flex items-center justify-center shadow-lg bg-[hsl(var(--cwg-orange))] text-white hover:bg-[hsl(var(--cwg-orange))/90]">
-          <MessageSquare className="h-6 w-6" />
-        </Button>
+        </div>
       )}
     </div>
-  );
-};
-
-interface ChatMessagesProps {
-  messages: ChatMessage[];
-  currentUser: any;
-  language: string;
-  translateMessage: (messageId: number, originalText: string) => void;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
-}
-
-const ChatMessages: React.FC<ChatMessagesProps> = ({ 
-  messages, 
-  currentUser, 
-  language, 
-  translateMessage,
-  messagesEndRef 
-}) => {
-  return (
-    <ScrollArea className="h-[330px]">
-      <div className="p-3 space-y-3">
-        {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-[300px] text-sm text-muted-foreground">
-            No messages yet
-          </div>
-        ) : (
-          <>
-            {messages.map((msg, index) => (
-              <div 
-                key={`${msg.id}-${index}`} 
-                className={`flex flex-col ${msg.type === 'system' || msg.type === 'user_joined' || msg.type === 'user_left' 
-                  ? 'items-center' 
-                  : msg.userId === currentUser?.id 
-                    ? 'items-end' 
-                    : 'items-start'}`}
-              >
-                {(msg.type === 'system' || msg.type === 'user_joined' || msg.type === 'user_left') ? (
-                  <div className="text-xs text-muted-foreground bg-muted py-1 px-2 rounded">
-                    {msg.message}
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-1 mb-0.5">
-                      {msg.userId !== currentUser?.id && (
-                        <div className="text-xs font-medium">{msg.username || 'Unknown User'}</div>
-                      )}
-                      <div className="text-[10px] text-muted-foreground">
-                        {new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    </div>
-                    <div className={`max-w-[80%] ${msg.userId === currentUser?.id 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-secondary'} p-2 rounded-lg text-sm`}
-                    >
-                      <div>{msg.message}</div>
-                      {msg.translatedText && language !== 'en' && (
-                        <div className="mt-1 pt-1 border-t border-primary-foreground/20 text-xs">
-                          {msg.translatedText}
-                        </div>
-                      )}
-                    </div>
-                    {msg.userId !== currentUser?.id && !msg.translatedText && language !== 'en' && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-6 text-xs mt-0.5"
-                        onClick={() => translateMessage(msg.id, msg.message)}
-                      >
-                        <Globe className="h-3 w-3 mr-1" />
-                        Translate
-                      </Button>
-                    )}
-                  </>
-                )}
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </>
-        )}
-      </div>
-    </ScrollArea>
   );
 };
 

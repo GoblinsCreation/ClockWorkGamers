@@ -69,22 +69,37 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
     
     // Process text nodes
     let childNodes = Array.from(node.childNodes);
+    
+    // First collect all text to translate in a batch
+    const textsToTranslate: {node: Node, text: string}[] = [];
+    
     for (let child of childNodes) {
       if (child.nodeType === Node.TEXT_NODE && child.textContent?.trim()) {
-        // Only translate if not already translated
-        const originalText = child.textContent.trim();
-        if (originalText && !node.hasAttribute('data-translated')) {
-          const translated = await translate(originalText);
-          if (translated !== originalText) {
-            // Store original text and mark as translated
-            node.setAttribute('data-original-text', originalText);
-            node.setAttribute('data-translated', 'true');
-            child.textContent = translated;
-          }
+        const text = child.textContent.trim();
+        if (text && !node.hasAttribute('data-translated')) {
+          textsToTranslate.push({node: child, text});
         }
       } else if (child.nodeType === Node.ELEMENT_NODE) {
         // Recursively translate child elements
         await translateNode(child as HTMLElement);
+      }
+    }
+    
+    // If we have any text to translate, do it all at once
+    if (textsToTranslate.length > 0) {
+      // In a real app with a translation API, we would batch these
+      for (const item of textsToTranslate) {
+        const translated = await translate(item.text);
+        if (translated !== item.text) {
+          // Store original text on the parent and mark as translated
+          node.setAttribute('data-original-text', item.text);
+          node.setAttribute('data-translated', 'true');
+          
+          // Safely replace text content
+          if (item.node.textContent) {
+            item.node.textContent = item.node.textContent.replace(item.text, translated);
+          }
+        }
       }
     }
   };
@@ -139,8 +154,8 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
 // Mock translation function (would be replaced by real API call)
 async function simulateTranslation(text: string, targetLang: string): Promise<string> {
   // In a real implementation, this would call an API like Google Translate
-  // For now, we'll just add a prefix to show it's "translated"
   
+  // Expanded mock translations for different languages
   const mockTranslations: Record<string, Record<string, string>> = {
     'es': {
       'Home': 'Inicio',
@@ -154,6 +169,19 @@ async function simulateTranslation(text: string, targetLang: string): Promise<st
       'Chat': 'Charla',
       'Referrals': 'Referencias',
       'Logout': 'Cerrar sesión',
+      'Welcome to': 'Bienvenido a',
+      'Guild Highlights': 'Destacados del Gremio',
+      'Join the premier Web3 gaming guild where players earn, compete, and thrive in the blockchain gaming revolution.': 
+        'Únete al principal gremio de juegos Web3 donde los jugadores ganan, compiten y prosperan en la revolución de los juegos blockchain.',
+      'Open Loot': 'Botín Abierto',
+      'Community': 'Comunidad',
+      'Boss Fighters': 'Luchadores de Jefes',
+      'Showcasing our top accomplishments and achievements in the Web3 gaming space': 
+        'Mostrando nuestros mejores logros y éxitos en el espacio de juegos Web3',
+      'Connect Wallet': 'Conectar Billetera',
+      'Sign In': 'Iniciar Sesión',
+      'Live Streamers': 'Transmisores en Vivo',
+      'Latest News': 'Últimas Noticias',
     },
     'fr': {
       'Home': 'Accueil',
@@ -167,29 +195,80 @@ async function simulateTranslation(text: string, targetLang: string): Promise<st
       'Chat': 'Discussion',
       'Referrals': 'Parrainages',
       'Logout': 'Déconnexion',
+      'Welcome to': 'Bienvenue à',
+      'Guild Highlights': 'Points forts de la Guilde',
+      'Join the premier Web3 gaming guild where players earn, compete, and thrive in the blockchain gaming revolution.': 
+        'Rejoignez la première guilde de jeu Web3 où les joueurs gagnent, rivalisent et prospèrent dans la révolution du jeu blockchain.',
+      'Open Loot': 'Butin Ouvert',
+      'Community': 'Communauté',
+      'Boss Fighters': 'Combattants de Boss',
+      'Showcasing our top accomplishments and achievements in the Web3 gaming space': 
+        'Présentation de nos meilleures réalisations et accomplissements dans l\'espace de jeu Web3',
+      'Connect Wallet': 'Connecter le Portefeuille',
+      'Sign In': 'Se Connecter',
+      'Live Streamers': 'Streamers en Direct',
+      'Latest News': 'Dernières Nouvelles',
+    },
+    'de': {
+      'Home': 'Startseite',
+      'Streamers': 'Streamer',
+      'Rentals': 'Vermietungen',
+      'Courses': 'Kurse',
+      'Games': 'Spiele',
+      'Investments': 'Investitionen',
+      'Contact': 'Kontakt',
+      'Profile': 'Profil',
+      'Chat': 'Chat',
+      'Referrals': 'Empfehlungen',
+      'Logout': 'Abmelden',
+      'Welcome to': 'Willkommen bei',
+      'Guild Highlights': 'Gildenhöhepunkte',
+      'Join the premier Web3 gaming guild where players earn, compete, and thrive in the blockchain gaming revolution.': 
+        'Tritt der führenden Web3-Gaming-Gilde bei, in der Spieler in der Blockchain-Gaming-Revolution verdienen, konkurrieren und gedeihen.',
+      'Open Loot': 'Offene Beute',
+      'Community': 'Gemeinschaft',
+      'Boss Fighters': 'Boss-Kämpfer',
+      'Showcasing our top accomplishments and achievements in the Web3 gaming space': 
+        'Präsentation unserer Top-Leistungen und Erfolge im Web3-Gaming-Bereich',
+      'Connect Wallet': 'Wallet verbinden',
+      'Sign In': 'Anmelden',
+      'Live Streamers': 'Live-Streamer',
+      'Latest News': 'Neueste Nachrichten',
     },
   };
   
-  // Wait a short time to simulate API call
-  await new Promise(resolve => setTimeout(resolve, 100));
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 50));
   
   // Check if we have a mock translation for this text in this language
   if (mockTranslations[targetLang]?.[text]) {
     return mockTranslations[targetLang][text];
   }
   
-  // Otherwise return with a language prefix to simulate translation
-  const langPrefix = {
-    'es': '[ES] ',
-    'fr': '[FR] ',
-    'de': '[DE] ',
-    'zh': '[ZH] ',
-    'ja': '[JA] ',
-    'ko': '[KO] ',
-    'ru': '[RU] ',
-  };
+  // If no direct translation found in our dictionary
+  // Try to find partial matches and replace them
+  let translatedText = text;
   
-  return `${langPrefix[targetLang as keyof typeof langPrefix] || ''}${text}`;
+  // Check each key in the mockTranslations for the target language
+  if (mockTranslations[targetLang]) {
+    const entries = Object.entries(mockTranslations[targetLang]);
+    for (const [english, translated] of entries) {
+      // Skip very short words to avoid replacing parts of other words
+      if (english.length <= 3) continue;
+      
+      // Use regex with word boundaries for more accurate replacement
+      const regex = new RegExp(`\\b${english}\\b`, 'g');
+      translatedText = translatedText.replace(regex, translated);
+    }
+  }
+  
+  // If we actually made a translation, return it
+  if (translatedText !== text) {
+    return translatedText;
+  }
+  
+  // For text we couldn't translate at all, don't add prefixes anymore
+  return text;
 }
 
 // The visible translator component
@@ -200,12 +279,13 @@ export default function WebsiteTranslator() {
     setLanguage(value);
   };
   
+  // Position it in the header area, not too far down
   return (
-    <div className="fixed top-20 right-4 z-40">
-      <div className="bg-background border rounded-lg shadow-md p-2 flex items-center gap-2">
-        <Globe className="h-4 w-4 text-muted-foreground" />
+    <div className="fixed top-4 right-36 z-50">
+      <div className="bg-[hsl(var(--cwg-dark))] border border-[hsl(var(--cwg-orange))] rounded-lg shadow-lg p-1.5 flex items-center gap-2">
+        <Globe className="h-4 w-4 text-[hsl(var(--cwg-orange))]" />
         <Select value={language} onValueChange={handleLanguageChange}>
-          <SelectTrigger className="w-[120px] h-8">
+          <SelectTrigger className="w-[100px] h-7 text-xs bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-blue))]">
             <SelectValue placeholder="Language" />
           </SelectTrigger>
           <SelectContent>
@@ -219,7 +299,7 @@ export default function WebsiteTranslator() {
         <Button 
           variant="outline" 
           size="sm" 
-          className="h-8"
+          className="h-7 text-xs bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))] hover:text-[hsl(var(--cwg-orange))] hover:border-[hsl(var(--cwg-orange))]"
           onClick={() => translateAll()}
         >
           Translate

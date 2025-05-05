@@ -51,7 +51,7 @@ function Router() {
       <Route path="/contact" component={ContactPage} />
       {/* We're using the floating chat, so no need for these separate pages */}
       {/* <Route path="/chat" component={() => ChatPage() as React.ReactElement} /> */}
-      <Route path="/referrals" component={() => ReferralPage() as React.ReactElement} />
+      <Route path="/referrals" component={ReferralPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/admin" component={AdminPage} />
       <Route component={NotFound} />
