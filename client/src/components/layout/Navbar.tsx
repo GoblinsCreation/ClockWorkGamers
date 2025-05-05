@@ -73,14 +73,6 @@ export function Navbar() {
                   </a>
                 </Link>
               ))}
-              
-              {user?.isAdmin && (
-                <Link href="/admin">
-                  <a className={`font-orbitron text-sm whitespace-nowrap ${location === '/admin' ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'} px-2 py-1 transition-colors duration-200`}>
-                    Admin
-                  </a>
-                </Link>
-              )}
             </div>
           </div>
           
@@ -177,17 +169,6 @@ export function Navbar() {
                   </a>
                 </Link>
               </>
-            )}
-            
-            {(user?.isAdmin || user?.role === "Mod" || user?.role === "Admin" || user?.role === "Owner") && (
-              <Link href="/admin">
-                <a 
-                  className={`block px-4 py-2.5 rounded-md font-orbitron text-base font-medium ${location === '/admin' ? 'text-[hsl(var(--cwg-orange))] bg-[hsl(var(--cwg-dark))/50]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Admin
-                </a>
-              </Link>
             )}
           </div>
         </div>

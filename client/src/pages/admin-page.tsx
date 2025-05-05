@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -1301,7 +1302,7 @@ export default function AdminPage() {
               <Switch
                 id="change-password"
                 checked={userFormData.isChangingPassword}
-                onCheckedChange={(checked) => setUserFormData({...userFormData, isChangingPassword: checked})}
+                onCheckedChange={(checked: boolean) => setUserFormData({...userFormData, isChangingPassword: checked})}
               />
               <label htmlFor="change-password" className="text-sm font-medium text-[hsl(var(--cwg-muted))]">
                 Change password
