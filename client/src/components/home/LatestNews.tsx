@@ -100,9 +100,11 @@ export function LatestNews() {
             <p className="mt-2 text-[hsl(var(--cwg-muted))]">Stay informed with the newest developments in our guild</p>
           </div>
           
-          <Button className="mt-4 md:mt-0 px-5 py-2 border border-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-orange))] rounded-lg font-orbitron text-sm hover:bg-[hsl(var(--cwg-orange))] hover:text-[hsl(var(--cwg-dark))] transition-colors duration-200 flex items-center">
-            View All News <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <Link href="/news">
+            <Button className="mt-4 md:mt-0 px-5 py-2 border border-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-orange))] rounded-lg font-orbitron text-sm hover:bg-[hsl(var(--cwg-orange))] hover:text-[hsl(var(--cwg-dark))] transition-colors duration-200 flex items-center">
+              View All News <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

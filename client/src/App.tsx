@@ -23,6 +23,7 @@ import InvestmentsPage from "@/pages/investments-page";
 import ProfilePage from "@/pages/profile-page";
 import ChatPage from "@/pages/chat-page";
 import ReferralPage from "@/pages/referral-page";
+import NewsPage from "@/pages/news-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from "./hooks/use-auth";
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/token-dashboard" component={TokenDashboardPage} />
       <Route path="/calculators" component={CalculatorsPage} />
       <Route path="/contact" component={ContactPage} />
+      <Route path="/news" component={NewsPage} />
       {/* We're using the floating chat, so no need for these separate pages */}
       {/* <Route path="/chat" component={() => ChatPage() as React.ReactElement} /> */}
       <Route path="/referrals" component={ReferralPage} />

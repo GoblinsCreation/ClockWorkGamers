@@ -1255,6 +1255,212 @@ export default function AdminPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* User Edit Dialog */}
+      <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
+        <DialogContent className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-text))] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-orbitron text-[hsl(var(--cwg-orange))]">
+              Edit User Profile
+            </DialogTitle>
+            <DialogDescription className="text-[hsl(var(--cwg-muted))]">
+              Make changes to user's profile information. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[hsl(var(--cwg-muted))]">Username</label>
+              <Input
+                value={userFormData.username}
+                onChange={(e) => setUserFormData({...userFormData, username: e.target.value})}
+                className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))]"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[hsl(var(--cwg-muted))]">Email</label>
+              <Input
+                value={userFormData.email}
+                onChange={(e) => setUserFormData({...userFormData, email: e.target.value})}
+                className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))]"
+                type="email"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[hsl(var(--cwg-muted))]">Full Name</label>
+              <Input
+                value={userFormData.fullName}
+                onChange={(e) => setUserFormData({...userFormData, fullName: e.target.value})}
+                className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))]"
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="change-password"
+                checked={userFormData.isChangingPassword}
+                onCheckedChange={(checked) => setUserFormData({...userFormData, isChangingPassword: checked})}
+              />
+              <label htmlFor="change-password" className="text-sm font-medium text-[hsl(var(--cwg-muted))]">
+                Change password
+              </label>
+            </div>
+            
+            {userFormData.isChangingPassword && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[hsl(var(--cwg-muted))]">New Password</label>
+                <Input
+                  value={userFormData.password}
+                  onChange={(e) => setUserFormData({...userFormData, password: e.target.value})}
+                  className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))]"
+                  type="password"
+                />
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="flex gap-2 justify-between">
+            <Button 
+              type="button"
+              variant="outline" 
+              onClick={handleSendPasswordReset}
+              className="border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))]"
+            >
+              Send Password Reset
+            </Button>
+            <div className="space-x-2">
+              <Button 
+                type="button"
+                variant="outline" 
+                onClick={() => setIsEditUserDialogOpen(false)}
+                className="border-[hsl(var(--cwg-muted))] text-[hsl(var(--cwg-muted))]"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="button"
+                onClick={handleUpdateUser}
+                className="bg-[hsl(var(--cwg-orange))] hover:bg-[hsl(var(--cwg-orange))]/90"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add Streamer Dialog */}
+      <Dialog open={isAddStreamerDialogOpen} onOpenChange={setIsAddStreamerDialogOpen}>
+        <DialogContent className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-text))] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-orbitron text-[hsl(var(--cwg-orange))]">
+              Add New Streamer
+            </DialogTitle>
+            <DialogDescription className="text-[hsl(var(--cwg-muted))]">
+              Enter details for the new streamer. They must have a ClockWork Gamers account.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[hsl(var(--cwg-muted))]">Display Name</label>
+              <Input
+                value={newStreamer.displayName}
+                onChange={(e) => setNewStreamer({...newStreamer, displayName: e.target.value})}
+                className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))]"
+                placeholder="Streamer's display name"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[hsl(var(--cwg-muted))]">Platform</label>
+              <Select
+                value={newStreamer.platform}
+                onValueChange={(value) => setNewStreamer({...newStreamer, platform: value})}
+              >
+                <SelectTrigger className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))]">
+                  <SelectValue placeholder="Select platform" />
+                </SelectTrigger>
+                <SelectContent className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]">
+                  <SelectItem value="Twitch">Twitch</SelectItem>
+                  <SelectItem value="YouTube">YouTube</SelectItem>
+                  <SelectItem value="Facebook">Facebook Gaming</SelectItem>
+                  <SelectItem value="TikTok">TikTok</SelectItem>
+                  <SelectItem value="Kick">Kick</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[hsl(var(--cwg-muted))]">Channel URL</label>
+              <Input
+                value={newStreamer.channelUrl}
+                onChange={(e) => setNewStreamer({...newStreamer, channelUrl: e.target.value})}
+                className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))]"
+                placeholder="https://"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[hsl(var(--cwg-muted))]">User Account</label>
+              <Select
+                value={newStreamer.userId ? String(newStreamer.userId) : ""}
+                onValueChange={(value) => setNewStreamer({...newStreamer, userId: parseInt(value)})}
+              >
+                <SelectTrigger className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))]">
+                  <SelectValue placeholder="Select user account" />
+                </SelectTrigger>
+                <SelectContent className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))] max-h-[200px]">
+                  {users.map(user => (
+                    <SelectItem key={user.id} value={String(user.id)}>
+                      {user.username} ({user.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[hsl(var(--cwg-muted))]">Description</label>
+              <Textarea
+                value={newStreamer.description}
+                onChange={(e) => setNewStreamer({...newStreamer, description: e.target.value})}
+                className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))] min-h-[80px]"
+                placeholder="Brief description about the streamer"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              type="button"
+              variant="outline" 
+              onClick={() => setIsAddStreamerDialogOpen(false)}
+              className="border-[hsl(var(--cwg-muted))] text-[hsl(var(--cwg-muted))]"
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button"
+              onClick={handleAddStreamer}
+              disabled={newStreamer.isSubmitting}
+              className="bg-[hsl(var(--cwg-orange))] hover:bg-[hsl(var(--cwg-orange))]/90"
+            >
+              {newStreamer.isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add Streamer"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
