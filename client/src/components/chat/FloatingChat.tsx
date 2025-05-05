@@ -144,6 +144,8 @@ const FloatingChat: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [activeTab, setActiveTab] = useState('public');
+  const [isConnected, setIsConnected] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(false);
   const [messages, setMessages] = useState<Record<string, Message[]>>({
     public: [],
     support: [],
@@ -206,20 +208,41 @@ const FloatingChat: React.FC = () => {
       
       // Create a new WebSocket connection
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      
+      // Ensure we're connecting to the correct path
+      // We need to use the full URL to ensure we connect properly on Replit
+      const host = window.location.host;
+      const wsUrl = `${protocol}//${host}/ws`;
+      console.log('Connecting to WebSocket at:', wsUrl);
+      
       socketRef.current = new WebSocket(wsUrl);
       
       // Setup WebSocket event handlers
       socketRef.current.onopen = () => {
-        console.log('Connected to chat WebSocket');
+        console.log('Connected to chat WebSocket successfully');
+        
+        // Update connection status
+        setIsConnected(true);
+        setIsReconnecting(false);
         
         // Clear any reconnection attempts
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
+          reconnectTimeoutRef.current = undefined;
+        }
+        
+        // Toast success if we were previously reconnecting
+        if (isReconnecting && isOpen) {
+          toast({
+            title: 'Chat Connected',
+            description: 'Successfully reconnected to chat.',
+            variant: 'default',
+          });
         }
         
         // Authenticate if user is logged in
         if (user) {
+          console.log('Authenticating user:', user.username);
           socketRef.current?.send(JSON.stringify({
             type: 'auth',
             userId: user.id,
@@ -281,17 +304,38 @@ const FloatingChat: React.FC = () => {
         }
       };
       
-      socketRef.current.onclose = () => {
-        console.log('Disconnected from chat WebSocket');
+      socketRef.current.onclose = (event) => {
+        console.log('Disconnected from chat WebSocket', event.code, event.reason);
         
-        // Attempt to reconnect after a delay
+        // Toast notification for disconnect if the chat is open
+        if (isOpen) {
+          toast({
+            title: 'Chat Disconnected',
+            description: 'Lost connection to chat. Reconnecting...',
+            variant: 'destructive',
+          });
+        }
+        
+        // Attempt to reconnect after a delay, with increasing backoff
+        const reconnectDelay = reconnectTimeoutRef.current ? 6000 : 3000;
+        console.log(`Attempting to reconnect in ${reconnectDelay/1000} seconds...`);
+        
         reconnectTimeoutRef.current = setTimeout(() => {
           connectWebSocket();
-        }, 3000);
+        }, reconnectDelay);
       };
       
       socketRef.current.onerror = (error) => {
         console.error('WebSocket error:', error);
+        
+        // Only show error toast if the chat is open
+        if (isOpen) {
+          toast({
+            title: 'Chat Connection Error',
+            description: 'There was an error with the chat connection. Trying to reconnect...',
+            variant: 'destructive',
+          });
+        }
       };
     } catch (error) {
       console.error('Error setting up WebSocket:', error);
