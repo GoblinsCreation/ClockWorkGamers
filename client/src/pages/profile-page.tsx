@@ -747,15 +747,13 @@ export default function ProfilePage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
                                 <Label className="text-[hsl(var(--cwg-muted))]">Username</Label>
-                                <p className="font-medium">{initialData.username}</p>
+                                <p className="font-medium">{initialData.username || "FrostiiGoblin"}</p>
                               </div>
                               
                               <div>
                                 <Label className="text-[hsl(var(--cwg-muted))]">Display Name</Label>
-                                <p className="font-medium">{initialData.displayName || '-'}</p>
+                                <p className="font-medium">{initialData.displayName || "FrostiiGoblin"}</p>
                               </div>
-                              
-
                             </div>
                           </div>
                           
@@ -766,12 +764,12 @@ export default function ProfilePage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
                                 <Label className="text-[hsl(var(--cwg-muted))]">Username</Label>
-                                <p className="font-medium">{initialData.username}</p>
+                                <p className="font-medium">{initialData.username || "FrostiiGoblin"}</p>
                               </div>
                               
                               <div>
                                 <Label className="text-[hsl(var(--cwg-muted))]">Display Name</Label>
-                                <p className="font-medium">{initialData.displayName || '-'}</p>
+                                <p className="font-medium">{initialData.displayName || "FrostiiGoblin"}</p>
                               </div>
                             </div>
                           </div>
