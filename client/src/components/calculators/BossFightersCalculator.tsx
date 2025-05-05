@@ -585,48 +585,46 @@ export default function BossFightersCalculator() {
         </Card>
       </div>
       
-      {/* Market Price Information */}
+      {/* Game Information */}
       <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark-blue))]/30">
         <CardHeader>
           <CardTitle className="text-xl font-orbitron text-[hsl(var(--cwg-blue))] flex items-center">
-            <DollarSign className="mr-3 h-5 w-5" /> Current Market Prices
+            <HelpCircle className="mr-3 h-5 w-5" /> Game Information
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-[hsl(var(--cwg-dark))] rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-[hsl(var(--cwg-muted))]">BFToken Price</span>
-                <span className="text-[hsl(var(--cwg-orange))] font-medium">${(MARKET_PRICES.bfToken * 1000).toFixed(2)}/1000</span>
-              </div>
-              <div className="text-xs text-[hsl(var(--cwg-muted))]">
-                ${MARKET_PRICES.bfToken.toFixed(6)} per token
-              </div>
-            </div>
+          <div className="space-y-4">
+            <p className="text-[hsl(var(--cwg-muted))]">
+              Boss Fighters is a skill-based action RPG where players earn tokens by defeating boss monsters 
+              and completing in-game challenges. Use these calculators to optimize your gameplay strategy.
+            </p>
             
             <div className="p-4 bg-[hsl(var(--cwg-dark))] rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-[hsl(var(--cwg-muted))]">Sponsor Mark Price</span>
-                <span className="text-[hsl(var(--cwg-orange))] font-medium">${(MARKET_PRICES.sponsorMark * 100).toFixed(2)}/100</span>
-              </div>
-              <div className="text-xs text-[hsl(var(--cwg-muted))]">
-                ${MARKET_PRICES.sponsorMark.toFixed(4)} per mark
-              </div>
+              <h4 className="text-sm font-orbitron text-[hsl(var(--cwg-text))] mb-2">Badge Mechanics</h4>
+              <p className="text-xs text-[hsl(var(--cwg-muted))]">
+                Badges provide passive bonuses to damage, rewards, and other stats. Higher rarity badges 
+                provide stronger bonuses but require more resources to recharge. Balance recharge costs 
+                against earnings for optimal results.
+              </p>
             </div>
             
-            <div className="p-4 bg-[hsl(var(--cwg-dark))] rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-[hsl(var(--cwg-muted))]">Flex Price</span>
-                <span className="text-[hsl(var(--cwg-orange))] font-medium">$500/67330</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-[hsl(var(--cwg-dark))] rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
+                <h4 className="text-sm font-orbitron text-[hsl(var(--cwg-orange))] mb-2">Recharge Strategy</h4>
+                <p className="text-xs text-[hsl(var(--cwg-muted))]">
+                  Focus on badges that provide the best ROI based on your playstyle. 
+                  For casual players, lower rarity badges may offer better value.
+                </p>
               </div>
-              <div className="text-xs text-[hsl(var(--cwg-muted))]">
-                ${MARKET_PRICES.flex.toFixed(6)} per flex
+              
+              <div className="p-4 bg-[hsl(var(--cwg-dark))] rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
+                <h4 className="text-sm font-orbitron text-[hsl(var(--cwg-blue))] mb-2">Crafting Tips</h4>
+                <p className="text-xs text-[hsl(var(--cwg-muted))]">
+                  Use Show Runner contracts to accelerate badge crafting. Consider the time and resource 
+                  investment when upgrading to higher rarity badges.
+                </p>
               </div>
             </div>
-          </div>
-          
-          <div className="mt-4 text-xs text-[hsl(var(--cwg-muted))] italic text-center">
-            Market prices last updated: {new Date().toLocaleDateString()} - Calculations are based on these values and may fluctuate with market conditions
           </div>
         </CardContent>
       </Card>
