@@ -157,10 +157,13 @@ export default function AdminPage() {
     try {
       await apiRequest("POST", "/api/streamer-schedules", {
         streamerId: selectedStreamer.id,
-        day: newSchedule.day,
+        dayOfWeek: newSchedule.day,
         startTime: newSchedule.startTime,
         endTime: newSchedule.endTime,
-        game: newSchedule.game
+        game: newSchedule.game,
+        isSpecialEvent: false,
+        notes: null,
+        title: null
       });
       
       queryClient.invalidateQueries({ queryKey: ["/api/streamer-schedules", selectedStreamer.id] });
@@ -184,6 +187,29 @@ export default function AdminPage() {
         variant: "destructive",
       });
       setNewSchedule({ ...newSchedule, isSubmitting: false });
+    }
+  };
+  
+  // Delete a schedule
+  const handleDeleteSchedule = async (scheduleId: number) => {
+    if (!confirm("Are you sure you want to delete this schedule?")) {
+      return;
+    }
+    
+    try {
+      await apiRequest("DELETE", `/api/streamer-schedules/${scheduleId}`);
+      queryClient.invalidateQueries({ queryKey: ["/api/streamer-schedules", selectedStreamer?.id] });
+      
+      toast({
+        title: "Schedule deleted",
+        description: "The streaming schedule has been deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to delete schedule",
+        description: "An error occurred while deleting the schedule",
+        variant: "destructive",
+      });
     }
   };
   
@@ -539,7 +565,12 @@ export default function AdminPage() {
                                   <Button variant="outline" size="sm" className="h-8 border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))]">
                                     Edit
                                   </Button>
-                                  <Button variant="outline" size="sm" className="h-8 border-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-orange))]">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="h-8 border-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-orange))]"
+                                    onClick={() => openScheduleDialog(streamer)}
+                                  >
                                     Schedules
                                   </Button>
                                 </div>
@@ -791,6 +822,166 @@ export default function AdminPage() {
       </main>
       
       <Footer />
+      
+      {/* Streamer Schedule Dialog */}
+      <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
+        <DialogContent className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-text))] max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-orbitron text-[hsl(var(--cwg-orange))]">
+              Manage Schedules for {selectedStreamer?.displayName}
+            </DialogTitle>
+            <DialogDescription className="text-[hsl(var(--cwg-muted))]">
+              Add and manage streaming schedules for this streamer.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            {/* Create Schedule Form */}
+            <div className="p-4 rounded-lg bg-[hsl(var(--cwg-dark-blue))] border border-[hsl(var(--cwg-dark-blue))]/80">
+              <h3 className="font-orbitron font-semibold text-[hsl(var(--cwg-blue))] mb-4">
+                Add New Schedule
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[hsl(var(--cwg-muted))] mb-1 text-sm">Day</label>
+                  <Select 
+                    value={newSchedule.day}
+                    onValueChange={(value) => setNewSchedule({ ...newSchedule, day: value })}
+                  >
+                    <SelectTrigger className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-text))]">
+                      <SelectValue placeholder="Select day" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]">
+                      <SelectItem value="Monday">Monday</SelectItem>
+                      <SelectItem value="Tuesday">Tuesday</SelectItem>
+                      <SelectItem value="Wednesday">Wednesday</SelectItem>
+                      <SelectItem value="Thursday">Thursday</SelectItem>
+                      <SelectItem value="Friday">Friday</SelectItem>
+                      <SelectItem value="Saturday">Saturday</SelectItem>
+                      <SelectItem value="Sunday">Sunday</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="block text-[hsl(var(--cwg-muted))] mb-1 text-sm">Start Time</label>
+                  <Input 
+                    type="time"
+                    value={newSchedule.startTime}
+                    onChange={(e) => setNewSchedule({ ...newSchedule, startTime: e.target.value })}
+                    className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-text))]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-[hsl(var(--cwg-muted))] mb-1 text-sm">End Time</label>
+                  <Input 
+                    type="time"
+                    value={newSchedule.endTime}
+                    onChange={(e) => setNewSchedule({ ...newSchedule, endTime: e.target.value })}
+                    className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-text))]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-[hsl(var(--cwg-muted))] mb-1 text-sm">Game</label>
+                  <Select 
+                    value={newSchedule.game}
+                    onValueChange={(value) => setNewSchedule({ ...newSchedule, game: value })}
+                  >
+                    <SelectTrigger className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-text))]">
+                      <SelectValue placeholder="Select game" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]">
+                      <SelectItem value="Boss Fighters">Boss Fighters</SelectItem>
+                      <SelectItem value="KoKodi">KoKodi</SelectItem>
+                      <SelectItem value="Nyan Heroes">Nyan Heroes</SelectItem>
+                      <SelectItem value="Big Time">Big Time</SelectItem>
+                      <SelectItem value="WorldShards">WorldShards</SelectItem>
+                      <SelectItem value="Off The Grid">Off The Grid</SelectItem>
+                      <SelectItem value="RavenQuest">RavenQuest</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <Button
+                  onClick={handleCreateSchedule}
+                  disabled={newSchedule.isSubmitting}
+                  className="w-full bg-gradient-to-r from-[hsl(var(--cwg-blue))] to-[hsl(var(--cwg-blue))]/80 text-white rounded-lg font-orbitron font-medium btn-hover transition-all duration-300"
+                >
+                  {newSchedule.isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Adding...
+                    </>
+                  ) : (
+                    "Add Schedule"
+                  )}
+                </Button>
+              </div>
+            </div>
+            
+            {/* Schedule List */}
+            <div className="p-4 rounded-lg bg-[hsl(var(--cwg-dark-blue))] border border-[hsl(var(--cwg-dark-blue))]/80">
+              <h3 className="font-orbitron font-semibold text-[hsl(var(--cwg-orange))] mb-4">
+                Current Schedules
+              </h3>
+              
+              {isLoadingSchedules ? (
+                <div className="flex justify-center items-center py-16">
+                  <Loader2 className="h-8 w-8 animate-spin text-[hsl(var(--cwg-blue))]" />
+                </div>
+              ) : streamerSchedules.length > 0 ? (
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                  {streamerSchedules.map((schedule) => (
+                    <div key={schedule.id} className="p-3 rounded-lg bg-[hsl(var(--cwg-dark))] border border-[hsl(var(--cwg-dark-blue))]">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <span className="font-orbitron text-[hsl(var(--cwg-text))]">{schedule.dayOfWeek}</span>
+                          <div className="text-sm text-[hsl(var(--cwg-muted))]">
+                            {schedule.startTime} - {schedule.endTime}
+                          </div>
+                          <div className="mt-1 px-2 py-0.5 text-xs inline-block rounded-full bg-[hsl(var(--cwg-blue))]/20 text-[hsl(var(--cwg-blue))]">
+                            {schedule.game}
+                          </div>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="h-7 text-xs border-red-500 text-red-500"
+                          onClick={() => handleDeleteSchedule(schedule.id)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-[hsl(var(--cwg-muted))]">
+                    No schedules found for this streamer.
+                  </p>
+                  <p className="text-sm text-[hsl(var(--cwg-muted))] mt-1">
+                    Add your first schedule using the form.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsScheduleDialogOpen(false)}
+              className="border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))]"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
