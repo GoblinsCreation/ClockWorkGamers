@@ -454,6 +454,175 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Twitch integration routes
+  app.get("/api/twitch/auth-url", (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    // Generate a unique state parameter for CSRF protection
+    const state = Math.random().toString(36).substring(2, 15);
+    
+    // Store state in session
+    req.session.twitchState = state;
+    
+    // Create Twitch OAuth URL
+    const scopes = 'user:read:email channel:read:subscriptions';
+    const redirectUri = `${req.protocol}://${req.get('host')}/api/twitch/callback`;
+    const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
+    
+    res.json({ url: authUrl });
+  });
+  
+  app.get("/api/twitch/callback", (req, res) => {
+    const { code, state } = req.query;
+    
+    // Send the auth code and state to the client via postMessage
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Connecting to Twitch...</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #0e0e10;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+          }
+          .twitch-logo {
+            width: 120px;
+            margin-bottom: 20px;
+          }
+          .connecting {
+            font-size: 18px;
+            margin-top: 20px;
+          }
+          .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #9146FF;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px 0;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        </style>
+      </head>
+      <body>
+        <img class="twitch-logo" src="https://brand.twitch.tv/assets/images/white-twitch-logo.png" alt="Twitch Logo">
+        <div class="connecting">Connecting to your Twitch account...</div>
+        <div class="spinner"></div>
+        <script>
+          // Send the code and state to the parent window
+          window.opener.postMessage({
+            type: 'TWITCH_AUTH',
+            code: ${JSON.stringify(code)},
+            state: ${JSON.stringify(state)}
+          }, '*');
+          
+          // Close the window after a short delay
+          setTimeout(() => window.close(), 2000);
+        </script>
+      </body>
+      </html>
+    `;
+    
+    res.send(html);
+  });
+  
+  app.post("/api/twitch/link-account", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const { code, state } = req.body;
+      
+      // Verify state to prevent CSRF attacks
+      if (state !== req.session.twitchState) {
+        return res.status(400).json({ message: "Invalid state parameter" });
+      }
+      
+      // Clear the state from session
+      delete req.session.twitchState;
+      
+      // Get the redirect URI (same as the one used in auth-url)
+      const redirectUri = `${req.protocol}://${req.get('host')}/api/twitch/callback`;
+      
+      // Link the Twitch account to the user
+      const success = await linkTwitchAccount(code, redirectUri, req.user!.id);
+      
+      if (!success) {
+        return res.status(500).json({ message: "Failed to link Twitch account" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error linking Twitch account:", error);
+      res.status(500).json({ message: "Failed to link Twitch account" });
+    }
+  });
+  
+  app.post("/api/twitch/unlink-account", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      
+      // Get the user's streamer profile
+      const streamer = await storage.getStreamerByUserId(userId);
+      
+      if (!streamer) {
+        return res.status(404).json({ message: "No linked Twitch account found" });
+      }
+      
+      // Update the streamer record to remove Twitch ID
+      await storage.updateStreamer(streamer.id, {
+        twitchId: null
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error unlinking Twitch account:", error);
+      res.status(500).json({ message: "Failed to unlink Twitch account" });
+    }
+  });
+  
+  // Route to manually update streamer status from Twitch
+  app.get("/api/streamers/update-status", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    // Check if user is admin or has sufficient permissions
+    if (!req.user!.isAdmin && 
+        req.user!.role !== "Mod" && 
+        req.user!.role !== "Admin" && 
+        req.user!.role !== "Owner") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    try {
+      await updateStreamStatus();
+      res.json({ success: true, message: "Streamer status updated successfully" });
+    } catch (error) {
+      console.error("Error updating streamer status:", error);
+      res.status(500).json({ message: "Failed to update streamer status" });
+    }
+  });
 
   // Admin routes (requires admin authentication)
   app.use("/api/admin", (req, res, next) => {
