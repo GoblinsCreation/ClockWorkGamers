@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { User, RentalRequest, News, Streamer, StreamerSchedule } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -14,6 +14,21 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  Legend
+} from "recharts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,13 +67,20 @@ import {
   Loader2, 
   Search, 
   CheckCircle, 
-  XCircle 
+  XCircle,
+  BarChart2,
+  Activity,
+  TrendingUp,
+  PieChart as PieChartIcon,
+  Users,
+  Calendar,
+  DollarSign
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState("users");
+  const [activeTab, setActiveTab] = useState("analytics");
   const [userFilter, setUserFilter] = useState("");
   const [rentalFilter, setRentalFilter] = useState("");
   const [streamerFilter, setStreamerFilter] = useState("");
@@ -71,8 +93,118 @@ export default function AdminPage() {
     game: "",
     isSubmitting: false
   });
+  const [analyticsTimeframe, setAnalyticsTimeframe] = useState("week");
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
+  
+  // Analytics data
+  const [analyticsData, setAnalyticsData] = useState({
+    userGrowth: [] as any[],
+    streamViewership: [] as any[],
+    rentalRevenue: [] as any[],
+    tokenDistribution: [] as any[],
+    gameDistribution: [] as any[],
+    streamActivity: [] as any[],
+    streamersPerformance: [] as any[],
+  });
+  
+  // Generate analytics data on component mount and when timeframe changes
+  useEffect(() => {
+    // Generate user growth analytics
+    const userDates = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const userGrowth = userDates.map((day, index) => {
+      // Create some semi-random growth data that generally trends upward
+      const baseValue = 80 + index * 5; // Base user count starts at 80 and increases by 5 each day
+      const randomVariation = Math.floor(Math.random() * 20) - 10; // Random variation between -10 and +10
+      const uniqueVisitors = baseValue + randomVariation;
+      const signups = Math.floor(uniqueVisitors * (0.1 + Math.random() * 0.1)); // 10-20% conversion rate
+      
+      return {
+        name: day,
+        'Unique Visitors': uniqueVisitors,
+        'New Signups': signups,
+      };
+    });
+    
+    // Generate stream viewership analytics
+    const streamDates = ['10 AM', '12 PM', '2 PM', '4 PM', '6 PM', '8 PM', '10 PM'];
+    const streamViewership = streamDates.map((time, index) => {
+      // Create viewership pattern with peak during evening hours
+      let baseViewers = 50;
+      if (index > 2) baseViewers = 100; // Higher base during afternoon
+      if (index > 4) baseViewers = 150; // Even higher base during evening
+      
+      const randomVariation = Math.floor(Math.random() * 40) - 20;
+      const viewers = baseViewers + randomVariation;
+      
+      return {
+        name: time,
+        'Viewers': viewers,
+      };
+    });
+    
+    // Generate rental revenue analytics 
+    const rentalDates = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const rentalRevenue = rentalDates.map((day, index) => {
+      const baseRevenue = 1000 + index * 200; // Base revenue starts at 1000 and increases by 200 each day
+      const randomVariation = Math.floor(Math.random() * 400) - 200; // Random variation between -200 and +200
+      
+      return {
+        name: day,
+        'Revenue': baseRevenue + randomVariation,
+      };
+    });
+    
+    // Generate token distribution analytics
+    const tokenDistribution = [
+      { name: 'Tokens Earned', value: 10200 },
+      { name: 'Tokens Spent', value: 7800 },
+      { name: 'Tokens Locked', value: 4500 },
+      { name: 'Referral Bonus', value: 2100 },
+    ];
+    
+    // Generate game distribution analytics
+    const gameDistribution = [
+      { name: 'Boss Fighters', value: 35 },
+      { name: 'KoKodi', value: 22 },
+      { name: 'Nyan Heroes', value: 18 },
+      { name: 'Big Time', value: 12 },
+      { name: 'WorldShards', value: 8 },
+      { name: 'Off The Grid', value: 3 },
+      { name: 'RavenQuest', value: 2 },
+    ];
+    
+    // Generate stream activity by day
+    const streamActivity = [
+      { name: 'Monday', value: 4 },
+      { name: 'Tuesday', value: 6 },
+      { name: 'Wednesday', value: 8 },
+      { name: 'Thursday', value: 10 },
+      { name: 'Friday', value: 12 },
+      { name: 'Saturday', value: 14 },
+      { name: 'Sunday', value: 10 },
+    ];
+    
+    // Generate top streamers performance
+    const streamersPerformance = [
+      { name: 'FrostiiGoblin', viewers: 248, hours: 28, followers: 1200 },
+      { name: 'NeonDragon', viewers: 186, hours: 32, followers: 980 },
+      { name: 'CryptoQueen', viewers: 173, hours: 24, followers: 850 },
+      { name: 'BlockchainBro', viewers: 145, hours: 20, followers: 720 },
+      { name: 'NFTHunter', viewers: 129, hours: 22, followers: 635 },
+    ];
+    
+    setAnalyticsData({
+      userGrowth,
+      streamViewership,
+      rentalRevenue,
+      tokenDistribution,
+      gameDistribution,
+      streamActivity,
+      streamersPerformance,
+    });
+  }, [analyticsTimeframe]);
+  
   
   // State for user editing
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -440,6 +572,9 @@ export default function AdminPage() {
               className="w-full"
             >
               <TabsList className="mb-8">
+                <TabsTrigger value="analytics" className="font-orbitron flex items-center gap-2">
+                  <BarChart2 className="h-4 w-4" /> Analytics
+                </TabsTrigger>
                 <TabsTrigger value="users" className="font-orbitron flex items-center gap-2">
                   <UserIcon className="h-4 w-4" /> Users
                 </TabsTrigger>
