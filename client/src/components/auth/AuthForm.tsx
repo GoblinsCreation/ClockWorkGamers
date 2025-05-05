@@ -1,12 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
+import { useLocation } from "wouter";
 
 export function AuthForm() {
-  const [activeTab, setActiveTab] = useState<string>("login");
+  // Get guild parameter from URL if present
+  const [location] = useLocation();
+  const params = new URLSearchParams(location.split('?')[1] || '');
+  const guildParam = params.get('guild');
+  
+  const [activeTab, setActiveTab] = useState<string>(guildParam ? "register" : "login");
   const { user } = useAuth();
 
   return (
@@ -24,7 +30,7 @@ export function AuthForm() {
       </CardHeader>
       <CardContent>
         <Tabs 
-          defaultValue="login" 
+          defaultValue={guildParam ? "register" : "login"} 
           value={activeTab} 
           onValueChange={setActiveTab}
           className="w-full"
@@ -37,7 +43,7 @@ export function AuthForm() {
             <LoginForm onSuccess={() => {}} />
           </TabsContent>
           <TabsContent value="register">
-            <RegisterForm onSuccess={() => {}} />
+            <RegisterForm onSuccess={() => {}} selectedGuild={guildParam || ""} />
           </TabsContent>
         </Tabs>
       </CardContent>

@@ -34,7 +34,7 @@ const registerSchema = z.object({
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-export function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
+export function RegisterForm({ onSuccess, selectedGuild = "" }: { onSuccess: () => void, selectedGuild?: string }) {
   const { registerMutation } = useAuth();
   
   const form = useForm<RegisterFormValues>({
@@ -45,11 +45,18 @@ export function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
       email: "",
       dateOfBirth: "",
       password: "",
-      guild: "",
+      guild: selectedGuild,
       discordUsername: "",
       twitchHandle: "",
     },
   });
+  
+  // Set the guild value when selectedGuild changes
+  useEffect(() => {
+    if (selectedGuild) {
+      form.setValue('guild', selectedGuild);
+    }
+  }, [selectedGuild, form]);
 
   const onSubmit = (values: RegisterFormValues) => {
     registerMutation.mutate(values, {

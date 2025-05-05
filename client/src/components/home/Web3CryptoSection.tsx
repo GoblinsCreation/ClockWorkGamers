@@ -125,9 +125,11 @@ export function Web3CryptoSection() {
                 <p className="mt-2 text-center text-xs text-[hsl(var(--cwg-muted))]">Nyan Heroes</p>
               </div>
             </div>
-            <Button className="mt-8 px-6 py-3 bg-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-dark))] rounded-lg font-orbitron btn-hover transition-all duration-300 neon-glow">
-              Explore Games
-            </Button>
+            <Link to="/games">
+              <Button className="mt-8 px-6 py-3 bg-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-dark))] rounded-lg font-orbitron btn-hover transition-all duration-300 neon-glow">
+                Explore Games
+              </Button>
+            </Link>
           </div>
         </div>
         
@@ -176,7 +178,7 @@ export function Web3CryptoSection() {
                 Become part of our Web3 gaming community today and start earning while playing your favorite games.
               </p>
               <div className="mt-6 flex flex-wrap gap-4">
-                <Link href="/auth">
+                <Link to="/auth?guild=ClockWork%20Gamers">
                   <Button className="neon-border-orange px-6 py-3 bg-gradient-to-r from-[hsl(var(--cwg-orange))] to-[hsl(var(--cwg-orange-dark))] text-white rounded-lg font-orbitron btn-hover web3-hover transition-all duration-300">
                     <Users className="mr-2" /> Join Our Guild
                   </Button>
