@@ -27,6 +27,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByReferralCode(referralCode: string): Promise<User | undefined>;
   updateUserReferralCode(userId: number, referralCode: string): Promise<User | undefined>;
+  updateUserRole(userId: number, role: string, isAdmin: boolean): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   listUsers(): Promise<User[]>;
   

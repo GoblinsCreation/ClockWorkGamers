@@ -445,6 +445,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint to update a user's role
+  app.patch("/api/admin/users/:id/role", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { role } = req.body;
+      
+      // Validate roles
+      if (!["User", "Mod", "Admin", "Owner"].includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+      
+      // Only Owner can set Owner role and only Owner can modify other Owner accounts
+      const userToModify = await storage.getUser(userId);
+      
+      if (!userToModify) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // If target user is Owner, only allow Owner to modify
+      if (userToModify.role === "Owner" && req.user!.role !== "Owner") {
+        return res.status(403).json({ message: "Only Owners can modify Owner accounts" });
+      }
+      
+      // If setting to Owner, only Owner can do that
+      if (role === "Owner" && req.user!.role !== "Owner") {
+        return res.status(403).json({ message: "Only Owners can set the Owner role" });
+      }
+      
+      // Admins can only set Mod or User roles
+      if (req.user!.role === "Admin" && role === "Admin") {
+        return res.status(403).json({ message: "Admins cannot create other Admins" });
+      }
+      
+      // Mods can only set User role
+      if (req.user!.role === "Mod" && role !== "User") {
+        return res.status(403).json({ message: "Moderators can only assign User role" });
+      }
+      
+      // Update user's role and admin flag for backward compatibility
+      const isAdmin = role === "Admin" || role === "Owner";
+      const updatedUser = await storage.updateUserRole(userId, role, isAdmin);
+      
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to update user role" });
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+  
   app.get("/api/admin/rental-requests", async (req, res) => {
     try {
       const requests = await storage.listRentalRequests();

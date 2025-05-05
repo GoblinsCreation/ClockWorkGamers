@@ -32,6 +32,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Check, 
   X, 
@@ -355,19 +363,83 @@ export default function AdminPage() {
                                 </span>
                               </TableCell>
                               <TableCell>
-                                {user.isAdmin ? (
-                                  <Check className="text-green-500 h-5 w-5" />
-                                ) : (
-                                  <X className="text-[hsl(var(--cwg-muted))] h-5 w-5" />
-                                )}
+                                <span className={`px-2 py-1 rounded-full text-xs ${
+                                  user.role === "Owner" 
+                                    ? "bg-purple-500/20 text-purple-500 font-bold"
+                                    : user.role === "Admin"
+                                    ? "bg-red-500/20 text-red-500 font-bold"
+                                    : user.role === "Mod"
+                                    ? "bg-blue-500/20 text-blue-500 font-bold"
+                                    : "bg-green-500/20 text-green-500"
+                                }`}>
+                                  {user.role || "User"}
+                                </span>
                               </TableCell>
                               <TableCell>
                                 <div className="flex space-x-2">
-                                  <Button variant="outline" size="sm" className="h-8 border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))]">
-                                    Edit
-                                  </Button>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="outline" size="sm" className="h-8 border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))]">
+                                        Manage Role
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                      <DropdownMenuLabel>Change Role</DropdownMenuLabel>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem 
+                                        className={user.role === "User" ? "bg-[hsl(var(--cwg-dark-blue))]/50" : ""}
+                                        onClick={() => {
+                                          // Update user role API call would go here
+                                          toast({
+                                            title: "Role Updated",
+                                            description: `${user.username} is now a standard User`,
+                                          });
+                                        }}
+                                      >
+                                        User
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        className={user.role === "Mod" ? "bg-[hsl(var(--cwg-dark-blue))]/50" : ""}
+                                        onClick={() => {
+                                          // Update user role API call would go here
+                                          toast({
+                                            title: "Role Updated",
+                                            description: `${user.username} is now a Moderator`,
+                                          });
+                                        }}
+                                      >
+                                        Moderator
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        className={user.role === "Admin" ? "bg-[hsl(var(--cwg-dark-blue))]/50" : ""}
+                                        onClick={() => {
+                                          // Update user role API call would go here
+                                          toast({
+                                            title: "Role Updated",
+                                            description: `${user.username} is now an Admin`,
+                                          });
+                                        }}
+                                      >
+                                        Admin
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        className={user.role === "Owner" ? "bg-[hsl(var(--cwg-dark-blue))]/50" : ""}
+                                        disabled={true}
+                                        onClick={() => {
+                                          // Owner role is restricted
+                                          toast({
+                                            title: "Cannot Change Owner",
+                                            description: "This role is restricted",
+                                            variant: "destructive"
+                                          });
+                                        }}
+                                      >
+                                        Owner (Restricted)
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                   <Button variant="outline" size="sm" className="h-8 border-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-orange))]">
-                                    {user.isAdmin ? "Remove Admin" : "Make Admin"}
+                                    Edit Profile
                                   </Button>
                                 </div>
                               </TableCell>
