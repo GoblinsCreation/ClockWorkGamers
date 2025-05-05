@@ -2,218 +2,293 @@
 /**
  * User Utilities for ClockWork Gamers
  * 
- * This script provides PHP-based user management utilities for the ClockWork Gamers platform.
- * It can be executed via the Node.js server using child_process.
+ * This script provides user-related utilities for the admin panel
  */
 
-// Database configuration - should match our PostgreSQL database
-$db_config = [
-    'host' => getenv('PGHOST'),
-    'port' => getenv('PGPORT'),
-    'dbname' => getenv('PGDATABASE'),
-    'user' => getenv('PGUSER'),
-    'password' => getenv('PGPASSWORD')
-];
+// Get database credentials from environment
+$dbHost = $_ENV['PGHOST'] ?? 'localhost';
+$dbPort = $_ENV['PGPORT'] ?? '5432';
+$dbName = $_ENV['PGDATABASE'] ?? 'postgres';
+$dbUser = $_ENV['PGUSER'] ?? 'postgres';
+$dbPassword = $_ENV['PGPASSWORD'] ?? '';
 
-/**
- * Establishes database connection using the configuration
- */
-function connect_db() {
-    global $db_config;
+// Command line arguments
+$action = $argv[1] ?? '';
+
+// Database connection function
+function connectToDatabase() {
+    global $dbHost, $dbPort, $dbName, $dbUser, $dbPassword;
     
-    $connection_string = sprintf(
-        "host=%s port=%s dbname=%s user=%s password=%s",
-        $db_config['host'],
-        $db_config['port'],
-        $db_config['dbname'],
-        $db_config['user'],
-        $db_config['password']
-    );
+    $dsn = "pgsql:host=$dbHost;port=$dbPort;dbname=$dbName;user=$dbUser;password=$dbPassword";
     
-    $conn = pg_connect($connection_string);
-    
-    if (!$conn) {
-        $error = error_get_last();
-        echo json_encode([
-            'success' => false,
-            'error' => $error['message'] ?? 'Failed to connect to database'
-        ]);
-        exit;
+    try {
+        $conn = new PDO($dsn);
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        return $conn;
+    } catch (PDOException $e) {
+        error_log("Connection failed: " . $e->getMessage());
+        throw $e;
     }
-    
-    return $conn;
 }
 
-/**
- * Generate user activity report
- */
-function generate_user_activity_report() {
-    $conn = connect_db();
-    
-    // Get user activity data
-    $query = "
-        SELECT 
-            u.id, 
-            u.username, 
-            u.email,
-            u.created_at,
-            (SELECT COUNT(*) FROM chat_messages WHERE user_id = u.id) as message_count,
-            (SELECT MAX(created_at) FROM chat_messages WHERE user_id = u.id) as last_message,
-            (SELECT COUNT(*) FROM referrals WHERE referrer_id = u.id) as referral_count
-        FROM 
-            users u
-        ORDER BY 
-            u.created_at DESC
-    ";
-    
-    $result = pg_query($conn, $query);
-    
-    if (!$result) {
-        echo json_encode([
+// Generate user activity report
+function generateUserActivityReport() {
+    try {
+        $db = connectToDatabase();
+        
+        // User registration over time
+        $registrationSql = "
+            SELECT 
+                date_trunc('month', created_at) as month,
+                COUNT(*) as count
+            FROM 
+                users
+            GROUP BY 
+                date_trunc('month', created_at)
+            ORDER BY 
+                month;
+        ";
+        
+        $registrationStmt = $db->query($registrationSql);
+        $registrations = $registrationStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // User roles distribution
+        $rolesSql = "
+            SELECT 
+                role, 
+                COUNT(*) as count
+            FROM 
+                users
+            GROUP BY 
+                role
+            ORDER BY 
+                count DESC;
+        ";
+        
+        $rolesStmt = $db->query($rolesSql);
+        $roles = $rolesStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Recent logins
+        $loginsSql = "
+            SELECT 
+                id, 
+                username, 
+                email,
+                last_login_at
+            FROM 
+                users
+            WHERE 
+                last_login_at IS NOT NULL
+            ORDER BY 
+                last_login_at DESC
+            LIMIT 20;
+        ";
+        
+        $loginsStmt = $db->query($loginsSql);
+        $recentLogins = $loginsStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Most active users by profile updates
+        $activeUsersSql = "
+            SELECT 
+                u.id, 
+                u.username, 
+                u.email,
+                up.updated_at as last_profile_update
+            FROM 
+                users u
+            JOIN 
+                user_profiles up ON u.id = up.user_id
+            ORDER BY 
+                up.updated_at DESC
+            LIMIT 20;
+        ";
+        
+        $activeUsersStmt = $db->query($activeUsersSql);
+        $activeUsers = $activeUsersStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $report = [
+            'success' => true,
+            'registrations_by_month' => $registrations,
+            'role_distribution' => $roles,
+            'recent_logins' => $recentLogins,
+            'most_active_users' => $activeUsers
+        ];
+        
+        echo json_encode($report, JSON_PRETTY_PRINT);
+        
+    } catch (PDOException $e) {
+        $error = [
             'success' => false,
-            'error' => pg_last_error($conn)
-        ]);
-        exit;
+            'error' => $e->getMessage()
+        ];
+        echo json_encode($error, JSON_PRETTY_PRINT);
     }
-    
-    $users = [];
-    while ($row = pg_fetch_assoc($result)) {
-        $users[] = $row;
-    }
-    
-    // Generate report
-    $report = [
-        'success' => true,
-        'timestamp' => date('Y-m-d H:i:s'),
-        'users' => $users,
-        'total_users' => count($users)
-    ];
-    
-    pg_close($conn);
-    
-    echo json_encode($report, JSON_PRETTY_PRINT);
 }
 
-/**
- * Generate referral performance report
- */
-function generate_referral_report() {
-    $conn = connect_db();
-    
-    // Get referral data
-    $query = "
-        SELECT 
-            u.id,
-            u.username,
-            u.referral_code,
-            COUNT(r.id) as referrals_count,
-            SUM(CASE WHEN ru.is_active = true THEN 1 ELSE 0 END) as active_referrals
-        FROM 
-            users u
-        LEFT JOIN 
-            referrals r ON u.id = r.referrer_id
-        LEFT JOIN 
-            users ru ON r.referred_id = ru.id
-        GROUP BY 
-            u.id, u.username, u.referral_code
-        ORDER BY 
-            referrals_count DESC
-    ";
-    
-    $result = pg_query($conn, $query);
-    
-    if (!$result) {
-        echo json_encode([
+// Generate referral report
+function generateReferralReport() {
+    try {
+        $db = connectToDatabase();
+        
+        // Top referrers
+        $topReferrersSql = "
+            SELECT 
+                u.id as user_id,
+                u.username,
+                COUNT(r.id) as referral_count
+            FROM 
+                users u
+            JOIN 
+                referrals r ON u.id = r.referrer_id
+            GROUP BY 
+                u.id, u.username
+            ORDER BY 
+                referral_count DESC
+            LIMIT 20;
+        ";
+        
+        $topReferrersStmt = $db->query($topReferrersSql);
+        $topReferrers = $topReferrersStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Referrals over time
+        $referralsTrendSql = "
+            SELECT 
+                date_trunc('month', created_at) as month,
+                COUNT(*) as count
+            FROM 
+                referrals
+            GROUP BY 
+                date_trunc('month', created_at)
+            ORDER BY 
+                month;
+        ";
+        
+        $referralsTrendStmt = $db->query($referralsTrendSql);
+        $referralsTrend = $referralsTrendStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Recent referrals
+        $recentReferralsSql = "
+            SELECT 
+                r.id,
+                u_referrer.username as referrer_username,
+                u_referred.username as referred_username,
+                r.created_at,
+                r.status
+            FROM 
+                referrals r
+            JOIN 
+                users u_referrer ON r.referrer_id = u_referrer.id
+            JOIN 
+                users u_referred ON r.referred_id = u_referred.id
+            ORDER BY 
+                r.created_at DESC
+            LIMIT 50;
+        ";
+        
+        $recentReferralsStmt = $db->query($recentReferralsSql);
+        $recentReferrals = $recentReferralsStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $report = [
+            'success' => true,
+            'top_referrers' => $topReferrers,
+            'referrals_trend' => $referralsTrend,
+            'recent_referrals' => $recentReferrals
+        ];
+        
+        echo json_encode($report, JSON_PRETTY_PRINT);
+        
+    } catch (PDOException $e) {
+        $error = [
             'success' => false,
-            'error' => pg_last_error($conn)
-        ]);
-        exit;
+            'error' => $e->getMessage()
+        ];
+        echo json_encode($error, JSON_PRETTY_PRINT);
     }
-    
-    $referrals = [];
-    while ($row = pg_fetch_assoc($result)) {
-        $referrals[] = $row;
-    }
-    
-    // Generate report
-    $report = [
-        'success' => true,
-        'timestamp' => date('Y-m-d H:i:s'),
-        'referrals' => $referrals,
-        'total_referrals' => array_sum(array_column($referrals, 'referrals_count'))
-    ];
-    
-    pg_close($conn);
-    
-    echo json_encode($report, JSON_PRETTY_PRINT);
 }
 
-/**
- * Reset a user's password
- */
-function reset_user_password($user_id, $new_password_hash) {
-    $conn = connect_db();
-    
-    // Update user password
-    $query = "UPDATE users SET password = $1 WHERE id = $2 RETURNING id, username, email";
-    $result = pg_query_params($conn, $query, [$new_password_hash, $user_id]);
-    
-    if (!$result) {
-        echo json_encode([
-            'success' => false,
-            'error' => pg_last_error($conn)
-        ]);
-        exit;
-    }
-    
-    if (pg_num_rows($result) === 0) {
-        echo json_encode([
-            'success' => false,
-            'error' => 'User not found'
-        ]);
-        exit;
-    }
-    
-    $user = pg_fetch_assoc($result);
-    
-    pg_close($conn);
-    
-    echo json_encode([
-        'success' => true,
-        'message' => 'Password has been reset',
-        'user' => $user
-    ]);
-}
-
-/**
- * Main execution section
- */
-// Get command from arguments
-$command = $argv[1] ?? '';
-$param1 = $argv[2] ?? '';
-$param2 = $argv[3] ?? '';
-
-switch ($command) {
-    case 'activity':
-        generate_user_activity_report();
-        break;
-    case 'referrals':
-        generate_referral_report();
-        break;
-    case 'reset-password':
-        if (empty($param1) || empty($param2)) {
-            echo json_encode([
-                'success' => false,
-                'error' => 'User ID and new password hash are required'
-            ]);
-            exit;
+// Reset a user's password
+function resetUserPassword($userId, $newPasswordHash) {
+    try {
+        // Validate inputs
+        if (empty($userId) || !is_numeric($userId)) {
+            echo json_encode(['success' => false, 'error' => 'Invalid user ID']);
+            return;
         }
-        reset_user_password($param1, $param2);
-        break;
-    default:
-        echo json_encode([
+        
+        if (empty($newPasswordHash)) {
+            echo json_encode(['success' => false, 'error' => 'Password hash cannot be empty']);
+            return;
+        }
+        
+        $db = connectToDatabase();
+        
+        // Update the user's password
+        $updateSql = "
+            UPDATE users
+            SET password = :password_hash
+            WHERE id = :user_id
+            RETURNING id, username, email;
+        ";
+        
+        $stmt = $db->prepare($updateSql);
+        $stmt->bindParam(':password_hash', $newPasswordHash);
+        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$user) {
+            echo json_encode(['success' => false, 'error' => 'User not found']);
+            return;
+        }
+        
+        $response = [
+            'success' => true,
+            'message' => 'Password reset successfully',
+            'user' => [
+                'id' => $user['id'],
+                'username' => $user['username'],
+                'email' => $user['email']
+            ]
+        ];
+        
+        echo json_encode($response, JSON_PRETTY_PRINT);
+        
+    } catch (PDOException $e) {
+        $error = [
             'success' => false,
-            'error' => 'Unknown command'
-        ]);
+            'error' => $e->getMessage()
+        ];
+        echo json_encode($error, JSON_PRETTY_PRINT);
+    }
 }
-?>
+
+// Main command processing
+switch ($action) {
+    case 'activity':
+        generateUserActivityReport();
+        break;
+        
+    case 'referrals':
+        generateReferralReport();
+        break;
+        
+    case 'reset-password':
+        $userId = $argv[2] ?? '';
+        $newPasswordHash = isset($argv[3]) ? trim($argv[3], '"\'') : '';
+        
+        if (empty($userId) || empty($newPasswordHash)) {
+            echo json_encode([
+                'success' => false, 
+                'error' => 'User ID and password hash are required'
+            ]);
+            exit(1);
+        }
+        
+        resetUserPassword($userId, $newPasswordHash);
+        break;
+        
+    default:
+        echo json_encode(['success' => false, 'error' => 'Unknown action: ' . $action]);
+        exit(1);
+}
