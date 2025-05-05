@@ -274,16 +274,50 @@ export default function AdminPage() {
     (streamer.currentGame && streamer.currentGame.toLowerCase().includes(streamerFilter.toLowerCase()))
   );
   
+  // State for rejection reason dialog
+  const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [requestToReject, setRequestToReject] = useState<number | null>(null);
+  
   // Handle rental request status change
-  const handleStatusChange = async (requestId: number, newStatus: string) => {
+  const handleStatusChange = async (requestId: number, newStatus: string, reason?: string) => {
     try {
-      await apiRequest("PATCH", `/api/admin/rental-requests/${requestId}`, { status: newStatus });
+      const updateData: any = { status: newStatus };
+      
+      // Include rejection reason if provided
+      if (reason) {
+        updateData.rejectionReason = reason;
+      }
+      
+      await apiRequest("PATCH", `/api/admin/rental-requests/${requestId}`, updateData);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/rental-requests"] });
+      
+      // Send notification to user about their request
+      try {
+        await apiRequest("POST", `/api/notifications`, {
+          userId: rentalRequests.find(req => req.id === requestId)?.userId,
+          title: `Rental Request ${newStatus === "approved" ? "Approved" : "Rejected"}`,
+          message: newStatus === "approved" 
+            ? "Your rental request has been approved! You can now proceed with the payment."
+            : `Your rental request has been rejected. Reason: ${reason || "No reason provided."}`,
+          type: newStatus === "approved" ? "success" : "error",
+          read: false
+        });
+      } catch (notifError) {
+        console.error("Failed to send notification:", notifError);
+      }
       
       toast({
         title: "Status updated",
         description: `Request #${requestId} status changed to ${newStatus}`,
       });
+      
+      // Reset rejection form state
+      if (newStatus === "rejected") {
+        setRejectionReason("");
+        setRejectionDialogOpen(false);
+        setRequestToReject(null);
+      }
     } catch (error) {
       toast({
         title: "Failed to update status",
@@ -291,6 +325,12 @@ export default function AdminPage() {
         variant: "destructive",
       });
     }
+  };
+  
+  // Open rejection dialog and store request ID
+  const openRejectionDialog = (requestId: number) => {
+    setRequestToReject(requestId);
+    setRejectionDialogOpen(true);
   };
   
   // Create new news post
@@ -1209,7 +1249,7 @@ export default function AdminPage() {
                                         variant="outline" 
                                         size="sm" 
                                         className="h-8 border-red-500 text-red-500 hover:bg-red-500/20"
-                                        onClick={() => handleStatusChange(request.id, "rejected")}
+                                        onClick={() => openRejectionDialog(request.id)}
                                       >
                                         <XCircle className="h-4 w-4 mr-1" />
                                         Reject
@@ -1572,6 +1612,52 @@ export default function AdminPage() {
           </div>
         </section>
       </main>
+      
+      {/* Rejection Reason Dialog */}
+      <Dialog open={rejectionDialogOpen} onOpenChange={setRejectionDialogOpen}>
+        <DialogContent className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-orbitron text-red-500">
+              Reject Rental Request
+            </DialogTitle>
+            <DialogDescription className="text-[hsl(var(--cwg-muted))]">
+              Please provide a reason for rejecting this rental request. This will be sent to the customer.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-[hsl(var(--cwg-text))] mb-2">Rejection Reason</label>
+              <Textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-text))] min-h-[100px]"
+                placeholder="e.g., Item is currently unavailable, rental period conflicts with existing bookings, etc."
+              />
+            </div>
+          </div>
+          
+          <DialogFooter className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setRejectionDialogOpen(false)}
+              className="border-[hsl(var(--cwg-muted))] text-[hsl(var(--cwg-muted))]"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (requestToReject) {
+                  handleStatusChange(requestToReject, "rejected", rejectionReason);
+                }
+              }}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Confirm Rejection
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       <Footer />
       
