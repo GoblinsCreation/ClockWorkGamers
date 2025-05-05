@@ -17,7 +17,11 @@ import {
 import { scheduleStreamStatusUpdates, updateStreamStatus, linkTwitchAccount } from "./twitch";
 import { handleContactForm, sendTestEmail } from "./email";
 import { WebSocketServer, WebSocket } from 'ws';
-import { createSystemNotification } from "./notifications";
+import { 
+  createSystemNotification, 
+  createAchievementUnlockedNotification,
+  createAchievementClaimedNotification
+} from "./notifications";
 
 // Extend session with our custom properties
 declare module "express-session" {
