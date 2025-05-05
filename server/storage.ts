@@ -6,11 +6,13 @@ import {
   rentalRequests, type RentalRequest, type InsertRentalRequest,
   news as newsTable, type News, type InsertNews,
   streamerSchedules, type StreamerSchedule, type InsertStreamerSchedule,
-  userProfiles, type UserProfile, type InsertUserProfile
+  userProfiles, type UserProfile, type InsertUserProfile,
+  chatMessages, type ChatMessage, type InsertChatMessage,
+  referrals, type Referral, type InsertReferral
 } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, asc, inArray, sql } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
 import { Store } from "express-session";
@@ -398,6 +400,93 @@ export class DatabaseStorage implements IStorage {
       .limit(limit || 100);
     
     return newsItems;
+  }
+  
+  // Chat message methods
+  async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    const [chatMessage] = await db.insert(chatMessages).values(message).returning();
+    return chatMessage;
+  }
+  
+  async getChatMessages(roomId: string, limit?: number): Promise<ChatMessage[]> {
+    const query = db
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.roomId, roomId))
+      .orderBy(asc(chatMessages.sentAt));
+    
+    if (limit) {
+      query.limit(limit);
+    }
+    
+    return await query;
+  }
+  
+  async deleteChatMessage(id: number): Promise<boolean> {
+    const deleted = await db.delete(chatMessages).where(eq(chatMessages.id, id)).returning();
+    return deleted.length > 0;
+  }
+  
+  // Referral methods
+  async getUserByReferralCode(referralCode: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.referralCode, referralCode));
+    return user;
+  }
+  
+  async updateUserReferralCode(userId: number, referralCode: string): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ referralCode })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+  
+  async createReferral(referral: InsertReferral): Promise<Referral> {
+    const [createdReferral] = await db.insert(referrals).values(referral).returning();
+    return createdReferral;
+  }
+  
+  async getReferral(id: number): Promise<Referral | undefined> {
+    const [referral] = await db.select().from(referrals).where(eq(referrals.id, id));
+    return referral;
+  }
+  
+  async updateReferral(id: number, data: Partial<Referral>): Promise<Referral | undefined> {
+    const [referral] = await db
+      .update(referrals)
+      .set(data)
+      .where(eq(referrals.id, id))
+      .returning();
+    return referral;
+  }
+  
+  async getUserReferrals(userId: number): Promise<Referral[]> {
+    return await db
+      .select()
+      .from(referrals)
+      .where(eq(referrals.referrerId, userId));
+  }
+  
+  async getUserReferredUsers(userId: number): Promise<User[]> {
+    const referrals = await db
+      .select()
+      .from(referrals)
+      .where(eq(referrals.referrerId, userId));
+    
+    const referredUserIds = referrals.map(referral => referral.referredId);
+    
+    if (referredUserIds.length === 0) {
+      return [];
+    }
+    
+    return await db
+      .select()
+      .from(users)
+      .where(inArray(users.id, referredUserIds));
   }
 }
 

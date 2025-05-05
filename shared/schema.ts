@@ -14,6 +14,7 @@ export const users = pgTable("users", {
   guild: text("guild").notNull(),
   discordUsername: text("discord_username"),
   twitchHandle: text("twitch_handle"),
+  referralCode: text("referral_code").unique(),
   isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
