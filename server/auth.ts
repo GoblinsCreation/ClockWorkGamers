@@ -5,7 +5,7 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser, insertUserSchema } from "@shared/schema";
+import { type Json, User as SelectUser, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 
 declare global {
@@ -132,7 +132,7 @@ export function setupAuth(app: Express) {
                 title: "New Referral",
                 message: `${user.username} joined using your referral code!`,
                 isRead: false,
-                data: JSON.stringify({ referredId: user.id })
+                metadata: { referredId: user.id } as Json
               });
             }
           }
