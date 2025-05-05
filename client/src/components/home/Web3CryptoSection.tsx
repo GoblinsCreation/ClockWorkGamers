@@ -127,7 +127,7 @@ export function Web3CryptoSection() {
             </div>
             <Link to="/games">
               <Button className="mt-8 px-6 py-3 bg-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-dark))] rounded-lg font-orbitron btn-hover transition-all duration-300 neon-glow">
-                Explore Games
+                View All Games
               </Button>
             </Link>
           </div>
@@ -143,16 +143,30 @@ export function Web3CryptoSection() {
             <p className="mt-2 text-sm text-[hsl(var(--cwg-muted))]">
               Turn your gaming skills into real income through blockchain-based rewards and assets.
             </p>
+            <div className="mt-4">
+              <Link to="/games">
+                <Button className="w-full text-xs bg-[hsl(var(--cwg-orange))]/20 hover:bg-[hsl(var(--cwg-orange))]/30 text-[hsl(var(--cwg-orange))] border border-[hsl(var(--cwg-orange))]/50 rounded">
+                  View All Games
+                </Button>
+              </Link>
+            </div>
           </div>
           
           <div className="web3-chip card-gradient rounded-xl p-6 border border-[hsl(var(--cwg-blue))]/20 neon-border-blue group hover:scale-105 transition-transform duration-300">
             <div className="h-14 w-14 rounded-full bg-[hsl(var(--cwg-blue))]/20 flex items-center justify-center mb-4 blue-glow group-hover:animate-pulse-glow">
               <Coins className="text-[hsl(var(--cwg-blue))] text-xl" />
             </div>
-            <h4 className="text-xl font-orbitron font-semibold neon-text-blue">NFT Assets</h4>
+            <h4 className="text-xl font-orbitron font-semibold neon-text-blue">Pay-to-Earn</h4>
             <p className="mt-2 text-sm text-[hsl(var(--cwg-muted))]">
-              Own, trade, and monetize your in-game items as non-fungible tokens on the blockchain.
+              Invest in virtual assets, trade NFTs, and earn passive income through blockchain gaming.
             </p>
+            <div className="mt-4">
+              <Link to="/games">
+                <Button className="w-full text-xs bg-[hsl(var(--cwg-blue))]/20 hover:bg-[hsl(var(--cwg-blue))]/30 text-[hsl(var(--cwg-blue))] border border-[hsl(var(--cwg-blue))]/50 rounded">
+                  View All Games
+                </Button>
+              </Link>
+            </div>
           </div>
           
           <div className="web3-chip card-gradient rounded-xl p-6 border border-[hsl(var(--cwg-orange))]/20 neon-border-orange group hover:scale-105 transition-transform duration-300">

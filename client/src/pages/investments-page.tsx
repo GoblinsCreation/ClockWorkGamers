@@ -19,7 +19,7 @@ export default function InvestmentsPage() {
       description: "Invest in upcoming NFT collections by ClockWork Gamers. Holders get early access to games, airdrops, and revenue sharing.",
       icon: <Award className="h-6 w-6 text-[hsl(var(--cwg-blue))]" />,
       minInvestment: "0.5 SOL",
-      currentRaise: 145,
+      currentRaise: 0,
       targetRaise: 200,
       unit: "SOL",
       returnEstimate: "Variable based on collection performance",
@@ -32,7 +32,7 @@ export default function InvestmentsPage() {
       description: "Provide liquidity for our NFT staking platform. Earn fees from users staking their gaming NFTs for yield.",
       icon: <Coins className="h-6 w-6 text-[hsl(var(--cwg-green))]" />,
       minInvestment: "0.75 SOL",
-      currentRaise: 210,
+      currentRaise: 0,
       targetRaise: 300,
       unit: "SOL",
       returnEstimate: "10-20% annually",
@@ -45,7 +45,7 @@ export default function InvestmentsPage() {
       description: "Fund the development of Web3 games. Investors receive revenue share from game profits and exclusive in-game items.",
       icon: <Gamepad2 className="h-6 w-6 text-[hsl(var(--cwg-purple))]" />,
       minInvestment: "2 SOL",
-      currentRaise: 320,
+      currentRaise: 0,
       targetRaise: 500,
       unit: "SOL",
       returnEstimate: "Potential 3-5x returns",
@@ -58,7 +58,7 @@ export default function InvestmentsPage() {
       description: "Contribute to our diversified treasury which invests in blue-chip crypto, gaming tokens, and yield-generating protocols.",
       icon: <Building className="h-6 w-6 text-[hsl(var(--cwg-yellow))]" />,
       minInvestment: "0.25 SOL",
-      currentRaise: 450,
+      currentRaise: 0,
       targetRaise: 1000,
       unit: "SOL",
       returnEstimate: "8-15% annually",
@@ -159,7 +159,16 @@ export default function InvestmentsPage() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full bg-[hsl(var(--cwg-blue))] hover:bg-[hsl(var(--cwg-blue))]/80 text-white font-orbitron">
+                  <Button 
+                    className="w-full bg-[hsl(var(--cwg-blue))] hover:bg-[hsl(var(--cwg-blue))]/80 text-white font-orbitron"
+                    onClick={() => {
+                      if (!connected) {
+                        connectWallet();
+                      } else {
+                        window.open('/payment-options', '_blank');
+                      }
+                    }}
+                  >
                     Invest Now
                   </Button>
                 </CardFooter>
