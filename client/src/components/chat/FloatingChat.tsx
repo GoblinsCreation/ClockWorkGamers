@@ -1,12 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { MessageSquare, X, MinusSquare, Loader2, Send, Globe } from 'lucide-react';
+import { 
+  MessageSquare, X, MinusSquare, Loader2, Send, Globe, 
+  User, Users, Mail, PlusCircle, Menu, Settings, Search 
+} from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/components/translation/WebsiteTranslator';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { useLocation } from 'wouter';
 import './FloatingChat.css';
 
 interface Message {
@@ -16,6 +36,18 @@ interface Message {
   message: string;
   timestamp: string;
   translatedText?: string;
+  roomId?: string;
+  receiverId?: number;
+}
+
+interface Contact {
+  id: number;
+  username: string;
+  displayName?: string;
+  avatar?: string;
+  gameIds?: string[];
+  lastMessage?: string;
+  unreadCount?: number;
 }
 
 interface ChatRoomProps {
@@ -37,6 +69,10 @@ interface ChatRoomProps {
 const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onSendMessage, messages, isLoading, isConnected = true, onReconnect }) => {
   // Local state for reconnection animation
   const [isReconnectingLocal, setIsReconnectingLocal] = useState(false);
+  const [viewingProfile, setViewingProfile] = useState<Contact | null>(null);
+  const [profileComments, setProfileComments] = useState<any[]>([]);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [newComment, setNewComment] = useState('');
   
   // Handle reconnect click with local animation state
   const handleReconnect = () => {
@@ -50,6 +86,92 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onSendMessage, messages, is
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { translate, language } = useTranslation();
+  
+  // View a user's profile
+  const viewProfile = async (userId: number, username: string) => {
+    if (userId === -1) return; // Don't view system profiles
+    
+    setLoadingProfile(true);
+    try {
+      // Fetch user profile
+      const response = await apiRequest("GET", `/api/user/${userId}/profile`);
+      const profile = await response.json();
+      
+      setViewingProfile({
+        id: userId,
+        username: username,
+        displayName: profile.displayName || username,
+        avatar: profile.avatar,
+        gameIds: profile.games || [],
+      });
+      
+      // Fetch profile comments
+      const commentsResp = await apiRequest("GET", `/api/user/${userId}/comments`);
+      const comments = await commentsResp.json();
+      setProfileComments(Array.isArray(comments) ? comments : []);
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      toast({
+        title: 'Error',
+        description: 'Could not load user profile',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+  
+  // Post a comment on someone's profile
+  const postComment = async () => {
+    if (!viewingProfile || !newComment.trim()) return;
+    
+    try {
+      const response = await apiRequest("POST", `/api/user/${viewingProfile.id}/comments`, { 
+        content: newComment 
+      });
+      const postedComment = await response.json();
+      
+      // Add to existing comments
+      setProfileComments(prev => [...prev, postedComment]);
+      setNewComment('');
+      
+      toast({
+        title: 'Success',
+        description: 'Comment posted successfully',
+      });
+    } catch (err) {
+      console.error("Error posting comment:", err);
+      toast({
+        title: 'Error',
+        description: 'Failed to post comment',
+        variant: 'destructive',
+      });
+    }
+  };
+  
+  // Delete a comment from a profile
+  const deleteComment = async (commentId: number) => {
+    if (!viewingProfile) return;
+    
+    try {
+      await apiRequest("DELETE", `/api/user/${viewingProfile.id}/comments/${commentId}`);
+      
+      // Remove from UI
+      setProfileComments(prev => prev.filter(c => c.id !== commentId));
+      
+      toast({
+        title: 'Success',
+        description: 'Comment deleted successfully',
+      });
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete comment',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -106,7 +228,13 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onSendMessage, messages, is
             >
               {msg.userId !== -1 && (
                 <div className="message-header">
-                  <span className="message-sender">{msg.username}</span>
+                  <span 
+                    className="message-sender" 
+                    onClick={() => viewProfile(msg.userId, msg.username)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {msg.username}
+                  </span>
                   <span className="message-time">
                     {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
