@@ -645,7 +645,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               user: { 
                 id: data.userId, 
                 username: data.username 
-              } 
+              },
+              rooms: ['public', 'support'] // Default rooms all users join
             });
             
             // Send confirmation
@@ -771,12 +772,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
-  // Helper function to broadcast message to all connected clients
+  // Helper function to broadcast message to clients in the appropriate room
   function broadcastMessage(message: any) {
     const messageStr = JSON.stringify(message);
+    const roomId = message.roomId || 'public';
+    
     clients.forEach((client) => {
-      // Only send if the connection is open
-      if (client.ws.readyState === WebSocket.OPEN) {
+      // Only send if the connection is open and the client is in the room
+      // For private messages, only send to the sender and recipient
+      const isInRoom = client.rooms && client.rooms.includes(roomId);
+      const isPrivateRecipient = roomId.startsWith('private-') && 
+                               client.user && 
+                               roomId === `private-${client.user.id}`;
+      const isPrivateSender = message.userId === client.user?.id;
+      
+      if (client.ws.readyState === WebSocket.OPEN && 
+          (roomId === 'public' || // Public messages go to everyone
+           roomId === 'support' || // Support messages go to anyone in support room
+           isInRoom || 
+           isPrivateRecipient || 
+           isPrivateSender)) {
         client.ws.send(messageStr);
       }
     });

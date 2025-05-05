@@ -102,11 +102,7 @@ export function Navbar() {
                       <User className="mr-2 h-4 w-4" /> Profile
                     </DropdownMenuItem>
                   </Link>
-                  <Link href="/chat">
-                    <DropdownMenuItem className="cursor-pointer">
-                      <MessageSquare className="mr-2 h-4 w-4" /> Chat
-                    </DropdownMenuItem>
-                  </Link>
+                  {/* Chat is now available via floating widget */}
                   <Link href="/referrals">
                     <DropdownMenuItem className="cursor-pointer">
                       <Gift className="mr-2 h-4 w-4" /> Referrals
@@ -164,14 +160,7 @@ export function Navbar() {
                     Profile
                   </a>
                 </Link>
-                <Link href="/chat">
-                  <a 
-                    className={`block px-4 py-2.5 rounded-md font-orbitron text-base font-medium ${location === '/chat' ? 'text-[hsl(var(--cwg-orange))] bg-[hsl(var(--cwg-dark))/50]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Chat
-                  </a>
-                </Link>
+                {/* Chat is now available via floating widget */}
                 <Link href="/referrals">
                   <a 
                     className={`block px-4 py-2.5 rounded-md font-orbitron text-base font-medium ${location === '/referrals' ? 'text-[hsl(var(--cwg-orange))] bg-[hsl(var(--cwg-dark))/50]' : 'text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))]'}`}

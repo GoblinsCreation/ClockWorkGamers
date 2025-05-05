@@ -49,7 +49,8 @@ function Router() {
       <Route path="/token-dashboard" component={TokenDashboardPage} />
       <Route path="/calculators" component={CalculatorsPage} />
       <Route path="/contact" component={ContactPage} />
-      <Route path="/chat" component={() => ChatPage() as React.ReactElement} />
+      {/* We're using the floating chat, so no need for these separate pages */}
+      {/* <Route path="/chat" component={() => ChatPage() as React.ReactElement} /> */}
       <Route path="/referrals" component={() => ReferralPage() as React.ReactElement} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/admin" component={AdminPage} />
