@@ -294,7 +294,7 @@ export default function ProfilePage() {
                       {initialData.twitterUsername && (
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-[hsl(var(--cwg-muted))]">Twitter</span>
-                          <span className="text-sm">@{initialData.twitterUsername}</span>
+                          <span className="text-sm">{initialData.twitterUsername}</span>
                         </div>
                       )}
                       
@@ -755,16 +755,7 @@ export default function ProfilePage() {
                                 <p className="font-medium">{initialData.displayName || '-'}</p>
                               </div>
                               
-                                <div>
-                                <Label className="text-[hsl(var(--cwg-muted))]">Avatar</Label>
-                                {initialData.avatar ? (
-                                  <div className="mt-1">
-                                    <img src={initialData.avatar} alt="Avatar" className="w-16 h-16 rounded-md object-cover" />
-                                  </div>
-                                ) : (
-                                  <p className="font-medium">-</p>
-                                )}
-                              </div>
+
                             </div>
                           </div>
                           
@@ -817,7 +808,7 @@ export default function ProfilePage() {
                                     <div>
                                       <h4 className="font-medium">Twitter</h4>
                                       <p className="text-sm text-[hsl(var(--cwg-orange))]">
-                                        @{initialData.twitterUsername}
+                                        {initialData.twitterUsername}
                                       </p>
                                     </div>
                                   </div>

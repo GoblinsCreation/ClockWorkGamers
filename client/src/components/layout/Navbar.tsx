@@ -43,20 +43,21 @@ export function Navbar() {
             <div className="flex-shrink-0 flex items-center">
               <Link href="/">
                 <a className="flex items-center">
-                  {/* Using the animated logo cwg.gif which should be at public/assets/cwg.gif */}
-                  <img src="/assets/cwg.gif" alt="CWG Logo" className="h-10 w-10 rounded-full mr-2" 
-                    onError={(e) => {
-                      // Fallback if image fails to load
-                      e.currentTarget.style.display = 'none';
-                      const fallback = document.createElement('div');
-                      fallback.className = 'h-10 w-10 bg-[hsl(var(--cwg-orange))] rounded-full flex items-center justify-center';
-                      fallback.innerHTML = '<span class="text-white font-orbitron font-bold text-xs">CWG</span>';
-                      e.currentTarget.parentNode?.appendChild(fallback);
-                    }}
-                  />
-                  <span className="text-[hsl(var(--cwg-orange))] font-orbitron font-bold text-lg hidden md:block">
-                    ClockWork Gamers
-                  </span>
+                  <div className="flex items-center">
+                    <img src="/assets/cwg.gif" alt="CWG Logo" className="h-10 w-10 rounded-full mr-2" 
+                      onError={(e) => {
+                        // Fallback if image fails to load
+                        e.currentTarget.style.display = 'none';
+                        const fallback = document.createElement('div');
+                        fallback.className = 'h-10 w-10 bg-[hsl(var(--cwg-orange))] rounded-full flex items-center justify-center';
+                        fallback.innerHTML = '<span class="text-white font-orbitron font-bold text-xs">CWG</span>';
+                        e.currentTarget.parentNode?.appendChild(fallback);
+                      }}
+                    />
+                    <span className="text-[hsl(var(--cwg-orange))] font-orbitron font-bold text-lg hidden md:block">
+                      ClockWork Gamers
+                    </span>
+                  </div>
                 </a>
               </Link>
             </div>
