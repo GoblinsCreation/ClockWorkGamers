@@ -43,7 +43,7 @@ export function Navbar() {
             <div className="flex-shrink-0 flex items-center">
               <Link href="/">
                 <div className="flex items-center cursor-pointer">
-                  <img src="/assets/cwg.gif" alt="CWG Logo" className="h-10 mr-2" 
+                  <img src="/attached_assets/cwg.gif" alt="CWG Logo" className="h-10 mr-2" 
                     onError={(e) => {
                       // Fallback if image fails to load
                       e.currentTarget.style.display = 'none';
