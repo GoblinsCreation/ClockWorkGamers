@@ -463,13 +463,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Chat API routes
   app.get("/api/chat/:roomId", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Authentication required" });
-    }
-    
+    // No authentication required for viewing public chat messages
     try {
       const roomId = req.params.roomId;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      
+      // Only allow non-authenticated users to access public and support rooms
+      if (!req.isAuthenticated() && !['public', 'support'].includes(roomId)) {
+        return res.status(401).json({ message: "Authentication required for private rooms" });
+      }
+      
       const messages = await storage.getChatMessages(roomId, limit);
       res.json(messages);
     } catch (error) {
