@@ -6,6 +6,8 @@ import { z } from "zod";
 import { createPaymentIntent, createSubscription, handleWebhook } from "./stripe";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 
+import { WebSocketServer, WebSocket } from 'ws';
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
@@ -459,8 +461,326 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chat API routes
+  app.get("/api/chat/:roomId", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const roomId = req.params.roomId;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      const messages = await storage.getChatMessages(roomId, limit);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching chat messages:", error);
+      res.status(500).json({ message: "Failed to fetch chat messages" });
+    }
+  });
+  
+  app.post("/api/chat/:roomId", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const roomId = req.params.roomId;
+      const { message } = req.body;
+      
+      if (!message || typeof message !== 'string' || message.trim() === '') {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      
+      const chatMessage = await storage.createChatMessage({
+        userId,
+        roomId,
+        message: message.trim()
+      });
+      
+      res.status(201).json(chatMessage);
+    } catch (error) {
+      console.error("Error creating chat message:", error);
+      res.status(500).json({ message: "Failed to create chat message" });
+    }
+  });
+  
+  // Referral API routes
+  app.post("/api/referrals/generate-code", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      
+      // Generate referral code based on username and random string
+      const username = req.user!.username;
+      const baseCode = username.replace(/[^a-zA-Z0-9]/g, '').substring(0, 5).toUpperCase();
+      const randomPart = Math.random().toString(36).substring(2, 5).toUpperCase();
+      const referralCode = `${baseCode}-${randomPart}`;
+      
+      // Update user with the new referral code
+      const user = await storage.updateUserReferralCode(userId, referralCode);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ referralCode });
+    } catch (error) {
+      console.error("Error generating referral code:", error);
+      res.status(500).json({ message: "Failed to generate referral code" });
+    }
+  });
+  
+  app.post("/api/referrals/use-code", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const { referralCode } = req.body;
+      
+      if (!referralCode) {
+        return res.status(400).json({ message: "Referral code is required" });
+      }
+      
+      // Find the user who owns this referral code
+      const referrer = await storage.getUserByReferralCode(referralCode);
+      
+      if (!referrer) {
+        return res.status(404).json({ message: "Invalid referral code" });
+      }
+      
+      // Check if user is trying to use their own code
+      if (referrer.id === userId) {
+        return res.status(400).json({ message: "You cannot use your own referral code" });
+      }
+      
+      // Create the referral relationship
+      const referral = await storage.createReferral({
+        referrerId: referrer.id,
+        referredId: userId,
+        status: "active",
+        rewardClaimed: false
+      });
+      
+      res.status(201).json(referral);
+    } catch (error) {
+      console.error("Error using referral code:", error);
+      res.status(500).json({ message: "Failed to use referral code" });
+    }
+  });
+  
+  app.get("/api/referrals", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const referrals = await storage.getUserReferrals(userId);
+      res.json(referrals);
+    } catch (error) {
+      console.error("Error fetching referrals:", error);
+      res.status(500).json({ message: "Failed to fetch referrals" });
+    }
+  });
+  
+  app.get("/api/referrals/users", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const referredUsers = await storage.getUserReferredUsers(userId);
+      res.json(referredUsers);
+    } catch (error) {
+      console.error("Error fetching referred users:", error);
+      res.status(500).json({ message: "Failed to fetch referred users" });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
+  
+  // Set up WebSocket server for real-time chat
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws'
+  });
+  
+  // Store connected clients with their user info
+  const clients = new Map();
+  
+  wss.on('connection', (ws, req) => {
+    console.log('Client connected to chat WebSocket');
+    
+    // Generate a unique client ID
+    const clientId = Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
+    clients.set(clientId, { ws, user: null });
+    
+    // Send welcome message
+    ws.send(JSON.stringify({
+      type: 'system',
+      message: 'Welcome to ClockWork Gamers Chat',
+      timestamp: new Date().toISOString()
+    }));
+    
+    // Handle messages from clients
+    ws.on('message', async (messageBuffer) => {
+      try {
+        const messageData = messageBuffer.toString();
+        const data = JSON.parse(messageData);
+        
+        // Authentication message - client sends token/session ID
+        if (data.type === 'auth') {
+          if (data.userId && data.username) {
+            // Set user info for this connection
+            clients.set(clientId, { 
+              ws, 
+              user: { 
+                id: data.userId, 
+                username: data.username 
+              } 
+            });
+            
+            // Send confirmation
+            ws.send(JSON.stringify({
+              type: 'auth_success',
+              userId: data.userId,
+              timestamp: new Date().toISOString()
+            }));
+            
+            // Broadcast user joined message
+            broadcastMessage({
+              type: 'user_joined',
+              username: data.username,
+              timestamp: new Date().toISOString()
+            });
+          }
+        }
+        
+        // Chat message
+        else if (data.type === 'chat') {
+          const client = clients.get(clientId);
+          
+          // Must be authenticated to send messages
+          if (!client.user) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'You must be authenticated to send messages',
+              timestamp: new Date().toISOString()
+            }));
+            return;
+          }
+          
+          // Validate message
+          if (!data.message || typeof data.message !== 'string' || data.message.trim() === '') {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Message cannot be empty',
+              timestamp: new Date().toISOString()
+            }));
+            return;
+          }
+          
+          // Get room ID or default to "public"
+          const roomId = data.roomId || 'public';
+          
+          // Store message in database
+          try {
+            const storedMessage = await storage.createChatMessage({
+              userId: client.user.id,
+              roomId,
+              message: data.message
+            });
+            
+            // Broadcast the message to all clients in the same room
+            broadcastMessage({
+              id: storedMessage.id,
+              type: 'chat',
+              roomId,
+              message: data.message,
+              userId: client.user.id,
+              username: client.user.username,
+              timestamp: storedMessage.sentAt
+            });
+          } catch (error) {
+            console.error('Error storing chat message:', error);
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Failed to send message',
+              timestamp: new Date().toISOString()
+            }));
+          }
+        }
+        
+        // Translate message request
+        else if (data.type === 'translate') {
+          // In a real implementation, we would call a translation API here
+          // For now, we'll simulate a translation with a simple prefix
+          
+          if (!data.messageId || !data.targetLanguage) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Missing message ID or target language',
+              timestamp: new Date().toISOString()
+            }));
+            return;
+          }
+          
+          // Simulate translation
+          const translatedText = `[Translated to ${data.targetLanguage}] ${data.originalText}`;
+          
+          ws.send(JSON.stringify({
+            type: 'translation',
+            messageId: data.messageId,
+            originalText: data.originalText,
+            translatedText,
+            targetLanguage: data.targetLanguage,
+            timestamp: new Date().toISOString()
+          }));
+        }
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Invalid message format',
+          timestamp: new Date().toISOString()
+        }));
+      }
+    });
+    
+    // Handle client disconnect
+    ws.on('close', () => {
+      const client = clients.get(clientId);
+      if (client && client.user) {
+        // Broadcast user left message
+        broadcastMessage({
+          type: 'user_left',
+          username: client.user.username,
+          timestamp: new Date().toISOString()
+        });
+      }
+      clients.delete(clientId);
+      console.log('Client disconnected from chat WebSocket');
+    });
+  });
+  
+  // Helper function to broadcast message to all connected clients
+  function broadcastMessage(message) {
+    const messageStr = JSON.stringify(message);
+    clients.forEach((client) => {
+      // Only send if the connection is open
+      if (client.ws.readyState === WebSocket.OPEN) {
+        client.ws.send(messageStr);
+      }
+    });
+  }
 
   return httpServer;
 }
