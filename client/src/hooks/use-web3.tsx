@@ -107,9 +107,18 @@ export function Web3Provider({ children }: { children: ReactNode }) {
       window.ethereum.on('chainChanged', handleChainChanged);
 
       return () => {
-        if (window.ethereum.removeListener) {
-          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-          window.ethereum.removeListener('chainChanged', handleChainChanged);
+        // Different wallet providers use different methods to remove listeners
+        // Try both removeListener and off methods for better compatibility
+        try {
+          if (window.ethereum.removeListener) {
+            window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+            window.ethereum.removeListener('chainChanged', handleChainChanged);
+          } else if (window.ethereum.off) {
+            window.ethereum.off('accountsChanged', handleAccountsChanged);
+            window.ethereum.off('chainChanged', handleChainChanged);
+          }
+        } catch (error) {
+          console.error('Error removing wallet event listeners:', error);
         }
       };
     }

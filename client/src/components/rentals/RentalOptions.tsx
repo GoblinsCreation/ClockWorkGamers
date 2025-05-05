@@ -110,7 +110,13 @@ export default function RentalOptions({ rentals, selectedGame }: { rentals: Rent
         </p>
         <Button 
           className="bg-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-dark))] hover:bg-[hsl(var(--cwg-orange))]/90"
-          onClick={() => document.querySelector('[value="custom"]')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))}
+          onClick={() => {
+            // Use the parent component's tabs state manager instead of direct DOM manipulation
+            const tabTrigger = document.querySelector('[value="custom"]') as HTMLElement;
+            if (tabTrigger) {
+              tabTrigger.click();
+            }
+          }}
         >
           Try Custom Rental Request
         </Button>
