@@ -592,6 +592,343 @@ export default function AdminPage() {
                 </TabsTrigger>
               </TabsList>
               
+              {/* Analytics Dashboard */}
+              <TabsContent value="analytics">
+                <div className="card-gradient rounded-xl p-6 border border-[hsl(var(--cwg-dark-blue))]">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-orbitron font-semibold text-[hsl(var(--cwg-blue))]">Analytics Dashboard</h2>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[hsl(var(--cwg-muted))]">Timeframe:</p>
+                      <Select 
+                        value={analyticsTimeframe}
+                        onValueChange={setAnalyticsTimeframe}
+                      >
+                        <SelectTrigger className="w-36 bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))]">
+                          <SelectValue placeholder="Select timeframe" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]">
+                          <SelectItem value="day">Last 24 Hours</SelectItem>
+                          <SelectItem value="week">Last Week</SelectItem>
+                          <SelectItem value="month">Last Month</SelectItem>
+                          <SelectItem value="quarter">Last Quarter</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  {/* Stats Overview Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+                    <div className="p-5 card-gradient rounded-xl border border-[hsl(var(--cwg-dark-blue))]">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-[hsl(var(--cwg-blue))]/20 p-3 rounded-full">
+                          <Users className="h-6 w-6 text-[hsl(var(--cwg-blue))]" />
+                        </div>
+                        <div>
+                          <p className="text-[hsl(var(--cwg-muted))] text-sm">Total Users</p>
+                          <h3 className="text-2xl font-semibold text-[hsl(var(--cwg-text))]">{users.length}</h3>
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="flex items-center gap-1">
+                          <TrendingUp className="h-4 w-4 text-green-500" />
+                          <span className="text-green-500 text-sm">+12%</span>
+                          <span className="text-[hsl(var(--cwg-muted))] text-xs ml-1">from last {analyticsTimeframe}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-5 card-gradient rounded-xl border border-[hsl(var(--cwg-dark-blue))]">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-[hsl(var(--cwg-orange))]/20 p-3 rounded-full">
+                          <Activity className="h-6 w-6 text-[hsl(var(--cwg-orange))]" />
+                        </div>
+                        <div>
+                          <p className="text-[hsl(var(--cwg-muted))] text-sm">Active Streamers</p>
+                          <h3 className="text-2xl font-semibold text-[hsl(var(--cwg-text))]">{streamers.filter(s => s.isLive).length}/{streamers.length}</h3>
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="flex items-center gap-1">
+                          <TrendingUp className="h-4 w-4 text-green-500" />
+                          <span className="text-green-500 text-sm">+8%</span>
+                          <span className="text-[hsl(var(--cwg-muted))] text-xs ml-1">from last {analyticsTimeframe}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-5 card-gradient rounded-xl border border-[hsl(var(--cwg-dark-blue))]">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-[hsl(var(--cwg-green))]/20 p-3 rounded-full">
+                          <DollarSign className="h-6 w-6 text-[hsl(var(--cwg-green))]" />
+                        </div>
+                        <div>
+                          <p className="text-[hsl(var(--cwg-muted))] text-sm">Revenue (USD)</p>
+                          <h3 className="text-2xl font-semibold text-[hsl(var(--cwg-text))]">$9,845.00</h3>
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="flex items-center gap-1">
+                          <TrendingUp className="h-4 w-4 text-green-500" />
+                          <span className="text-green-500 text-sm">+21%</span>
+                          <span className="text-[hsl(var(--cwg-muted))] text-xs ml-1">from last {analyticsTimeframe}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-5 card-gradient rounded-xl border border-[hsl(var(--cwg-dark-blue))]">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-purple-500/20 p-3 rounded-full">
+                          <Calendar className="h-6 w-6 text-purple-500" />
+                        </div>
+                        <div>
+                          <p className="text-[hsl(var(--cwg-muted))] text-sm">Active Rentals</p>
+                          <h3 className="text-2xl font-semibold text-[hsl(var(--cwg-text))]">{rentalRequests.filter(r => r.status === 'approved').length}</h3>
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="flex items-center gap-1">
+                          <TrendingUp className="h-4 w-4 text-green-500" />
+                          <span className="text-green-500 text-sm">+15%</span>
+                          <span className="text-[hsl(var(--cwg-muted))] text-xs ml-1">from last {analyticsTimeframe}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Charts Row 1 */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div className="card-gradient rounded-xl p-6 border border-[hsl(var(--cwg-dark-blue))]">
+                      <h3 className="text-xl font-orbitron font-semibold text-[hsl(var(--cwg-orange))] mb-6">User Growth</h3>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart
+                            data={analyticsData.userGrowth}
+                            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                          >
+                            <defs>
+                              <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0} />
+                              </linearGradient>
+                              <linearGradient id="colorSignups" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#F97316" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="#F97316" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                            <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" />
+                            <YAxis stroke="rgba(255,255,255,0.5)" />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'rgba(17, 24, 39, 0.9)', 
+                                borderColor: 'rgba(59, 130, 246, 0.5)',
+                                color: '#fff'
+                              }} 
+                            />
+                            <Area 
+                              type="monotone" 
+                              dataKey="Unique Visitors" 
+                              stroke="#0EA5E9" 
+                              fillOpacity={1} 
+                              fill="url(#colorVisitors)" 
+                            />
+                            <Area 
+                              type="monotone" 
+                              dataKey="New Signups" 
+                              stroke="#F97316" 
+                              fillOpacity={1} 
+                              fill="url(#colorSignups)" 
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                    
+                    <div className="card-gradient rounded-xl p-6 border border-[hsl(var(--cwg-dark-blue))]">
+                      <h3 className="text-xl font-orbitron font-semibold text-[hsl(var(--cwg-orange))] mb-6">Stream Viewership</h3>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart
+                            data={analyticsData.streamViewership}
+                            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                          >
+                            <defs>
+                              <linearGradient id="colorViewers" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                            <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" />
+                            <YAxis stroke="rgba(255,255,255,0.5)" />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'rgba(17, 24, 39, 0.9)', 
+                                borderColor: 'rgba(139, 92, 246, 0.5)',
+                                color: '#fff'
+                              }} 
+                            />
+                            <Area 
+                              type="monotone" 
+                              dataKey="Viewers" 
+                              stroke="#8B5CF6" 
+                              fillOpacity={1} 
+                              fill="url(#colorViewers)" 
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Charts Row 2 */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div className="card-gradient rounded-xl p-6 border border-[hsl(var(--cwg-dark-blue))]">
+                      <h3 className="text-xl font-orbitron font-semibold text-[hsl(var(--cwg-orange))] mb-6">Token Distribution</h3>
+                      <div className="h-72">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={analyticsData.tokenDistribution}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={80}
+                              paddingAngle={5}
+                              dataKey="value"
+                              label={(entry) => entry.name}
+                              labelLine={false}
+                            >
+                              {analyticsData.tokenDistribution.map((entry, index) => (
+                                <Cell 
+                                  key={`cell-${index}`} 
+                                  fill={[
+                                    'rgba(14, 165, 233, 0.8)', // blue
+                                    'rgba(249, 115, 22, 0.8)', // orange
+                                    'rgba(139, 92, 246, 0.8)', // purple
+                                    'rgba(34, 197, 94, 0.8)' // green
+                                  ][index % 4]} 
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip 
+                              formatter={(value) => [`${value} CWG Tokens`, 'Amount']}
+                              contentStyle={{ 
+                                backgroundColor: 'rgba(17, 24, 39, 0.9)', 
+                                borderColor: 'rgba(59, 130, 246, 0.5)',
+                                color: '#fff'
+                              }} 
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                    
+                    <div className="card-gradient rounded-xl p-6 border border-[hsl(var(--cwg-dark-blue))]">
+                      <h3 className="text-xl font-orbitron font-semibold text-[hsl(var(--cwg-orange))] mb-6">Game Distribution</h3>
+                      <div className="h-72">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={analyticsData.gameDistribution}
+                              cx="50%"
+                              cy="50%"
+                              outerRadius={80}
+                              dataKey="value"
+                              label={(entry) => `${entry.name}: ${entry.value}%`}
+                            >
+                              {analyticsData.gameDistribution.map((entry, index) => (
+                                <Cell 
+                                  key={`cell-${index}`} 
+                                  fill={[
+                                    'rgba(14, 165, 233, 0.8)', // blue
+                                    'rgba(249, 115, 22, 0.8)', // orange
+                                    'rgba(139, 92, 246, 0.8)', // purple
+                                    'rgba(34, 197, 94, 0.8)', // green
+                                    'rgba(239, 68, 68, 0.8)', // red
+                                    'rgba(234, 179, 8, 0.8)', // yellow
+                                    'rgba(20, 184, 166, 0.8)', // teal
+                                  ][index % 7]} 
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip 
+                              formatter={(value) => [`${value}%`, 'Percentage']}
+                              contentStyle={{ 
+                                backgroundColor: 'rgba(17, 24, 39, 0.9)', 
+                                borderColor: 'rgba(59, 130, 246, 0.5)',
+                                color: '#fff'
+                              }} 
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                    
+                    <div className="card-gradient rounded-xl p-6 border border-[hsl(var(--cwg-dark-blue))]">
+                      <h3 className="text-xl font-orbitron font-semibold text-[hsl(var(--cwg-orange))] mb-6">Rental Revenue</h3>
+                      <div className="h-72">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={analyticsData.rentalRevenue}
+                            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                            <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" />
+                            <YAxis stroke="rgba(255,255,255,0.5)" />
+                            <Tooltip 
+                              formatter={(value) => [`$${value}`, 'Revenue']}
+                              contentStyle={{ 
+                                backgroundColor: 'rgba(17, 24, 39, 0.9)', 
+                                borderColor: 'rgba(59, 130, 246, 0.5)',
+                                color: '#fff'
+                              }} 
+                            />
+                            <Bar dataKey="Revenue" fill="rgba(34, 197, 94, 0.8)" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Top Streamers Table */}
+                  <div className="card-gradient rounded-xl p-6 border border-[hsl(var(--cwg-dark-blue))]">
+                    <h3 className="text-xl font-orbitron font-semibold text-[hsl(var(--cwg-orange))] mb-6">Top Performers</h3>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="hover:bg-[hsl(var(--cwg-dark-blue))]/50">
+                            <TableHead>Streamer</TableHead>
+                            <TableHead>Avg. Viewers</TableHead>
+                            <TableHead>Hours Streamed</TableHead>
+                            <TableHead>Followers</TableHead>
+                            <TableHead>Performance</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {analyticsData.streamersPerformance.map((streamer, index) => (
+                            <TableRow key={index} className="hover:bg-[hsl(var(--cwg-dark-blue))]/50">
+                              <TableCell className="font-medium">{streamer.name}</TableCell>
+                              <TableCell>{streamer.viewers}</TableCell>
+                              <TableCell>{streamer.hours}</TableCell>
+                              <TableCell>{streamer.followers}</TableCell>
+                              <TableCell>
+                                <div className="w-full bg-[hsl(var(--cwg-dark-blue))] rounded-full h-2.5">
+                                  <div 
+                                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-2.5 rounded-full" 
+                                    style={{ width: `${Math.min(100, (streamer.viewers / 250) * 100)}%` }}
+                                  ></div>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+              
               {/* Users Tab */}
               <TabsContent value="users">
                 <div className="card-gradient rounded-xl p-6 border border-[hsl(var(--cwg-dark-blue))]">
