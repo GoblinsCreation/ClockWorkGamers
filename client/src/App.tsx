@@ -39,30 +39,32 @@ import AchievementUnlockNotification from "@/components/achievements/Achievement
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={HomePage} />
+      {/* Public Routes */}
       <Route path="/auth" component={AuthPage} />
-      <Route path="/streamers" component={StreamersPage} />
-      <Route path="/streamers/:id" component={StreamerProfilePage} />
-      <Route path="/rentals" component={RentalsPage} />
-      <Route path="/courses" component={CoursesPage} />
-      <Route path="/games" component={GamesPage} />
-      <Route path="/investments" component={InvestmentsPage} />
-      <Route path="/play-to-earn" component={PlayToEarnPage} />
-      <Route path="/pay-to-earn" component={PayToEarnPage} />
-      <Route path="/payment" component={PaymentPage} />
-      <Route path="/payment-options" component={PaymentOptionsPage} />
-      <Route path="/nft-marketplace" component={NFTMarketplacePage} />
-      <Route path="/token-dashboard" component={TokenDashboardPage} />
-      <Route path="/calculators" component={CalculatorsPage} />
-      <Route path="/contact" component={ContactPage} />
-      <Route path="/news" component={NewsPage} />
-      {/* We're using the floating chat, but keep route for direct access */}
-      <Route path="/chat" component={ChatPage} />
-      <Route path="/referrals" component={ReferralPage} />
-      <Route path="/achievements" component={AchievementsPage} />
       <Route path="/privacy-policy" component={PrivacyPolicyPage} />
       <Route path="/terms-of-service" component={TermsOfServicePage} />
       <Route path="/cookie-policy" component={CookiePolicyPage} />
+      
+      {/* Protected Routes - Require Authentication */}
+      <ProtectedRoute path="/" component={HomePage} />
+      <ProtectedRoute path="/streamers" component={StreamersPage} />
+      <ProtectedRoute path="/streamers/:id" component={StreamerProfilePage} />
+      <ProtectedRoute path="/rentals" component={RentalsPage} />
+      <ProtectedRoute path="/courses" component={CoursesPage} />
+      <ProtectedRoute path="/games" component={GamesPage} />
+      <ProtectedRoute path="/investments" component={InvestmentsPage} />
+      <ProtectedRoute path="/play-to-earn" component={PlayToEarnPage} />
+      <ProtectedRoute path="/pay-to-earn" component={PayToEarnPage} />
+      <ProtectedRoute path="/payment" component={PaymentPage} />
+      <ProtectedRoute path="/payment-options" component={PaymentOptionsPage} />
+      <ProtectedRoute path="/nft-marketplace" component={NFTMarketplacePage} />
+      <ProtectedRoute path="/token-dashboard" component={TokenDashboardPage} />
+      <ProtectedRoute path="/calculators" component={CalculatorsPage} />
+      <ProtectedRoute path="/contact" component={ContactPage} />
+      <ProtectedRoute path="/news" component={NewsPage} />
+      <ProtectedRoute path="/chat" component={ChatPage} />
+      <ProtectedRoute path="/referrals" component={ReferralPage} />
+      <ProtectedRoute path="/achievements" component={AchievementsPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/admin" component={AdminPage} />
       <Route component={NotFound} />

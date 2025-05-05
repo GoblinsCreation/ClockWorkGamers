@@ -29,6 +29,7 @@ const registerSchema = z.object({
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   guild: z.string().min(1, "Please select a guild"),
+  referralCode: z.string().optional(),
   discordUsername: z.string().optional(),
   twitchHandle: z.string().optional(),
 });
@@ -47,6 +48,7 @@ export function RegisterForm({ onSuccess, selectedGuild = "" }: { onSuccess: () 
       dateOfBirth: "",
       password: "",
       guild: selectedGuild,
+      referralCode: "",
       discordUsername: "",
       twitchHandle: "",
     },
@@ -197,6 +199,24 @@ export function RegisterForm({ onSuccess, selectedGuild = "" }: { onSuccess: () 
                   ))}
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="referralCode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-[hsl(var(--cwg-muted))]">Referral Code (Optional)</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-text))] focus:border-[hsl(var(--cwg-orange))]" 
+                  placeholder="Enter referral code if you have one"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
