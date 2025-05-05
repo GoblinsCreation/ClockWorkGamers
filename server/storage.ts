@@ -5,7 +5,8 @@ import {
   rentals, type Rental, type InsertRental,
   rentalRequests, type RentalRequest, type InsertRentalRequest,
   news as newsTable, type News, type InsertNews,
-  streamerSchedules, type StreamerSchedule, type InsertStreamerSchedule
+  streamerSchedules, type StreamerSchedule, type InsertStreamerSchedule,
+  userProfiles, type UserProfile, type InsertUserProfile
 } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";

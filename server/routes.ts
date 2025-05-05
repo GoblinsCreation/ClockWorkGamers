@@ -281,6 +281,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // User Profile routes
+  app.get("/api/profile", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const profile = await storage.getUserProfile(userId);
+      
+      if (!profile) {
+        // If profile doesn't exist yet, return default values
+        return res.json({
+          userId,
+          username: req.user!.username,
+          email: req.user!.email || "",
+          displayName: "",
+          bio: "",
+          avatar: "",
+          discordUsername: "",
+          twitterUsername: "",
+          gameIds: [],
+          preferences: {
+            emailNotifications: true,
+            showWalletAddress: false,
+            darkMode: true
+          }
+        });
+      }
+      
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ message: "Failed to fetch user profile" });
+    }
+  });
+  
+  app.put("/api/profile", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const profileData = {
+        ...req.body,
+        userId
+      };
+      
+      const existingProfile = await storage.getUserProfile(userId);
+      let updatedProfile;
+      
+      if (existingProfile) {
+        // Update existing profile
+        updatedProfile = await storage.updateUserProfile(userId, profileData);
+      } else {
+        // Create new profile
+        updatedProfile = await storage.createUserProfile(profileData);
+      }
+      
+      res.json(updatedProfile);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Failed to update user profile" });
+    }
+  });
+  
   // Payment routes
   
   // Stripe payment routes

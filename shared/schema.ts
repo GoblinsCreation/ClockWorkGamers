@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, primaryKey, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -114,12 +114,41 @@ export const streamerSchedules = pgTable("streamer_schedules", {
 export const insertStreamerScheduleSchema = createInsertSchema(streamerSchedules)
   .omit({ id: true });
 
+// User Profiles model
+export const userProfiles = pgTable("user_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  displayName: text("display_name"),
+  bio: text("bio"),
+  avatar: text("avatar"),
+  discordUsername: text("discord_username"),
+  twitterUsername: text("twitter_username"),
+  gameIds: text("game_ids").array(),
+  preferences: jsonb("preferences").notNull().default({
+    emailNotifications: true,
+    showWalletAddress: false,
+    darkMode: true
+  }),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserProfileSchema = createInsertSchema(userProfiles)
+  .omit({ id: true, updatedAt: true });
+
 // Relations definitions
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   streamers: many(streamers),
   rentalRequests: many(rentalRequests),
   newsAuthored: many(news, { relationName: "author" }),
   coursesInstructed: many(courses, { relationName: "instructor" }),
+  profile: one(userProfiles)
+}));
+
+export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
+  user: one(users, {
+    fields: [userProfiles.userId],
+    references: [users.id]
+  })
 }));
 
 export const streamersRelations = relations(streamers, ({ one, many }) => ({
@@ -185,3 +214,6 @@ export type News = typeof news.$inferSelect;
 
 export type InsertStreamerSchedule = z.infer<typeof insertStreamerScheduleSchema>;
 export type StreamerSchedule = typeof streamerSchedules.$inferSelect;
+
+export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
+export type UserProfile = typeof userProfiles.$inferSelect;
