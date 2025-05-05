@@ -24,6 +24,9 @@ import ProfilePage from "@/pages/profile-page";
 import ChatPage from "@/pages/chat-page";
 import ReferralPage from "@/pages/referral-page";
 import NewsPage from "@/pages/news-page";
+import PrivacyPolicyPage from "@/pages/privacy-policy-page";
+import TermsOfServicePage from "@/pages/terms-of-service-page";
+import CookiePolicyPage from "@/pages/cookie-policy-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from "./hooks/use-auth";
@@ -52,6 +55,9 @@ function Router() {
       {/* We're using the floating chat, but keep route for direct access */}
       <Route path="/chat" component={ChatPage} />
       <Route path="/referrals" component={ReferralPage} />
+      <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+      <Route path="/terms-of-service" component={TermsOfServicePage} />
+      <Route path="/cookie-policy" component={CookiePolicyPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/admin" component={AdminPage} />
       <Route component={NotFound} />

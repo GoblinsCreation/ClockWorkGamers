@@ -40,12 +40,12 @@
 
 .chat-window {
   width: 350px;
-  background-color: hsl(var(--background));
+  background-color: hsl(var(--cwg-dark));
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
-  border: 1px solid hsl(var(--border));
+  border: 1px solid hsl(var(--cwg-dark-blue));
 }
 
 @media (max-width: 768px) {
@@ -108,8 +108,8 @@
 
 .chat-tabs {
   display: flex;
-  border-bottom: 1px solid hsl(var(--border));
-  background-color: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--cwg-dark-blue));
+  background-color: hsl(var(--cwg-dark));
 }
 
 .chat-tab {
@@ -123,6 +123,7 @@
   justify-content: center;
   gap: 0.25rem;
   transition: all 0.2s ease;
+  color: hsl(var(--cwg-muted));
 }
 
 @media (max-width: 768px) {
@@ -135,11 +136,12 @@
 .chat-tab.active {
   border-bottom-color: hsl(var(--cwg-orange));
   color: hsl(var(--cwg-orange));
-  background-color: hsl(var(--muted)/50%);
+  background-color: hsl(var(--cwg-dark-blue))/20%;
 }
 
 .chat-tab:hover:not(.active) {
-  background-color: hsl(var(--muted)/30%);
+  background-color: hsl(var(--cwg-dark-blue))/10%;
+  color: hsl(var(--cwg-text));
 }
 
 .chat-messages {
@@ -149,6 +151,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  background-color: hsl(var(--cwg-dark));
 }
 
 .chat-message {
@@ -193,19 +196,20 @@
 }
 
 .outgoing .message-content {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
+  background-color: hsl(var(--cwg-orange));
+  color: white;
 }
 
 .incoming .message-content {
-  background-color: hsl(var(--secondary));
+  background-color: hsl(var(--cwg-dark-blue));
+  color: hsl(var(--cwg-text));
 }
 
 .system .message-content {
-  background-color: hsl(var(--muted));
+  background-color: hsl(var(--cwg-dark))/75%;
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
-  color: hsl(var(--muted-foreground));
+  color: hsl(var(--cwg-muted));
 }
 
 .translated-text {
@@ -235,7 +239,8 @@
   display: flex;
   gap: 0.5rem;
   padding: 0.75rem;
-  border-top: 1px solid hsl(var(--border));
+  border-top: 1px solid hsl(var(--cwg-dark-blue));
+  background-color: hsl(var(--cwg-dark));
 }
 
 .input-field {
@@ -244,9 +249,9 @@
   resize: none;
   font-size: 0.875rem;
   padding: 0.5rem;
-  border: 1px solid hsl(var(--input));
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--cwg-dark-blue));
+  background-color: hsl(var(--cwg-dark-blue))/50%;
+  color: hsl(var(--cwg-text));
 }
 
 .send-button {
@@ -256,8 +261,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 0.25rem;
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
+  background-color: hsl(var(--cwg-orange));
+  color: white;
   border: none;
   cursor: pointer;
 }
