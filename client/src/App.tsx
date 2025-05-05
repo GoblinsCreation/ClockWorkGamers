@@ -21,6 +21,8 @@ import PaymentPage from "@/pages/payment-page";
 import GamesPage from "@/pages/games-page";
 import InvestmentsPage from "@/pages/investments-page";
 import ProfilePage from "@/pages/profile-page";
+import ChatPage from "@/pages/chat-page";
+import ReferralPage from "@/pages/referral-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from "./hooks/use-auth";
@@ -44,6 +46,8 @@ function Router() {
       <Route path="/token-dashboard" component={TokenDashboardPage} />
       <Route path="/calculators" component={CalculatorsPage} />
       <Route path="/contact" component={ContactPage} />
+      <Route path="/chat" component={ChatPage} />
+      <Route path="/referrals" component={ReferralPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/admin" component={AdminPage} />
       <Route component={NotFound} />
