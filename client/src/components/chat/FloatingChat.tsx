@@ -349,18 +349,42 @@ const FloatingChat: React.FC = () => {
         // Update connection status
         setIsConnected(false);
         
+        // Determine the reason for disconnection
+        let disconnectReason = 'Lost connection to chat. Reconnecting...';
+        
+        // Check for common close codes
+        if (event.code === 1000) {
+          disconnectReason = 'Chat session ended normally.';
+        } else if (event.code === 1001) {
+          disconnectReason = 'Client navigated away from page.';
+        } else if (event.code === 1006) {
+          disconnectReason = 'Connection abnormally closed. Reconnecting...';
+        } else if (event.code === 1011) {
+          disconnectReason = 'Server encountered an unexpected error. Reconnecting...';
+        }
+        
         // Toast notification for disconnect if the chat is open
         if (isOpen) {
           toast({
             title: 'Chat Disconnected',
-            description: 'Lost connection to chat. Reconnecting...',
+            description: disconnectReason,
             variant: 'destructive',
           });
         }
         
+        // Don't attempt to reconnect for normal closure
+        if (event.code === 1000) {
+          setIsReconnecting(false);
+          return;
+        }
+        
         // Attempt to reconnect after a delay, with increasing backoff
-        const reconnectDelay = reconnectTimeoutRef.current ? 6000 : 3000;
-        console.log(`Attempting to reconnect in ${reconnectDelay/1000} seconds...`);
+        // Initial 3s, then 6s, then max 10s
+        const baseDelay = 3000;
+        const attemptCount = reconnectTimeoutRef.current ? 2 : 1;
+        const reconnectDelay = Math.min(baseDelay * attemptCount, 10000);
+        
+        console.log(`Attempting to reconnect in ${reconnectDelay/1000} seconds... (Attempt ${attemptCount})`);
         
         setIsReconnecting(true);
         reconnectTimeoutRef.current = setTimeout(() => {
@@ -379,6 +403,25 @@ const FloatingChat: React.FC = () => {
             variant: 'destructive',
           });
         }
+        
+        // The WebSocket is in a broken state, force a reconnection
+        if (socketRef.current) {
+          try {
+            // Close with code 3000 (custom code for manual close after error)
+            socketRef.current.close(3000, 'Closing due to error');
+          } catch (e) {
+            console.error('Error closing WebSocket after error:', e);
+          }
+        }
+        
+        // Attempt immediate reconnection
+        setIsReconnecting(true);
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+        }
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connectWebSocket();
+        }, 2000);
       };
     } catch (error) {
       console.error('Error setting up WebSocket:', error);

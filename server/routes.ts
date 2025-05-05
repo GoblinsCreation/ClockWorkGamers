@@ -732,7 +732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update the streamer record to remove Twitch ID
       await storage.updateStreamer(streamer.id, {
-        twitchId: null
+        twitchId: undefined
       });
       
       res.json({ success: true });
