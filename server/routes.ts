@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { z } from "zod";
+import * as crypto from "crypto";
 import { createPaymentIntent, createSubscription, handleWebhook } from "./stripe";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 import { 
@@ -15,8 +16,14 @@ import {
 } from "./php-integration";
 import { scheduleStreamStatusUpdates, updateStreamStatus, linkTwitchAccount } from "./twitch";
 import { handleContactForm, sendTestEmail } from "./email";
-
 import { WebSocketServer, WebSocket } from 'ws';
+
+// Extend session with our custom properties
+declare module "express-session" {
+  interface SessionData {
+    twitchState?: string;
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
@@ -440,6 +447,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to capture PayPal order" });
     }
   });
+  
+  // Twitch Integration Routes
   
   // Route to check authentication status
   app.get("/api/check-auth", (req, res) => {
