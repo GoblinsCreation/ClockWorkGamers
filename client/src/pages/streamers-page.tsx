@@ -5,7 +5,8 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import StreamerCard from "@/components/streamers/StreamerCard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Loader2, Search, Twitch, Users, Gamepad, ArrowRight, Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 

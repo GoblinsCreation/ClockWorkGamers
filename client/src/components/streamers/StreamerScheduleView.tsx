@@ -195,7 +195,7 @@ export default function StreamerScheduleView({ streamer }: StreamerScheduleViewP
   const [editingSchedule, setEditingSchedule] = useState<StreamerSchedule | null>(null);
   
   // Check if the authenticated user is the owner of this streamer profile or an admin
-  const isOwner = user && (user.id === streamer.userId || user.isAdmin);
+  const isOwner: boolean = !!(user && (user.id === streamer.userId || user.isAdmin));
   
   // Fetch schedules for this streamer
   const { 
@@ -395,6 +395,108 @@ export default function StreamerScheduleView({ streamer }: StreamerScheduleViewP
       </CardHeader>
       
       <CardContent className="space-y-6">
+        {/* Weekly schedule visualization - Web3 style */}
+        {!isAddingSchedule && schedules && schedules.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-md font-orbitron mb-4 text-[hsl(var(--cwg-blue))]">Weekly Schedule</h3>
+            <div className="relative overflow-hidden p-2 rounded-xl bg-[hsl(var(--cwg-dark))]/50 border border-[hsl(var(--cwg-blue))]/20 web3-chip">
+              <div className="absolute inset-0 bg-web3-grid opacity-10"></div>
+              <div className="grid grid-cols-7 gap-1 relative z-10">
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => {
+                  const daySchedules = schedules.filter(s => s.dayOfWeek === day);
+                  const hasStreams = daySchedules.length > 0;
+                  const isToday = new Date().toLocaleDateString('en-US', { weekday: 'long' }) === day;
+                  
+                  return (
+                    <div 
+                      key={day} 
+                      className={`flex flex-col rounded-lg p-2 ${isToday ? 'ring-2 ring-[hsl(var(--cwg-orange))]/50' : ''}`}
+                    >
+                      <div className={`text-center text-sm font-orbitron mb-2 py-1 rounded ${isToday ? 'bg-[hsl(var(--cwg-orange))]/20 text-[hsl(var(--cwg-orange))]' : 'bg-[hsl(var(--cwg-dark-blue))]/50 text-[hsl(var(--cwg-muted))]'}`}>
+                        {day.substring(0, 3)}
+                      </div>
+                      
+                      {hasStreams ? (
+                        <div className="flex-1 flex flex-col gap-1">
+                          {daySchedules.map((schedule, index) => (
+                            <div 
+                              key={schedule.id} 
+                              className={`text-xs p-2 rounded-md ${schedule.isSpecialEvent 
+                                ? 'bg-gradient-to-r from-[hsl(var(--web3-crypto-yellow))]/20 to-[hsl(var(--web3-neon-green))]/20 border border-[hsl(var(--web3-crypto-yellow))]/30' 
+                                : 'bg-[hsl(var(--cwg-dark-blue))]/40 border border-[hsl(var(--cwg-blue))]/20'}`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium">{schedule.startTime}-{schedule.endTime}</span>
+                                {schedule.isSpecialEvent && (
+                                  <Trophy className="h-3 w-3 text-yellow-500" />
+                                )}
+                              </div>
+                              <div className="mt-1 font-medium text-[hsl(var(--cwg-text))]">{schedule.game}</div>
+                              {schedule.title && (
+                                <div className="mt-1 text-[hsl(var(--cwg-muted))] truncate">{schedule.title}</div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex-1 flex items-center justify-center min-h-[80px]">
+                          <span className="text-xs text-[hsl(var(--cwg-muted))]/50 italic">No streams</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Schedule list view */}
+        {!isAddingSchedule && schedules && schedules.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-md font-orbitron mb-4 text-[hsl(var(--cwg-blue))]">Upcoming Streams</h3>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {schedules
+                .sort((a, b) => {
+                  // Sort by day of week
+                  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                  const dayComparison = days.indexOf(a.dayOfWeek) - days.indexOf(b.dayOfWeek);
+                  
+                  if (dayComparison !== 0) return dayComparison;
+                  
+                  // If same day, sort by start time
+                  return a.startTime.localeCompare(b.startTime);
+                })
+                .map((schedule) => (
+                  <ScheduleCard 
+                    key={schedule.id} 
+                    schedule={schedule} 
+                    isOwner={isOwner || false}
+                    onEdit={handleEditSchedule}
+                    onDelete={deleteMutation.mutate}
+                  />
+                ))
+              }
+            </div>
+          </div>
+        )}
+        
+        {!isAddingSchedule && (!schedules || schedules.length === 0) && (
+          <div className="text-center py-12 bg-[hsl(var(--cwg-dark-blue))]/30 rounded-lg border border-[hsl(var(--cwg-blue))]/20">
+            <CalendarIcon className="w-12 h-12 text-[hsl(var(--cwg-muted))] mx-auto mb-4" />
+            <p className="text-[hsl(var(--cwg-muted))] mb-4">No streaming schedule available yet.</p>
+            {isOwner && (
+              <Button 
+                onClick={() => setIsAddingSchedule(true)}
+                className="bg-[hsl(var(--cwg-blue))] hover:bg-[hsl(var(--cwg-blue))]/90"
+              >
+                <CalendarPlus className="mr-2 h-4 w-4" />
+                Set Your Schedule
+              </Button>
+            )}
+          </div>
+        )}
+        
         {isAddingSchedule ? (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
