@@ -73,6 +73,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onSendMessage, messages, is
   const [profileComments, setProfileComments] = useState<any[]>([]);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const { toast } = useToast();
   
   // Handle reconnect click with local animation state
   const handleReconnect = () => {
@@ -211,6 +212,123 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onSendMessage, messages, is
 
   return (
     <div className="chat-body">
+      {/* Profile Dialog */}
+      <Dialog open={viewingProfile !== null} onOpenChange={(open) => !open && setViewingProfile(null)}>
+        <DialogContent className="max-w-md">
+          {loadingProfile ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : viewingProfile && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-14 w-14 border-2 border-primary">
+                    {viewingProfile.avatar ? (
+                      <AvatarImage src={viewingProfile.avatar} alt={viewingProfile.username} />
+                    ) : (
+                      <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                        {viewingProfile.username.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div>
+                    <DialogTitle className="text-xl">{viewingProfile.displayName || viewingProfile.username}</DialogTitle>
+                    <p className="text-sm text-muted-foreground">@{viewingProfile.username}</p>
+                  </div>
+                </div>
+              </DialogHeader>
+              
+              <div className="mt-2">
+                <h4 className="text-sm font-semibold mb-1">Games</h4>
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {viewingProfile.gameIds && viewingProfile.gameIds.length > 0 ? (
+                    viewingProfile.gameIds.map((game, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs">
+                        {game}
+                      </Badge>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No games added yet</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="mt-4">
+                <h4 className="text-sm font-semibold mb-2 flex items-center justify-between">
+                  <span>Comments</span>
+                  <span className="text-xs text-muted-foreground">{profileComments.length} total</span>
+                </h4>
+                
+                <div className="border rounded-md max-h-[200px] overflow-y-auto">
+                  {profileComments.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      No comments yet
+                    </div>
+                  ) : (
+                    <div className="divide-y">
+                      {profileComments.map((comment) => (
+                        <div key={comment.id} className="p-3">
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6">
+                                <AvatarFallback className="text-xs">
+                                  {comment.username.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm font-medium">{comment.username}</span>
+                            </div>
+                            
+                            {comment.userId && viewingProfile && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-6 w-6"
+                                onClick={() => deleteComment(comment.id)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                          <p className="text-sm mt-1 pl-8">{comment.content}</p>
+                          <p className="text-xs text-muted-foreground mt-1 pl-8">
+                            {new Date(comment.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="mt-3">
+                  <form 
+                    className="flex gap-2" 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      postComment();
+                    }}
+                  >
+                    <Input 
+                      placeholder="Add a comment..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="flex-1 text-sm"
+                    />
+                    <Button 
+                      type="submit" 
+                      size="sm"
+                      disabled={!newComment.trim()}
+                    >
+                      Post
+                    </Button>
+                  </form>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <div className="chat-messages">
         {isLoading ? (
           <div className="flex justify-center items-center h-full">
@@ -313,6 +431,12 @@ const FloatingChat: React.FC = () => {
   const [activeTab, setActiveTab] = useState('public');
   const [isConnected, setIsConnected] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(false);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [showNewMessageDialog, setShowNewMessageDialog] = useState(false);
+  const [newMessageRecipient, setNewMessageRecipient] = useState('');
+  const [searchResults, setSearchResults] = useState<Contact[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [messages, setMessages] = useState<Record<string, Message[]>>({
     public: [],
     support: [],
@@ -321,7 +445,9 @@ const FloatingChat: React.FC = () => {
   const [isLoading, setIsLoading] = useState<Record<string, boolean>>({
     public: false,
     support: false,
-    private: false
+    private: false,
+    contacts: false,
+    search: false
   });
   const { user } = useAuth();
   const { toast } = useToast();
@@ -629,10 +755,89 @@ const FloatingChat: React.FC = () => {
     }
   }, [user]);
   
+  // Fetch contacts for private messaging
+  const fetchContacts = async () => {
+    if (!user) return;
+    
+    setIsLoading(prev => ({ ...prev, contacts: true }));
+    
+    try {
+      const response = await apiRequest("GET", "/api/user/contacts");
+      const data = await response.json();
+      
+      setContacts(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching contacts:", error);
+      toast({
+        title: 'Error',
+        description: 'Could not load your contacts.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(prev => ({ ...prev, contacts: false }));
+    }
+  };
+  
+  // Search for users to start a new conversation
+  const searchUsers = async (query: string) => {
+    if (!query.trim() || query.length < 3) {
+      setSearchResults([]);
+      return;
+    }
+    
+    setIsLoading(prev => ({ ...prev, search: true }));
+    
+    try {
+      const response = await apiRequest("GET", `/api/user/search?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+      
+      setSearchResults(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      toast({
+        title: 'Error',
+        description: 'Could not search for users.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(prev => ({ ...prev, search: false }));
+    }
+  };
+  
+  // Start a new conversation with a user
+  const startConversation = async (contact: Contact) => {
+    // Close the dialog and update selected contact
+    setShowNewMessageDialog(false);
+    setSelectedContact(contact);
+    setActiveTab('private');
+    
+    // Create a direct message room ID
+    const dmRoomId = `dm-${contact.id}`;
+    
+    // Fetch messages for this contact if they don't exist yet
+    if (!messages[dmRoomId]) {
+      fetchMessages(dmRoomId);
+    }
+  };
+  
+  // Handle sending a private message
+  const handleSendPrivateMessage = (message: string) => {
+    if (!selectedContact) return;
+    
+    const dmRoomId = `dm-${selectedContact.id}`;
+    
+    // Send message using the global handler but with the DM room ID
+    handleSendMessage(message, dmRoomId);
+  };
+  
   // Load messages when active tab changes
   useEffect(() => {
-    if (isOpen && !messages[activeTab]?.length) {
-      fetchMessages(activeTab);
+    if (isOpen) {
+      if (activeTab === 'private') {
+        fetchContacts();
+      } else if (!messages[activeTab]?.length) {
+        fetchMessages(activeTab);
+      }
     }
   }, [activeTab, isOpen]);
 
@@ -709,20 +914,188 @@ const FloatingChat: React.FC = () => {
               
               <TabsContent value="private" className="flex-1 p-0 m-0 h-full">
                 {user ? (
-                  <ChatRoom 
-                    roomId="private"
-                    messages={messages.private || []}
-                    onSendMessage={handleSendMessage}
-                    isLoading={isLoading.private}
-                    isConnected={isConnected}
-                    onReconnect={() => {
-                      setIsReconnecting(true);
-                      if (reconnectTimeoutRef.current) {
-                        clearTimeout(reconnectTimeoutRef.current);
-                      }
-                      connectWebSocket();
-                    }}
-                  />
+                  <>
+                    {/* New Message Dialog */}
+                    <Dialog open={showNewMessageDialog} onOpenChange={setShowNewMessageDialog}>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>New Message</DialogTitle>
+                          <DialogDescription>
+                            Search for a user to start a conversation
+                          </DialogDescription>
+                        </DialogHeader>
+                        
+                        <div className="flex items-center space-x-2 mt-2">
+                          <div className="grid flex-1 gap-2">
+                            <Input
+                              placeholder="Search by username..."
+                              value={newMessageRecipient}
+                              onChange={(e) => {
+                                setNewMessageRecipient(e.target.value);
+                                searchUsers(e.target.value);
+                              }}
+                              className="col-span-3"
+                            />
+                            
+                            {isLoading.search ? (
+                              <div className="flex justify-center p-4">
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                              </div>
+                            ) : searchResults.length > 0 ? (
+                              <div className="max-h-[200px] overflow-y-auto border rounded-md">
+                                {searchResults.map((user) => (
+                                  <div 
+                                    key={user.id}
+                                    className="flex items-center gap-2 p-2 hover:bg-muted cursor-pointer"
+                                    onClick={() => startConversation(user)}
+                                  >
+                                    <Avatar className="h-8 w-8">
+                                      {user.avatar ? (
+                                        <AvatarImage src={user.avatar} alt={user.username} />
+                                      ) : (
+                                        <AvatarFallback>
+                                          {user.username.charAt(0).toUpperCase()}
+                                        </AvatarFallback>
+                                      )}
+                                    </Avatar>
+                                    <div>
+                                      <p className="text-sm font-medium">{user.displayName || user.username}</p>
+                                      <p className="text-xs text-muted-foreground">@{user.username}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : newMessageRecipient.length >= 3 ? (
+                              <p className="text-sm text-muted-foreground p-2">No users found</p>
+                            ) : newMessageRecipient.length > 0 ? (
+                              <p className="text-sm text-muted-foreground p-2">Type at least 3 characters to search</p>
+                            ) : null}
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    {selectedContact ? (
+                      // Show selected conversation
+                      <div className="flex flex-col h-full">
+                        <div className="flex items-center p-2 border-b">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="mr-2" 
+                            onClick={() => setSelectedContact(null)}
+                          >
+                            <span className="sr-only">Back</span>
+                            <X className="h-4 w-4" />
+                          </Button>
+                          
+                          <Avatar className="h-8 w-8 mr-2">
+                            {selectedContact.avatar ? (
+                              <AvatarImage src={selectedContact.avatar} alt={selectedContact.username} />
+                            ) : (
+                              <AvatarFallback>
+                                {selectedContact.username.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                          
+                          <div className="flex-1">
+                            <h3 className="text-sm font-medium">
+                              {selectedContact.displayName || selectedContact.username}
+                            </h3>
+                            <p className="text-xs text-muted-foreground">
+                              @{selectedContact.username}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <ChatRoom 
+                          roomId={`dm-${selectedContact.id}`}
+                          messages={messages[`dm-${selectedContact.id}`] || []}
+                          onSendMessage={handleSendPrivateMessage}
+                          isLoading={isLoading[`dm-${selectedContact.id}`] || false}
+                          isConnected={isConnected}
+                          onReconnect={() => {
+                            setIsReconnecting(true);
+                            if (reconnectTimeoutRef.current) {
+                              clearTimeout(reconnectTimeoutRef.current);
+                            }
+                            connectWebSocket();
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      // Show contacts list
+                      <div className="flex flex-col h-full">
+                        <div className="p-2 border-b flex justify-between items-center">
+                          <h3 className="text-sm font-medium">Messages</h3>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={() => setShowNewMessageDialog(true)}
+                          >
+                            <PlusCircle className="h-4 w-4" />
+                            <span className="sr-only">New Message</span>
+                          </Button>
+                        </div>
+                        
+                        {isLoading.contacts ? (
+                          <div className="flex justify-center items-center p-4 flex-1">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                          </div>
+                        ) : contacts.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center h-full p-4 text-center">
+                            <Mail className="h-10 w-10 text-muted mb-2" />
+                            <h3 className="text-md font-semibold mb-1">No Messages Yet</h3>
+                            <p className="text-sm text-muted-foreground mb-4">
+                              Start a conversation to see it here
+                            </p>
+                            <Button size="sm" onClick={() => setShowNewMessageDialog(true)}>
+                              <PlusCircle className="h-4 w-4 mr-2" /> New Message
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex-1 overflow-y-auto">
+                            <div className="divide-y">
+                              {contacts.map((contact) => (
+                                <div 
+                                  key={contact.id}
+                                  className="chat-contact"
+                                  onClick={() => startConversation(contact)}
+                                >
+                                  <Avatar className="h-10 w-10 mr-3">
+                                    {contact.avatar ? (
+                                      <AvatarImage src={contact.avatar} alt={contact.username} />
+                                    ) : (
+                                      <AvatarFallback>
+                                        {contact.username.charAt(0).toUpperCase()}
+                                      </AvatarFallback>
+                                    )}
+                                  </Avatar>
+                                  
+                                  <div className="contact-info">
+                                    <div className="flex justify-between">
+                                      <span className="contact-name">
+                                        {contact.displayName || contact.username}
+                                      </span>
+                                      {contact.unreadCount && contact.unreadCount > 0 && (
+                                        <span className="unread-badge">{contact.unreadCount}</span>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="contact-message">
+                                      {contact.lastMessage || 'No messages yet'}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full p-4 text-center">
                     <MessageSquare className="h-12 w-12 text-muted mb-4" />
