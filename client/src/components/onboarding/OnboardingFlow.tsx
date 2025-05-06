@@ -499,17 +499,70 @@ const OnboardingFlow = () => {
     }
   };
 
+  // Enhanced personalized welcome for first-time users
+  const renderWelcomeMessage = () => {
+    if (currentStep === 0) {
+      return (
+        <div className="welcome-message mb-4">
+          <div className="welcome-icon-container mb-4 flex justify-center">
+            <div className="welcome-icon">
+              <img 
+                src="/public/cwg-logo.png" 
+                alt="ClockWork Gamers Logo" 
+                className="h-20 w-20 object-contain"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://via.placeholder.com/80/FF6700/FFFFFF?text=CWG';
+                  e.currentTarget.onerror = null;
+                }}
+              />
+            </div>
+          </div>
+          <h3 className="text-xl font-bold text-center mb-2 neon-text-orange">
+            Welcome to the Web3 Gaming Revolution
+          </h3>
+          <p className="text-center text-muted-foreground mb-3">
+            We're excited to have you join our guild! Let's customize your experience based on your gaming style and Web3 interests.
+          </p>
+          <div className="welcome-features grid grid-cols-3 gap-2 mb-4 text-center">
+            <div className="welcome-feature">
+              <div className="feature-icon text-cwg-blue">🎮</div>
+              <div className="feature-label text-xs">Play & Earn</div>
+            </div>
+            <div className="welcome-feature">
+              <div className="feature-icon text-cwg-blue">👥</div>
+              <div className="feature-label text-xs">Community</div>
+            </div>
+            <div className="welcome-feature">
+              <div className="feature-icon text-cwg-blue">🏆</div>
+              <div className="feature-label text-xs">Achievements</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <Dialog open={showOnboarding} onOpenChange={setShowOnboarding}>
       <DialogContent className="onboarding-dialog sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Welcome to ClockWork Gamers</DialogTitle>
+          <DialogTitle className="text-2xl neon-text-orange">ClockWork Gamers Onboarding</DialogTitle>
           <DialogDescription>
-            Let's personalize your experience based on your preferences.
+            {user?.username ? `Welcome, ${user.username}! ` : ''}Let's personalize your Web3 gaming experience.
           </DialogDescription>
         </DialogHeader>
         
-        <Progress value={progress} className="w-full my-2" />
+        {renderWelcomeMessage()}
+        
+        <Progress 
+          value={progress} 
+          className="w-full my-2"
+          style={{
+            height: '8px',
+            background: 'hsla(var(--cwg-blue), 0.2)',
+          }}
+        />
         
         <Card className="border-none shadow-none">
           {renderStepContent()}
@@ -517,11 +570,11 @@ const OnboardingFlow = () => {
           <CardFooter className="flex justify-between pt-6">
             <div>
               {currentStep > 0 ? (
-                <Button variant="outline" onClick={prevStep}>
+                <Button variant="outline" onClick={prevStep} className="border-cwg-blue hover:border-cwg-blue/80 hover:bg-cwg-dark-blue/30">
                   <ChevronLeft className="mr-1 h-4 w-4" /> Back
                 </Button>
               ) : (
-                <Button variant="ghost" onClick={skipOnboarding}>
+                <Button variant="ghost" onClick={skipOnboarding} className="hover:bg-cwg-dark-blue/30 text-cwg-blue hover:text-cwg-blue/90">
                   Skip for now
                 </Button>
               )}
@@ -530,10 +583,11 @@ const OnboardingFlow = () => {
             <Button 
               onClick={nextStep} 
               disabled={!canProceed() || isSubmitting}
+              className="bg-cwg-orange hover:bg-cwg-orange/90 text-black font-medium"
             >
               {currentStep === totalSteps - 1 ? (
                 <>
-                  {isSubmitting ? 'Saving...' : 'Complete'}
+                  {isSubmitting ? 'Saving...' : 'Complete Setup'}
                   {!isSubmitting && <Check className="ml-1 h-4 w-4" />}
                 </>
               ) : (
@@ -553,6 +607,7 @@ const OnboardingFlow = () => {
                 currentStep > index ? 'completed' : ''
               }`}
               onClick={() => index < currentStep && setCurrentStep(index)}
+              title={`Step ${index + 1} of ${totalSteps}`}
             />
           ))}
         </div>
