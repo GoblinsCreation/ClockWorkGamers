@@ -63,6 +63,18 @@ const NEON_COLORS = {
 
 export default function AdminPageNew() {
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // CSS styles for neon text effects
+  const neonTextStyle = {
+    color: NEON_COLORS.orange,
+    textShadow: NEON_COLORS.glowText(NEON_COLORS.orange)
+  };
+  
+  // CSS styles for neon cards
+  const neonCardStyle = {
+    borderColor: NEON_COLORS.blue,
+    boxShadow: NEON_COLORS.glow(NEON_COLORS.blue)
+  };
 
   // Mock data for dashboard
   const analyticsData = {
@@ -181,17 +193,17 @@ export default function AdminPageNew() {
         <TabsContent value="overview" className="space-y-6">
           {/* Stat Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]" style={{ borderColor: NEON_COLORS.blue, boxShadow: NEON_COLORS.glow(NEON_COLORS.blue) }}>
               <CardContent className="p-6">
                 <div className="flex justify-between items-center space-y-0">
                   <div>
                     <p className="text-sm font-medium text-[hsl(var(--cwg-muted))]">Total Users</p>
-                    <p className="text-2xl font-orbitron font-bold text-[hsl(var(--cwg-blue))]">
+                    <p className="text-2xl font-orbitron font-bold" style={{ color: NEON_COLORS.blue, textShadow: NEON_COLORS.glowText(NEON_COLORS.blue) }}>
                       {analyticsData.userStats.totalUsers.toLocaleString()}
                     </p>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-[hsl(var(--cwg-blue))/20] flex items-center justify-center">
-                    <UsersIcon className="h-6 w-6 text-[hsl(var(--cwg-blue))]" />
+                  <div className="h-12 w-12 rounded-full flex items-center justify-center" style={{ backgroundColor: `${NEON_COLORS.blue}20`, boxShadow: `inset 0 0 10px ${NEON_COLORS.blue}40` }}>
+                    <UsersIcon className="h-6 w-6" style={{ color: NEON_COLORS.blue }} />
                   </div>
                 </div>
                 <div className="mt-2 flex items-center text-xs">
@@ -201,17 +213,17 @@ export default function AdminPageNew() {
               </CardContent>
             </Card>
 
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]" style={{ borderColor: NEON_COLORS.orange, boxShadow: NEON_COLORS.glow(NEON_COLORS.orange) }}>
               <CardContent className="p-6">
                 <div className="flex justify-between items-center space-y-0">
                   <div>
                     <p className="text-sm font-medium text-[hsl(var(--cwg-muted))]">Total Revenue</p>
-                    <p className="text-2xl font-orbitron font-bold text-[hsl(var(--cwg-orange))]">
+                    <p className="text-2xl font-orbitron font-bold" style={{ color: NEON_COLORS.orange, textShadow: NEON_COLORS.glowText(NEON_COLORS.orange) }}>
                       ${analyticsData.financialStats.totalRevenue.toLocaleString()}
                     </p>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-[hsl(var(--cwg-orange))/20] flex items-center justify-center">
-                    <DollarSign className="h-6 w-6 text-[hsl(var(--cwg-orange))]" />
+                  <div className="h-12 w-12 rounded-full flex items-center justify-center" style={{ backgroundColor: `${NEON_COLORS.orange}20`, boxShadow: `inset 0 0 10px ${NEON_COLORS.orange}40` }}>
+                    <DollarSign className="h-6 w-6" style={{ color: NEON_COLORS.orange }} />
                   </div>
                 </div>
                 <div className="mt-2 flex items-center text-xs">
@@ -221,17 +233,17 @@ export default function AdminPageNew() {
               </CardContent>
             </Card>
 
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]" style={{ borderColor: NEON_COLORS.green, boxShadow: NEON_COLORS.glow(NEON_COLORS.green) }}>
               <CardContent className="p-6">
                 <div className="flex justify-between items-center space-y-0">
                   <div>
                     <p className="text-sm font-medium text-[hsl(var(--cwg-muted))]">Active Users</p>
-                    <p className="text-2xl font-orbitron font-bold text-[hsl(var(--cwg-green))]">
+                    <p className="text-2xl font-orbitron font-bold" style={{ color: NEON_COLORS.green, textShadow: NEON_COLORS.glowText(NEON_COLORS.green) }}>
                       {analyticsData.userStats.activeUsers.toLocaleString()}
                     </p>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-[hsl(var(--cwg-green))/20] flex items-center justify-center">
-                    <Users className="h-6 w-6 text-[hsl(var(--cwg-green))]" />
+                  <div className="h-12 w-12 rounded-full flex items-center justify-center" style={{ backgroundColor: `${NEON_COLORS.green}20`, boxShadow: `inset 0 0 10px ${NEON_COLORS.green}40` }}>
+                    <Users className="h-6 w-6" style={{ color: NEON_COLORS.green }} />
                   </div>
                 </div>
                 <div className="mt-2 flex items-center text-xs">
@@ -241,17 +253,17 @@ export default function AdminPageNew() {
               </CardContent>
             </Card>
 
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]" style={{ borderColor: NEON_COLORS.purple, boxShadow: NEON_COLORS.glow(NEON_COLORS.purple) }}>
               <CardContent className="p-6">
                 <div className="flex justify-between items-center space-y-0">
                   <div>
                     <p className="text-sm font-medium text-[hsl(var(--cwg-muted))]">NFT Sales</p>
-                    <p className="text-2xl font-orbitron font-bold text-[hsl(var(--cwg-purple))]">
+                    <p className="text-2xl font-orbitron font-bold" style={{ color: NEON_COLORS.purple, textShadow: NEON_COLORS.glowText(NEON_COLORS.purple) }}>
                       ${analyticsData.financialStats.nftSales.toLocaleString()}
                     </p>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-[hsl(var(--cwg-purple))/20] flex items-center justify-center">
-                    <Award className="h-6 w-6 text-[hsl(var(--cwg-purple))]" />
+                  <div className="h-12 w-12 rounded-full flex items-center justify-center" style={{ backgroundColor: `${NEON_COLORS.purple}20`, boxShadow: `inset 0 0 10px ${NEON_COLORS.purple}40` }}>
+                    <Award className="h-6 w-6" style={{ color: NEON_COLORS.purple }} />
                   </div>
                 </div>
                 <div className="mt-2 flex items-center text-xs">
@@ -265,9 +277,9 @@ export default function AdminPageNew() {
           {/* Charts Row */}
           <div className="grid gap-6 md:grid-cols-2">
             {/* User Growth Chart */}
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]" style={{ borderColor: NEON_COLORS.blue, boxShadow: NEON_COLORS.glow(NEON_COLORS.blue) }}>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">
+                <CardTitle className="text-lg font-orbitron" style={{ color: NEON_COLORS.blue, textShadow: NEON_COLORS.glowText(NEON_COLORS.blue) }}>
                   User Growth
                 </CardTitle>
                 <CardDescription>
@@ -284,16 +296,17 @@ export default function AdminPageNew() {
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--cwg-dark))',
-                          borderColor: 'hsl(var(--cwg-dark-blue))'
+                          borderColor: NEON_COLORS.blue,
+                          boxShadow: NEON_COLORS.glow(NEON_COLORS.blue)
                         }} 
                       />
                       <Line 
                         type="monotone" 
                         dataKey="users" 
-                        stroke="hsl(var(--cwg-blue))" 
+                        stroke={NEON_COLORS.blue}
                         strokeWidth={2}
-                        dot={{ fill: 'hsl(var(--cwg-blue))', r: 4 }}
-                        activeDot={{ r: 6 }}
+                        dot={{ fill: NEON_COLORS.blue, r: 4, strokeWidth: 2 }}
+                        activeDot={{ r: 6, fill: NEON_COLORS.blue, stroke: "#fff" }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -302,9 +315,9 @@ export default function AdminPageNew() {
             </Card>
 
             {/* Revenue Breakdown Chart */}
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]" style={{ borderColor: NEON_COLORS.orange, boxShadow: NEON_COLORS.glow(NEON_COLORS.orange) }}>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">
+                <CardTitle className="text-lg font-orbitron" style={{ color: NEON_COLORS.orange, textShadow: NEON_COLORS.glowText(NEON_COLORS.orange) }}>
                   Revenue Breakdown
                 </CardTitle>
                 <CardDescription>
@@ -334,7 +347,8 @@ export default function AdminPageNew() {
                         formatter={(value) => [`${value}%`, 'Percentage']}
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--cwg-dark))',
-                          borderColor: 'hsl(var(--cwg-dark-blue))'
+                          borderColor: NEON_COLORS.orange,
+                          boxShadow: NEON_COLORS.glow(NEON_COLORS.orange)
                         }} 
                       />
                       <Legend />
@@ -348,9 +362,9 @@ export default function AdminPageNew() {
           {/* More Charts */}
           <div className="grid gap-6 md:grid-cols-2">
             {/* Gaming Activity Chart */}
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]" style={{ borderColor: NEON_COLORS.green, boxShadow: NEON_COLORS.glow(NEON_COLORS.green) }}>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">
+                <CardTitle className="text-lg font-orbitron" style={{ color: NEON_COLORS.green, textShadow: NEON_COLORS.glowText(NEON_COLORS.green) }}>
                   Games Played
                 </CardTitle>
                 <CardDescription>
@@ -380,7 +394,8 @@ export default function AdminPageNew() {
                         formatter={(value) => [`${value}%`, 'Percentage']}
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--cwg-dark))',
-                          borderColor: 'hsl(var(--cwg-dark-blue))'
+                          borderColor: NEON_COLORS.green,
+                          boxShadow: NEON_COLORS.glow(NEON_COLORS.green)
                         }} 
                       />
                       <Legend />
@@ -391,9 +406,9 @@ export default function AdminPageNew() {
             </Card>
 
             {/* Streaming Activity Chart */}
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]" style={{ borderColor: NEON_COLORS.purple, boxShadow: NEON_COLORS.glow(NEON_COLORS.purple) }}>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">
+                <CardTitle className="text-lg font-orbitron" style={{ color: NEON_COLORS.purple, textShadow: NEON_COLORS.glowText(NEON_COLORS.purple) }}>
                   Streaming Activity
                 </CardTitle>
                 <CardDescription>
@@ -410,12 +425,13 @@ export default function AdminPageNew() {
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--cwg-dark))',
-                          borderColor: 'hsl(var(--cwg-dark-blue))'
+                          borderColor: NEON_COLORS.purple,
+                          boxShadow: NEON_COLORS.glow(NEON_COLORS.purple)
                         }} 
                       />
                       <Bar 
                         dataKey="streams" 
-                        fill="hsl(var(--cwg-purple))" 
+                        fill={NEON_COLORS.purple}
                         radius={[4, 4, 0, 0]}
                       />
                     </BarChart>

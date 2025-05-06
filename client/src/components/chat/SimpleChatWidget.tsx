@@ -626,7 +626,8 @@ export default function SimpleChatWidget({
       
       {!isOpen ? (
         <div 
-          className={`chat-button ${getChatPositionClass()}`}
+          className="chat-button"
+          style={{ bottom: '20px', right: '20px', position: 'fixed' }}
           onClick={toggleChat}
         >
           <MessageSquare className="h-5 w-5" />
