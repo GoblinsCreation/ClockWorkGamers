@@ -173,15 +173,10 @@ export default function SimpleChatWidget({
   // Fetch messages when component mounts
   useEffect(() => {
     if (user) {
-      try {
-        connectWebSocket();
-        
-        // Load private messages
-        fetchContacts();
-      } catch (error) {
-        console.error("Error initializing chat:", error);
-        // Don't let chat errors break the whole app
-      }
+      connectWebSocket();
+      
+      // Load private messages
+      fetchContacts();
     }
     
     return () => {
@@ -459,7 +454,7 @@ export default function SimpleChatWidget({
                       {message.content}
                       {message.isTranslated && message.originalContent && (
                         <div className="message-translation-info">
-                          <Badge variant="outline" className="text-xs">
+                          <Badge size="sm" variant="outline" className="text-xs">
                             Translated from {message.language}
                           </Badge>
                           <div className="message-original-content">
@@ -631,8 +626,7 @@ export default function SimpleChatWidget({
       
       {!isOpen ? (
         <div 
-          className="chat-button"
-          style={{ bottom: '20px', right: '20px', position: 'fixed' }}
+          className={`chat-button ${getChatPositionClass()}`}
           onClick={toggleChat}
         >
           <MessageSquare className="h-5 w-5" />
@@ -829,7 +823,7 @@ export default function SimpleChatWidget({
                           roomId={`dm-${selectedContact.id}`}
                           messages={messages[`dm-${selectedContact.id}`] || []}
                           onSendMessage={handleSendPrivateMessage}
-                          isLoading={false} // Initialize DM chats as not loading
+                          isLoading={isLoading[`dm-${selectedContact.id}`] || false}
                           isConnected={isConnected}
                           onReconnect={() => {
                             setIsReconnecting(true);

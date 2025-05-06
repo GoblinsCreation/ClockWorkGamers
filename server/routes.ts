@@ -28,15 +28,6 @@ import {
   skipOnboarding, 
   getPersonalizedRecommendations 
 } from "./onboarding";
-import {
-  getUserAchievements,
-  getUserCompletedAchievements,
-  updateAchievementProgress,
-  claimAchievementReward,
-  createAchievement,
-  updateAchievement,
-  deleteAchievement
-} from "./achievement";
 
 // Extend session with our custom properties
 declare module "express-session" {
@@ -511,21 +502,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/check-auth", (req, res) => {
     res.json({
       isAuthenticated: req.isAuthenticated()
-    });
-  });
-  
-  // Health check endpoint - doesn't require authentication, 
-  // used to verify server is responding
-  app.get("/api/healthcheck", (req, res) => {
-    res.status(200).json({
-      status: "ok",
-      timestamp: Date.now(),
-      version: process.env.npm_package_version || "1.0.0",
-      services: {
-        database: true,
-        websocket: true,
-        api: true
-      }
     });
   });
   
@@ -1299,71 +1275,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Achievement routes
-  app.get("/api/user/achievements", async (req, res) => {
-    try {
-      await getUserAchievements(req, res);
-    } catch (error) {
-      console.error("Error in /api/user/achievements:", error);
-      res.status(500).json({ message: "Failed to fetch user achievements" });
-    }
-  });
-  
-  app.get("/api/user/achievements/completed", async (req, res) => {
-    try {
-      await getUserCompletedAchievements(req, res);
-    } catch (error) {
-      console.error("Error in /api/user/achievements/completed:", error);
-      res.status(500).json({ message: "Failed to fetch completed achievements" });
-    }
-  });
-  
-  app.post("/api/user/achievements/progress", async (req, res) => {
-    try {
-      await updateAchievementProgress(req, res);
-    } catch (error) {
-      console.error("Error in /api/user/achievements/progress:", error);
-      res.status(500).json({ message: "Failed to update achievement progress" });
-    }
-  });
-  
-  app.post("/api/user/achievements/:achievementId/claim", async (req, res) => {
-    try {
-      await claimAchievementReward(req, res);
-    } catch (error) {
-      console.error("Error in /api/user/achievements/:achievementId/claim:", error);
-      res.status(500).json({ message: "Failed to claim achievement reward" });
-    }
-  });
-  
-  // Admin achievement routes
-  app.post("/api/admin/achievements", async (req, res) => {
-    try {
-      await createAchievement(req, res);
-    } catch (error) {
-      console.error("Error in /api/admin/achievements:", error);
-      res.status(500).json({ message: "Failed to create achievement" });
-    }
-  });
-  
-  app.patch("/api/admin/achievements/:id", async (req, res) => {
-    try {
-      await updateAchievement(req, res);
-    } catch (error) {
-      console.error("Error in /api/admin/achievements/:id:", error);
-      res.status(500).json({ message: "Failed to update achievement" });
-    }
-  });
-  
-  app.delete("/api/admin/achievements/:id", async (req, res) => {
-    try {
-      await deleteAchievement(req, res);
-    } catch (error) {
-      console.error("Error in /api/admin/achievements/:id:", error);
-      res.status(500).json({ message: "Failed to delete achievement" });
-    }
-  });
-
   // Leaderboard API routes
   app.get("/api/leaderboard", async (req, res) => {
     if (!req.isAuthenticated()) {
@@ -1526,28 +1437,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
   // Set up WebSocket server for real-time chat
-  console.log("Setting up WebSocket server on /ws path");
-  let wss;
-  try {
-    wss = new WebSocketServer({ 
-      server: httpServer, 
-      path: '/ws',
-      // Allow connections from any origin
-      verifyClient: (info: { origin: string }) => {
-        console.log('WebSocket connection attempt from:', info.origin);
-        return true; // Accept all connections for now
-      }
-    });
-    console.log("WebSocket server setup complete");
-  } catch (error) {
-    console.error("Error setting up WebSocket server:", error);
-    // Create a dummy WebSocket server that does nothing
-    wss = {
-      on: (event: string, handler: any) => {
-        console.log(`Dummy WebSocket server ignoring event: ${event}`);
-      }
-    };
-  }
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws',
+    // Allow connections from any origin
+    verifyClient: (info: { origin: string }) => {
+      console.log('WebSocket connection attempt from:', info.origin);
+      return true; // Accept all connections for now
+    }
+  });
   
   // Store connected clients with their user info
   const clients = new Map();

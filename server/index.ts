@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import cors from "cors";
-import { seedAchievements } from "./seed-achievement";
 
 const app = express();
 // Enable CORS for all routes
@@ -44,9 +43,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Seed initial achievements if needed
-  await seedAchievements();
-  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
