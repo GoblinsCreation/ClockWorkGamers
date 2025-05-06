@@ -12,7 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { X, ChevronRight, ChevronLeft, Check, Info } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Check, Info, Sparkles } from 'lucide-react';
+import PersonalizationComplete from './PersonalizationComplete';
 import './OnboardingFlow.css';
 
 // Game categories with icons
@@ -91,6 +92,7 @@ const OnboardingFlow = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>(defaultOnboardingData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -236,10 +238,13 @@ const OnboardingFlow = () => {
         queryKey: ['/api/user/profile']
       });
       
-      // Close onboarding
+      // Close onboarding dialog
       setShowOnboarding(false);
       
-      // Show success message
+      // Show personalization complete modal
+      setShowCompletionModal(true);
+      
+      // Also show a toast for additional feedback
       toast({
         title: 'Welcome to ClockWork Gamers!',
         description: 'Your profile has been personalized based on your preferences.',
@@ -256,6 +261,11 @@ const OnboardingFlow = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+  
+  // Handle closing the completion modal
+  const handleCompletionClose = () => {
+    setShowCompletionModal(false);
   };
 
   // Skip onboarding
