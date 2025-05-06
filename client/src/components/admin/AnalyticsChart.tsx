@@ -93,140 +93,167 @@ export function AnalyticsChart({
     );
   }
 
-  // Format tooltip
+  // Format tooltip with extra safety checks
   const renderTooltip = (props: any) => {
-    if (!props.active || !props.payload || !props.payload.length) return null;
+    if (!props || !props.active || !props.payload || !props.payload.length) return null;
     
     const { payload } = props;
     
-    return (
-      <div className="p-2 bg-background/95 border border-border rounded-md shadow-md">
-        <p className="font-semibold text-sm mb-1">{payload[0].payload[xAxisDataKey]}</p>
-        {payload.map((entry: any, index: number) => (
-          <p key={`tooltip-${index}`} className="text-xs flex items-center gap-1">
-            <span 
-              className="w-3 h-3 rounded-full inline-block" 
-              style={{ backgroundColor: entry.color }}
-            />
-            <span className="font-medium">
-              {formattedLabels[entry.dataKey] || entry.dataKey}:
-            </span>
-            <span>{valueFormat(entry.value)}</span>
+    try {
+      return (
+        <div className="p-2 bg-background/95 border border-border rounded-md shadow-md">
+          <p className="font-semibold text-sm mb-1">
+            {payload[0]?.payload?.[xAxisDataKey] || 'Unknown'}
           </p>
-        ))}
-      </div>
-    );
+          {payload.map((entry: any, index: number) => (
+            <p key={`tooltip-${index}`} className="text-xs flex items-center gap-1">
+              <span 
+                className="w-3 h-3 rounded-full inline-block" 
+                style={{ backgroundColor: entry?.color || '#ccc' }}
+              />
+              <span className="font-medium">
+                {(entry?.dataKey && formattedLabels[entry.dataKey]) || entry?.dataKey || 'Unknown'}:
+              </span>
+              <span>{entry?.value !== undefined ? valueFormat(entry.value) : 'N/A'}</span>
+            </p>
+          ))}
+        </div>
+      );
+    } catch (error) {
+      console.error('Error rendering tooltip:', error);
+      return null;
+    }
   };
 
   const renderChart = () => {
-    switch (type) {
-      case 'area':
-        return (
-          <ResponsiveContainer width="100%" height={height}>
-            <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="hsla(var(--cwg-muted)/0.2)" />}
-              {showXAxis && <XAxis dataKey={xAxisDataKey} tick={{ fill: 'hsla(var(--cwg-muted))' }} />}
-              {showYAxis && <YAxis tick={{ fill: 'hsla(var(--cwg-muted))' }} />}
-              {showTooltip && <Tooltip content={renderTooltip} />}
-              {showLegend && <Legend />}
-              {dataKeys.map((key, index) => (
-                <Area 
-                  key={key}
-                  type="monotone" 
-                  dataKey={key} 
-                  stackId="1"
-                  stroke={colors[index % colors.length]} 
-                  fill={`${colors[index % colors.length]}80`} // 50% transparency
-                  name={formattedLabels[key] || key}
-                />
-              ))}
-            </AreaChart>
-          </ResponsiveContainer>
-        );
-        
-      case 'line':
-        return (
-          <ResponsiveContainer width="100%" height={height}>
-            <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="hsla(var(--cwg-muted)/0.2)" />}
-              {showXAxis && <XAxis dataKey={xAxisDataKey} tick={{ fill: 'hsla(var(--cwg-muted))' }} />}
-              {showYAxis && <YAxis tick={{ fill: 'hsla(var(--cwg-muted))' }} />}
-              {showTooltip && <Tooltip content={renderTooltip} />}
-              {showLegend && <Legend />}
-              {dataKeys.map((key, index) => (
-                <Line 
-                  key={key}
-                  type="monotone" 
-                  dataKey={key} 
-                  stroke={colors[index % colors.length]} 
-                  strokeWidth={2}
-                  dot={{ fill: colors[index % colors.length], r: 4 }}
-                  activeDot={{ r: 6 }}
-                  name={formattedLabels[key] || key}
-                />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        );
-        
-      case 'bar':
-        return (
-          <ResponsiveContainer width="100%" height={height}>
-            <BarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="hsla(var(--cwg-muted)/0.2)" />}
-              {showXAxis && <XAxis dataKey={xAxisDataKey} tick={{ fill: 'hsla(var(--cwg-muted))' }} />}
-              {showYAxis && <YAxis tick={{ fill: 'hsla(var(--cwg-muted))' }} />}
-              {showTooltip && <Tooltip content={renderTooltip} />}
-              {showLegend && <Legend />}
-              {dataKeys.map((key, index) => (
-                <Bar 
-                  key={key}
-                  dataKey={key} 
-                  fill={colors[index % colors.length]} 
-                  name={formattedLabels[key] || key}
-                  radius={[4, 4, 0, 0]}
-                />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        );
-        
-      case 'pie':
-        return (
-          <ResponsiveContainer width="100%" height={height}>
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={90}
-                paddingAngle={2}
-                dataKey={dataKeys[0]}
-                label={(entry) => entry[xAxisDataKey]}
-                labelLine={false}
-              >
-                {data.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={colors[index % colors.length]} 
+    try {
+      // Make sure data is an array and not null/undefined
+      const safeData = Array.isArray(data) ? data : [];
+      
+      // Validate dataKeys exist
+      const safeDataKeys = Array.isArray(dataKeys) && dataKeys.length > 0 
+        ? dataKeys 
+        : ['value'];
+      
+      switch (type) {
+        case 'area':
+          return (
+            <ResponsiveContainer width="100%" height={height}>
+              <AreaChart data={safeData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="hsla(var(--cwg-muted)/0.2)" />}
+                {showXAxis && <XAxis dataKey={xAxisDataKey} tick={{ fill: 'hsla(var(--cwg-muted))' }} />}
+                {showYAxis && <YAxis tick={{ fill: 'hsla(var(--cwg-muted))' }} />}
+                {showTooltip && <Tooltip content={renderTooltip} />}
+                {showLegend && <Legend />}
+                {safeDataKeys.map((key, index) => (
+                  <Area 
+                    key={key}
+                    type="monotone" 
+                    dataKey={key} 
+                    stackId="1"
+                    stroke={colors[index % colors.length]} 
+                    fill={`${colors[index % colors.length]}80`} // 50% transparency
+                    name={formattedLabels[key] || key}
                   />
                 ))}
-              </Pie>
-              {showTooltip && <Tooltip 
-                formatter={(value) => [valueFormat(value), formattedLabels[dataKeys[0]] || dataKeys[0]]}
-                contentStyle={{ 
-                  backgroundColor: 'hsla(var(--background)/0.9)', 
-                  borderColor: 'hsla(var(--border))',
-                }} 
-              />}
-              {showLegend && <Legend />}
-            </PieChart>
-          </ResponsiveContainer>
-        );
-        
-      default:
-        return <div>Unsupported chart type</div>;
+              </AreaChart>
+            </ResponsiveContainer>
+          );
+          
+        case 'line':
+          return (
+            <ResponsiveContainer width="100%" height={height}>
+              <LineChart data={safeData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="hsla(var(--cwg-muted)/0.2)" />}
+                {showXAxis && <XAxis dataKey={xAxisDataKey} tick={{ fill: 'hsla(var(--cwg-muted))' }} />}
+                {showYAxis && <YAxis tick={{ fill: 'hsla(var(--cwg-muted))' }} />}
+                {showTooltip && <Tooltip content={renderTooltip} />}
+                {showLegend && <Legend />}
+                {safeDataKeys.map((key, index) => (
+                  <Line 
+                    key={key}
+                    type="monotone" 
+                    dataKey={key} 
+                    stroke={colors[index % colors.length]} 
+                    strokeWidth={2}
+                    dot={{ fill: colors[index % colors.length], r: 4 }}
+                    activeDot={{ r: 6 }}
+                    name={formattedLabels[key] || key}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          );
+          
+        case 'bar':
+          return (
+            <ResponsiveContainer width="100%" height={height}>
+              <BarChart data={safeData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="hsla(var(--cwg-muted)/0.2)" />}
+                {showXAxis && <XAxis dataKey={xAxisDataKey} tick={{ fill: 'hsla(var(--cwg-muted))' }} />}
+                {showYAxis && <YAxis tick={{ fill: 'hsla(var(--cwg-muted))' }} />}
+                {showTooltip && <Tooltip content={renderTooltip} />}
+                {showLegend && <Legend />}
+                {safeDataKeys.map((key, index) => (
+                  <Bar 
+                    key={key}
+                    dataKey={key} 
+                    fill={colors[index % colors.length]} 
+                    name={formattedLabels[key] || key}
+                    radius={[4, 4, 0, 0]}
+                  />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          );
+          
+        case 'pie':
+          return (
+            <ResponsiveContainer width="100%" height={height}>
+              <PieChart>
+                <Pie
+                  data={safeData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={2}
+                  dataKey={safeDataKeys[0]}
+                  label={(entry) => entry[xAxisDataKey] || 'Unknown'}
+                  labelLine={false}
+                >
+                  {safeData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={colors[index % colors.length]} 
+                    />
+                  ))}
+                </Pie>
+                {showTooltip && <Tooltip 
+                  formatter={(value) => [valueFormat(value), formattedLabels[safeDataKeys[0]] || safeDataKeys[0]]}
+                  contentStyle={{ 
+                    backgroundColor: 'hsla(var(--background)/0.9)', 
+                    borderColor: 'hsla(var(--border))',
+                  }} 
+                />}
+                {showLegend && <Legend />}
+              </PieChart>
+            </ResponsiveContainer>
+          );
+          
+        default:
+          return <div>Unsupported chart type</div>;
+      }
+    } catch (error) {
+      console.error('Error rendering chart:', error);
+      return (
+        <div className="h-[300px] flex items-center justify-center">
+          <div className="text-center">
+            <InfoIcon className="h-8 w-8 text-destructive mx-auto mb-2" />
+            <p className="text-muted-foreground">Error rendering chart</p>
+          </div>
+        </div>
+      );
     }
   };
 
@@ -251,7 +278,7 @@ export function AnalyticsChart({
         </div>
       </CardHeader>
       <CardContent>
-        {data.length === 0 ? (
+        {!Array.isArray(data) || data.length === 0 ? (
           <div className="h-[300px] flex items-center justify-center">
             <div className="text-center">
               <InfoIcon className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
