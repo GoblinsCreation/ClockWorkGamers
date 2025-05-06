@@ -3,6 +3,10 @@
   position: fixed;
   z-index: 999;
   font-family: var(--font-sans);
+  bottom: 20px;
+  right: 20px;
+  width: 0;
+  height: 0;
 }
 
 .chat-button {
@@ -17,7 +21,6 @@
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  position: fixed;
 }
 
 .chat-button:hover {

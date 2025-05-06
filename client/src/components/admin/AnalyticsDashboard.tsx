@@ -188,7 +188,7 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="User Growth"
           subtitle="New and returning users over time"
-          data={analyticsData.userGrowth}
+          data={analyticsData?.userGrowth || []}
           type="area"
           dataKeys={['Unique Visitors', 'New Signups']}
           formattedLabels={{
@@ -201,7 +201,7 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="Revenue Trends"
           subtitle="Revenue breakdown by source"
-          data={analyticsData.rentalRevenue}
+          data={analyticsData?.rentalRevenue || []}
           type="line"
           dataKeys={['Revenue']}
           valueFormat={(value) => `$${value}`}
@@ -214,7 +214,7 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="Token Distribution"
           subtitle="Allocation of CWG tokens"
-          data={analyticsData.tokenDistribution}
+          data={analyticsData?.tokenDistribution || []}
           type="pie"
           dataKeys={['value']}
           valueFormat={(value) => `${value} CWG`}
@@ -224,7 +224,7 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="Games Played"
           subtitle="Most popular games on the platform"
-          data={analyticsData.gameDistribution}
+          data={analyticsData?.gameDistribution || []}
           type="pie"
           dataKeys={['value']}
           valueFormat={(value) => `${value}%`}
@@ -234,7 +234,7 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="Stream Activity"
           subtitle="Streaming schedules by day"
-          data={analyticsData.streamActivity}
+          data={analyticsData?.streamActivity || []}
           type="bar"
           dataKeys={['value']}
           formattedLabels={{ 'value': 'Streams' }}
@@ -283,7 +283,7 @@ export function AnalyticsDashboard() {
                     </tr>
                   ))
                 ) : (
-                  analyticsData.streamersPerformance.map((streamer, index) => (
+                  (analyticsData?.streamersPerformance || []).map((streamer, index) => (
                     <tr key={index} className="border-b border-[hsl(var(--cwg-dark-blue))]">
                       <td className="py-3 px-4 font-medium">{streamer.name}</td>
                       <td className="py-3 px-4 text-center">{streamer.viewers}</td>
@@ -356,7 +356,7 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="User Engagement"
           subtitle="Active users by time and platform"
-          data={analyticsData.userEngagement || [
+          data={analyticsData?.userEngagement || [
             { name: 'Mon', Mobile: 120, Desktop: 200, Web3: 80 },
             { name: 'Tue', Mobile: 132, Desktop: 180, Web3: 70 },
             { name: 'Wed', Mobile: 101, Desktop: 198, Web3: 90 },
@@ -373,7 +373,7 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="Token Economy"
           subtitle="Token flow and distribution over time"
-          data={analyticsData.tokenEconomy || [
+          data={analyticsData?.tokenEconomy || [
             { name: 'Week 1', Minted: 5000, Burned: 1200, Staked: 3000 },
             { name: 'Week 2', Minted: 4500, Burned: 1500, Staked: 3200 },
             { name: 'Week 3', Minted: 5200, Burned: 1700, Staked: 3500 },
