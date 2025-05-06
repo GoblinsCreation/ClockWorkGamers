@@ -28,6 +28,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLocation } from 'wouter';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { ChatCustomizationPanel, ChatCustomizationSettings } from './ChatCustomizationPanel';
 
 interface Message {
   id?: number;
@@ -437,6 +439,7 @@ const FloatingChat: React.FC = () => {
   const [newMessageRecipient, setNewMessageRecipient] = useState('');
   const [searchResults, setSearchResults] = useState<Contact[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [showCustomizationPanel, setShowCustomizationPanel] = useState(false);
   const [messages, setMessages] = useState<Record<string, Message[]>>({
     public: [],
     support: [],
@@ -449,6 +452,24 @@ const FloatingChat: React.FC = () => {
     contacts: false,
     search: false
   });
+  
+  // Chat customization settings
+  const [chatSettings, setChatSettings] = useLocalStorage<ChatCustomizationSettings>(
+    'cwg-chat-settings',
+    {
+      position: 'bottom-right',
+      theme: 'default',
+      soundEnabled: true,
+      notificationsEnabled: true,
+      transparency: 100,
+      size: 'medium',
+      fontStyle: 'default',
+      autoTranslate: false,
+      showUserAvatars: true,
+      showTimestamps: true
+    }
+  );
+  
   const { user } = useAuth();
   const { toast } = useToast();
   const socketRef = useRef<WebSocket | null>(null);
@@ -841,24 +862,118 @@ const FloatingChat: React.FC = () => {
     }
   }, [activeTab, isOpen]);
 
+  // Apply chat settings to CSS variables
+  const getChatPositionStyle = () => {
+    // Get position from settings
+    const { position } = chatSettings;
+    
+    // Default positions (can be expanded with more precise positioning)
+    switch (position) {
+      case 'bottom-right':
+        return { bottom: '20px', right: '20px', top: 'auto', left: 'auto' };
+      case 'bottom-left':
+        return { bottom: '20px', left: '20px', top: 'auto', right: 'auto' };
+      case 'top-right':
+        return { top: '20px', right: '20px', bottom: 'auto', left: 'auto' };
+      case 'top-left':
+        return { top: '20px', left: '20px', bottom: 'auto', right: 'auto' };
+      default:
+        return { bottom: '20px', right: '20px', top: 'auto', left: 'auto' };
+    }
+  };
+  
+  // Get CSS class based on theme
+  const getChatThemeClass = () => {
+    switch (chatSettings.theme) {
+      case 'minimal': return 'chat-theme-minimal';
+      case 'neon': return 'chat-theme-neon';
+      default: return 'chat-theme-default';
+    }
+  };
+  
+  // Get CSS class based on size
+  const getChatSizeClass = () => {
+    switch (chatSettings.size) {
+      case 'small': return 'chat-size-small';
+      case 'large': return 'chat-size-large';
+      default: return 'chat-size-medium';
+    }
+  };
+  
+  // Get CSS class based on font style
+  const getChatFontClass = () => {
+    switch (chatSettings.fontStyle) {
+      case 'gaming': return 'chat-font-gaming';
+      case 'futuristic': return 'chat-font-futuristic';
+      case 'minimalist': return 'chat-font-minimalist';
+      default: return 'chat-font-default';
+    }
+  };
+  
+  // Handle applying the chat settings
+  const applySettings = (settings: ChatCustomizationSettings) => {
+    setChatSettings(settings);
+  };
+
   return (
     <div className="chat-widget">
+      {/* Chat customization panel */}
+      <ChatCustomizationPanel 
+        isOpen={showCustomizationPanel}
+        onClose={() => setShowCustomizationPanel(false)}
+        onApplySettings={applySettings}
+      />
+      
       {!isOpen ? (
-        <div className="chat-button" onClick={toggleChat}>
+        <div 
+          className="chat-button" 
+          onClick={toggleChat}
+          style={getChatPositionStyle()}
+        >
           <MessageSquare className="h-5 w-5" />
         </div>
       ) : (
-        <div className={`chat-window ${isMinimized ? 'minimized' : ''}`}>
+        <div 
+          className={`chat-window ${isMinimized ? 'minimized' : ''} ${getChatThemeClass()} ${getChatSizeClass()} ${getChatFontClass()}`}
+          style={{
+            ...getChatPositionStyle(),
+            '--chat-opacity': `${chatSettings.transparency}%`,
+          } as React.CSSProperties}
+        >
           <div className="chat-header" onClick={toggleMinimize}>
             <div className="chat-title">
               <MessageSquare className="h-4 w-4 mr-2" />
               {isMinimized ? 'Chat' : `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Chat`}
             </div>
             <div className="chat-header-actions">
-              <Button variant="ghost" size="icon" className="h-5 w-5 p-0" onClick={toggleMinimize} title={isMinimized ? 'Expand' : 'Minimize'}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-5 w-5 p-0" 
+                onClick={(e) => {
+                  e.stopPropagation(); 
+                  setShowCustomizationPanel(true);
+                }} 
+                title="Customize Chat"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-5 w-5 p-0" 
+                onClick={toggleMinimize} 
+                title={isMinimized ? 'Expand' : 'Minimize'}
+              >
                 <MinusSquare className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-5 w-5 p-0" onClick={toggleChat} title="Close">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-5 w-5 p-0" 
+                onClick={toggleChat} 
+                title="Close"
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>

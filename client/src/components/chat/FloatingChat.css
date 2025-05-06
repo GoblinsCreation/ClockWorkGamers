@@ -1,8 +1,6 @@
 /* Chat Widget */
 .chat-widget {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
   z-index: 999;
   font-family: var(--font-sans);
 }
@@ -19,6 +17,7 @@
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: fixed;
 }
 
 .chat-button:hover {
@@ -36,7 +35,104 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: height 0.3s ease;
+  transition: all 0.3s ease;
+  position: fixed;
+  opacity: var(--chat-opacity, 100%);
+}
+
+/* Chat Themes */
+.chat-theme-default {
+  /* Default theme uses the existing colors */
+}
+
+.chat-theme-minimal {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border)/0.5);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.chat-theme-minimal .chat-header {
+  background-color: hsl(var(--background));
+  border-bottom-color: hsl(var(--border)/0.3);
+}
+
+.chat-theme-minimal .chat-tabs {
+  background-color: hsl(var(--background));
+}
+
+.chat-theme-neon {
+  background-color: hsl(220, 25%, 10%);
+  border-color: hsl(200, 100%, 60%);
+  box-shadow: 0 0 15px hsl(200, 100%, 60%, 0.4), 
+              inset 0 0 10px hsl(200, 100%, 60%, 0.1);
+}
+
+.chat-theme-neon .chat-header {
+  background-color: hsl(225, 30%, 15%);
+  border-bottom-color: hsl(200, 100%, 60%, 0.5);
+}
+
+.chat-theme-neon .chat-title,
+.chat-theme-neon .chat-tab[data-state="active"] {
+  color: hsl(200, 100%, 70%);
+  text-shadow: 0 0 5px hsl(200, 100%, 70%, 0.8);
+}
+
+.chat-theme-neon .chat-tabs {
+  background-color: hsl(225, 25%, 12%);
+}
+
+.chat-theme-neon .chat-message.incoming {
+  background-color: hsl(225, 30%, 18%);
+  border-color: hsl(200, 100%, 60%, 0.3);
+}
+
+.chat-theme-neon .chat-message.outgoing {
+  background-color: hsl(215, 30%, 22%);
+  border-color: hsl(30, 100%, 60%, 0.3);
+}
+
+.chat-theme-neon .message-sender {
+  color: hsl(30, 100%, 70%);
+  text-shadow: 0 0 3px hsl(30, 100%, 70%, 0.5);
+}
+
+/* Chat Sizes */
+.chat-size-small {
+  width: 280px;
+  height: 400px;
+  font-size: 0.9em;
+}
+
+.chat-size-medium {
+  width: 350px;
+  height: 450px;
+}
+
+.chat-size-large {
+  width: 420px;
+  height: 550px;
+  font-size: 1.05em;
+}
+
+/* Chat Font Styles */
+.chat-font-default {
+  /* Default system font */
+}
+
+.chat-font-gaming {
+  font-family: 'Russo One', 'Orbitron', var(--font-sans);
+  letter-spacing: 0.5px;
+}
+
+.chat-font-futuristic {
+  font-family: 'Rajdhani', 'Exo 2', var(--font-sans);
+  letter-spacing: 0.5px;
+}
+
+.chat-font-minimalist {
+  font-family: 'Inter', 'Roboto', var(--font-sans);
+  letter-spacing: -0.2px;
 }
 
 .chat-window.minimized {
