@@ -250,6 +250,7 @@
   flex: 1;
   overflow-y: auto;
   padding: 12px;
+  padding-bottom: 80px; /* Add extra padding at the bottom to prevent text overlap with input */
   display: flex;
   flex-direction: column;
 }
@@ -397,6 +398,10 @@
   background-color: #07070d;
   border-top: 1px solid #1a1a2e;
   transition: all 0.3s ease;
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  z-index: 10;
 }
 
 .theme-neon .message-input-container {

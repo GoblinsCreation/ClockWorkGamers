@@ -46,18 +46,18 @@ export function Navbar() {
             <div className="flex-shrink-0 flex items-center">
               <Link href="/">
                 <div className="flex items-center cursor-pointer">
-                  <img src="/attached_assets/cwg.gif" alt="CWG Logo" className="h-10 mr-2 neon-glow" 
+                  <img src="/attached_assets/cwg.gif" alt="CWG Logo" className="h-8 mr-1 neon-glow" 
                     onError={(e) => {
                       // Fallback if image fails to load
                       e.currentTarget.style.display = 'none';
                       const fallback = document.createElement('div');
-                      fallback.className = 'h-10 w-10 bg-[hsl(var(--cwg-orange))] flex items-center justify-center neon-glow';
+                      fallback.className = 'h-8 w-8 bg-[hsl(var(--cwg-orange))] flex items-center justify-center neon-glow';
                       fallback.innerHTML = '<span class="text-white font-orbitron font-bold text-xs">CWG</span>';
                       e.currentTarget.parentNode?.appendChild(fallback);
                     }}
                   />
-                  <span className="neon-text-orange font-orbitron font-bold text-xl md:text-2xl">
-                    ClockWork Gamers
+                  <span className="neon-text-orange font-orbitron font-bold text-lg md:text-xl">
+                    ClockWork<span className="hidden sm:inline"> Gamers</span>
                   </span>
                 </div>
               </Link>
@@ -65,15 +65,15 @@ export function Navbar() {
           </div>
           
           {/* Center navigation */}
-          <div className="hidden lg:flex items-center justify-center flex-1 mx-6">
-            <div className="flex space-x-4 xl:space-x-6 overflow-x-auto px-4 py-2 scrollbar-hide">
+          <div className="hidden lg:flex items-center justify-center flex-1 mx-2">
+            <div className="flex space-x-2 xl:space-x-3 px-2 py-2">
               {navLinks.map((link) => (
                 <Link key={link.path} href={link.path}>
-                  <div className={`font-orbitron text-sm cursor-pointer whitespace-nowrap ${
+                  <div className={`font-orbitron text-xs cursor-pointer whitespace-nowrap ${
                     location === link.path 
                       ? 'neon-text-orange border-b-2 border-[hsl(var(--cwg-orange))]' 
                       : 'text-[hsl(var(--cwg-muted))] hover:neon-text-orange'
-                    } px-2 py-1 transition-colors duration-200`}>
+                    } px-1 py-1 transition-colors duration-200`}>
                     {link.name}
                   </div>
                 </Link>
