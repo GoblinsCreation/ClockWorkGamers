@@ -27,6 +27,7 @@ import ReferralsPage from "@/pages/referrals-page";
 import NewsPage from "@/pages/news-page";
 import AchievementsPage from "@/pages/achievements-page";
 import DemoPage from "@/pages/demo-page";
+import ShowcasePage from "@/pages/showcase-page";
 import PrivacyPolicyPage from "@/pages/privacy-policy-page";
 import TermsOfServicePage from "@/pages/terms-of-service-page";
 import CookiePolicyPage from "@/pages/cookie-policy-page";
@@ -70,6 +71,7 @@ function Router() {
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/admin" component={AdminPage} />
       <ProtectedRoute path="/demo" component={DemoPage} />
+      <ProtectedRoute path="/showcase" component={ShowcasePage} />
       <Route component={NotFound} />
     </Switch>
   );
