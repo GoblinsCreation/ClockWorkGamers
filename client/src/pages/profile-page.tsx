@@ -47,7 +47,8 @@ import {
   Pencil, 
   Shield, 
   Trophy, 
-  BookOpen, 
+  BookOpen,
+  Award,
   Gamepad2, 
   Wallet, 
   UserCircle2, 
@@ -65,6 +66,7 @@ import Footer from "@/components/layout/Footer";
 import { useLocation } from 'wouter';
 import StreamerTwitchIntegration from "@/components/streamers/StreamerTwitchIntegration";
 import TwitchStreamerStatus from "@/components/streamers/TwitchStreamerStatus";
+import { AnimatedTrophyCase } from "@/components/achievements/AnimatedTrophyCase";
 
 // Form schema validation
 const profileFormSchema = z.object({
@@ -833,7 +835,7 @@ export default function ProfilePage() {
                       </Form>
                     ) : (
                       <Tabs defaultValue="info" className="w-full">
-                        <TabsList className="grid w-full grid-cols-5 mb-6">
+                        <TabsList className="grid w-full grid-cols-6 mb-6">
                           <TabsTrigger value="info" className="flex items-center">
                             <UserCircle2 className="h-4 w-4 mr-2" />
                             Basic Info
@@ -851,6 +853,10 @@ export default function ProfilePage() {
                               <path d="M11.64 5.93h1.43v4.28h-1.43m3.93-4.28H17v4.28h-1.43M7 2L3.43 5.57v12.86h4.28V22l3.58-3.57h2.85L20.57 12V2m-1.43 9.29l-2.85 2.85h-2.86l-2.5 2.5v-2.5H7.71V3.43h11.43z"/>
                             </svg>
                             Streaming
+                          </TabsTrigger>
+                          <TabsTrigger value="achievements" className="flex items-center">
+                            <Award className="h-4 w-4 mr-2" />
+                            Achievements
                           </TabsTrigger>
                           <TabsTrigger value="preferences" className="flex items-center">
                             <Settings className="h-4 w-4 mr-2" />
@@ -1072,6 +1078,60 @@ export default function ProfilePage() {
                                     </div>
                                   </div>
                                 </div>
+                              </div>
+                            </div>
+                          </div>
+                        </TabsContent>
+                        
+                        <TabsContent value="achievements" className="space-y-6">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-medium">Guild Achievements</h3>
+                            <Button variant="ghost" size="sm" onClick={() => {
+                              queryClient.invalidateQueries({ queryKey: ['/api/user/achievements'] });
+                              queryClient.invalidateQueries({ queryKey: ['/api/user/achievements/completed'] });
+                            }}>
+                              <svg 
+                                className="h-4 w-4 mr-2" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path 
+                                  strokeLinecap="round" 
+                                  strokeLinejoin="round" 
+                                  strokeWidth={2} 
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                                />
+                              </svg>
+                              Refresh
+                            </Button>
+                          </div>
+                          
+                          <div className="bg-[hsl(var(--cwg-dark-blue))] border border-[hsl(var(--cwg-dark-blue))] p-6 rounded-lg">
+                            <AnimatedTrophyCase userId={user?.id} />
+                          </div>
+                          
+                          <div className="mt-8 p-4 bg-[hsl(var(--cwg-dark-blue))] border border-[hsl(var(--cwg-dark-blue))] rounded-lg">
+                            <h4 className="text-lg font-medium mb-4 text-[hsl(var(--cwg-orange))]">
+                              <Trophy className="h-5 w-5 inline-block mr-2" />
+                              Achievement Benefits
+                            </h4>
+                            <div className="space-y-4">
+                              <div className="flex items-start">
+                                <CheckCircle2 className="text-[hsl(var(--cwg-orange))] h-5 w-5 mt-0.5 mr-2 shrink-0" />
+                                <p className="text-sm">Earn guild tokens and special rewards by completing achievements</p>
+                              </div>
+                              <div className="flex items-start">
+                                <CheckCircle2 className="text-[hsl(var(--cwg-orange))] h-5 w-5 mt-0.5 mr-2 shrink-0" />
+                                <p className="text-sm">Showcase your progress and accomplishments to other guild members</p>
+                              </div>
+                              <div className="flex items-start">
+                                <CheckCircle2 className="text-[hsl(var(--cwg-orange))] h-5 w-5 mt-0.5 mr-2 shrink-0" />
+                                <p className="text-sm">Unlock higher tier achievements for exclusive perks and status</p>
+                              </div>
+                              <div className="flex items-start">
+                                <CheckCircle2 className="text-[hsl(var(--cwg-orange))] h-5 w-5 mt-0.5 mr-2 shrink-0" />
+                                <p className="text-sm">Participate in seasonal achievement events for limited-time rewards</p>
                               </div>
                             </div>
                           </div>

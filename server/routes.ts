@@ -28,6 +28,15 @@ import {
   skipOnboarding, 
   getPersonalizedRecommendations 
 } from "./onboarding";
+import {
+  getUserAchievements,
+  getUserCompletedAchievements,
+  updateAchievementProgress,
+  claimAchievementReward,
+  createAchievement,
+  updateAchievement,
+  deleteAchievement
+} from "./achievement";
 
 // Extend session with our custom properties
 declare module "express-session" {
@@ -1272,6 +1281,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching referred users:", error);
       res.status(500).json({ message: "Failed to fetch referred users" });
+    }
+  });
+
+  // Achievement routes
+  app.get("/api/user/achievements", async (req, res) => {
+    try {
+      await getUserAchievements(req, res);
+    } catch (error) {
+      console.error("Error in /api/user/achievements:", error);
+      res.status(500).json({ message: "Failed to fetch user achievements" });
+    }
+  });
+  
+  app.get("/api/user/achievements/completed", async (req, res) => {
+    try {
+      await getUserCompletedAchievements(req, res);
+    } catch (error) {
+      console.error("Error in /api/user/achievements/completed:", error);
+      res.status(500).json({ message: "Failed to fetch completed achievements" });
+    }
+  });
+  
+  app.post("/api/user/achievements/progress", async (req, res) => {
+    try {
+      await updateAchievementProgress(req, res);
+    } catch (error) {
+      console.error("Error in /api/user/achievements/progress:", error);
+      res.status(500).json({ message: "Failed to update achievement progress" });
+    }
+  });
+  
+  app.post("/api/user/achievements/:achievementId/claim", async (req, res) => {
+    try {
+      await claimAchievementReward(req, res);
+    } catch (error) {
+      console.error("Error in /api/user/achievements/:achievementId/claim:", error);
+      res.status(500).json({ message: "Failed to claim achievement reward" });
+    }
+  });
+  
+  // Admin achievement routes
+  app.post("/api/admin/achievements", async (req, res) => {
+    try {
+      await createAchievement(req, res);
+    } catch (error) {
+      console.error("Error in /api/admin/achievements:", error);
+      res.status(500).json({ message: "Failed to create achievement" });
+    }
+  });
+  
+  app.patch("/api/admin/achievements/:id", async (req, res) => {
+    try {
+      await updateAchievement(req, res);
+    } catch (error) {
+      console.error("Error in /api/admin/achievements/:id:", error);
+      res.status(500).json({ message: "Failed to update achievement" });
+    }
+  });
+  
+  app.delete("/api/admin/achievements/:id", async (req, res) => {
+    try {
+      await deleteAchievement(req, res);
+    } catch (error) {
+      console.error("Error in /api/admin/achievements/:id:", error);
+      res.status(500).json({ message: "Failed to delete achievement" });
     }
   });
 
