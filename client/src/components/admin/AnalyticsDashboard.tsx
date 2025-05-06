@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AnalyticsCard } from './AnalyticsCard';
 import { AnalyticsChart } from './AnalyticsChart';
@@ -16,7 +16,9 @@ import {
   List,
   Zap,
   Ticket,
-  Gift
+  Gift,
+  Package,
+  PieChart as PieChartIcon
 } from 'lucide-react';
 import {
   Select,
@@ -28,7 +30,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { format, subDays, subMonths } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { apiRequest } from '@/lib/queryClient';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface AnalyticsData {
   userGrowth: any[];
@@ -49,49 +51,18 @@ interface AnalyticsData {
 
 export function AnalyticsDashboard() {
   const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month' | 'quarter'>('week');
-  const [isLoading, setIsLoading] = useState(false);
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
-    userGrowth: [],
-    streamViewership: [],
-    rentalRevenue: [],
-    tokenDistribution: [],
-    gameDistribution: [],
-    streamActivity: [],
-    streamersPerformance: [],
-    guildAchievements: [],
-    referralsSummary: [],
-    userEngagement: [],
-    tokenEconomy: [],
-    nftActivity: [],
-    dailyActiveUsers: [],
-    onboardingCompletion: []
-  });
 
-  // Fetch analytics data when timeframe changes
-  useEffect(() => {
-    const fetchAnalyticsData = async () => {
-      setIsLoading(true);
-      try {
-        // Fetch analytics data from backend
-        const response = await apiRequest('GET', `/api/admin/analytics?timeframe=${timeframe}`);
-        const data = await response.json();
-        
-        if (data) {
-          setAnalyticsData(prevData => ({
-            ...prevData,
-            ...data
-          }));
-        }
-      } catch (error) {
-        console.error('Error fetching analytics data:', error);
-        // If API fails, we keep the existing data
-      } finally {
-        setIsLoading(false);
+  // Fetch analytics data from API
+  const { data: analyticsData, isLoading } = useQuery<AnalyticsData>({
+    queryKey: ['/api/admin/analytics', timeframe],
+    queryFn: async () => {
+      const response = await fetch(`/api/admin/analytics?timeframe=${timeframe}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics data');
       }
-    };
-
-    fetchAnalyticsData();
-  }, [timeframe]);
+      return response.json();
+    }
+  });
 
   // Fetch users for total count
   const { data: users = [] } = useQuery({
@@ -129,8 +100,8 @@ export function AnalyticsDashboard() {
 
   // Calculate total revenue from rental requests
   const calculateTotalRevenue = () => {
-    const approvedRentals = rentalRequests.filter(r => r.status === 'approved');
-    const total = approvedRentals.reduce((sum, rental) => sum + (rental.price || 0), 0);
+    const approvedRentals = rentalRequests.filter((r: any) => r.status === 'approved');
+    const total = approvedRentals.reduce((sum: number, rental: any) => sum + (rental.price || 0), 0);
     return `$${total.toFixed(2)}`;
   };
 
