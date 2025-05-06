@@ -933,6 +933,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Admin analytics endpoint
+  app.get("/api/admin/analytics", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    // Only admins can access this endpoint
+    if (!req.user!.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    try {
+      const timeframe = req.query.timeframe as string || 'week';
+      
+      // Generate user growth analytics
+      const userDates = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const userGrowth = userDates.map((day, index) => {
+        // Create some semi-random growth data that generally trends upward
+        const baseValue = 80 + index * 5; // Base user count starts at 80 and increases by 5 each day
+        const randomVariation = Math.floor(Math.random() * 20) - 10; // Random variation between -10 and +10
+        const uniqueVisitors = baseValue + randomVariation;
+        const signups = Math.floor(uniqueVisitors * (0.1 + Math.random() * 0.1)); // 10-20% conversion rate
+        
+        return {
+          name: day,
+          'Unique Visitors': uniqueVisitors,
+          'New Signups': signups,
+        };
+      });
+      
+      // Generate stream viewership analytics
+      const streamDates = ['10 AM', '12 PM', '2 PM', '4 PM', '6 PM', '8 PM', '10 PM'];
+      const streamViewership = streamDates.map((time, index) => {
+        // Create viewership pattern with peak during evening hours
+        let baseViewers = 50;
+        if (index > 2) baseViewers = 100; // Higher base during afternoon
+        if (index > 4) baseViewers = 150; // Even higher base during evening
+        
+        const randomVariation = Math.floor(Math.random() * 40) - 20;
+        const viewers = baseViewers + randomVariation;
+        
+        return {
+          name: time,
+          'Viewers': viewers,
+        };
+      });
+      
+      // Generate rental revenue analytics 
+      const rentalDates = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const rentalRevenue = rentalDates.map((day, index) => {
+        const baseRevenue = 1000 + index * 200; // Base revenue starts at 1000 and increases by 200 each day
+        const randomVariation = Math.floor(Math.random() * 400) - 200; // Random variation between -200 and +200
+        
+        return {
+          name: day,
+          'Revenue': baseRevenue + randomVariation,
+        };
+      });
+      
+      // Generate token distribution analytics
+      const tokenDistribution = [
+        { name: 'Tokens Earned', value: 10200 },
+        { name: 'Tokens Spent', value: 7800 },
+        { name: 'Tokens Locked', value: 4500 },
+        { name: 'Referral Bonus', value: 2100 },
+      ];
+      
+      // Generate game distribution analytics
+      const gameDistribution = [
+        { name: 'Boss Fighters', value: 35 },
+        { name: 'KoKodi', value: 22 },
+        { name: 'Nyan Heroes', value: 18 },
+        { name: 'Big Time', value: 12 },
+        { name: 'WorldShards', value: 8 },
+        { name: 'Off The Grid', value: 3 },
+        { name: 'RavenQuest', value: 2 },
+      ];
+      
+      // Generate stream activity by day
+      const streamActivity = [
+        { name: 'Monday', value: 4 },
+        { name: 'Tuesday', value: 6 },
+        { name: 'Wednesday', value: 8 },
+        { name: 'Thursday', value: 10 },
+        { name: 'Friday', value: 12 },
+        { name: 'Saturday', value: 14 },
+        { name: 'Sunday', value: 10 },
+      ];
+      
+      // Generate top streamers performance
+      const streamersPerformance = [
+        { name: 'FrostiiGoblin', viewers: 248, hours: 28, followers: 1200 },
+        { name: 'NeonDragon', viewers: 186, hours: 32, followers: 980 },
+        { name: 'CryptoQueen', viewers: 173, hours: 24, followers: 850 },
+        { name: 'BlockchainBro', viewers: 145, hours: 20, followers: 720 },
+        { name: 'NFTHunter', viewers: 129, hours: 22, followers: 635 },
+      ];
+      
+      // Generate user engagement data
+      const userEngagement = [
+        { name: 'Mon', Mobile: 120, Desktop: 200, Web3: 80 },
+        { name: 'Tue', Mobile: 132, Desktop: 180, Web3: 70 },
+        { name: 'Wed', Mobile: 101, Desktop: 198, Web3: 90 },
+        { name: 'Thu', Mobile: 134, Desktop: 210, Web3: 120 },
+        { name: 'Fri', Mobile: 190, Desktop: 220, Web3: 140 },
+        { name: 'Sat', Mobile: 230, Desktop: 170, Web3: 160 },
+        { name: 'Sun', Mobile: 210, Desktop: 180, Web3: 130 },
+      ];
+      
+      // Generate token economy data
+      const tokenEconomy = [
+        { name: 'Week 1', Minted: 5000, Burned: 1200, Staked: 3000 },
+        { name: 'Week 2', Minted: 4500, Burned: 1500, Staked: 3200 },
+        { name: 'Week 3', Minted: 5200, Burned: 1700, Staked: 3500 },
+        { name: 'Week 4', Minted: 6000, Burned: 2000, Staked: 4000 },
+      ];
+      
+      // Generate NFT activity data
+      const nftActivity = [
+        { name: 'Mon', Minted: 24, Traded: 18, Listed: 42 },
+        { name: 'Tue', Minted: 18, Traded: 22, Listed: 38 },
+        { name: 'Wed', Minted: 32, Traded: 28, Listed: 52 },
+        { name: 'Thu', Minted: 26, Traded: 32, Listed: 44 },
+        { name: 'Fri', Minted: 35, Traded: 42, Listed: 66 },
+        { name: 'Sat', Minted: 42, Traded: 36, Listed: 58 },
+        { name: 'Sun', Minted: 38, Traded: 30, Listed: 50 },
+      ];
+      
+      // Generate daily active users data
+      const dailyActiveUsers = [
+        { name: 'Mon', Users: 320 },
+        { name: 'Tue', Users: 302 },
+        { name: 'Wed', Users: 341 },
+        { name: 'Thu', Users: 374 },
+        { name: 'Fri', Users: 390 },
+        { name: 'Sat', Users: 430 },
+        { name: 'Sun', Users: 380 },
+      ];
+      
+      // Generate onboarding completion data
+      const onboardingCompletion = [
+        { name: 'Started', value: 100 },
+        { name: 'Profile Setup', value: 85 },
+        { name: 'Preferences', value: 68 },
+        { name: 'Wallet Connected', value: 42 },
+        { name: 'First Token', value: 38 },
+      ];
+      
+      const analyticsData = {
+        userGrowth,
+        streamViewership,
+        rentalRevenue,
+        tokenDistribution,
+        gameDistribution,
+        streamActivity,
+        streamersPerformance,
+        userEngagement,
+        tokenEconomy,
+        nftActivity,
+        dailyActiveUsers,
+        onboardingCompletion,
+      };
+      
+      res.json(analyticsData);
+    } catch (error) {
+      console.error("Error generating analytics data:", error);
+      res.status(500).json({ message: "Failed to generate analytics data" });
+    }
+  });
+  
   app.patch("/api/admin/rental-requests/:id", async (req, res) => {
     try {
       const requestId = parseInt(req.params.id);

@@ -14,21 +14,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  Legend
-} from "recharts";
+import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
