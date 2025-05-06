@@ -12,7 +12,7 @@ import RentalsPage from "@/pages/rentals-page";
 import CoursesPage from "@/pages/courses-page";
 import CalculatorsPage from "@/pages/calculators-page";
 import ContactPage from "@/pages/contact-page";
-import AdminPage from "@/pages/admin-page";
+import AdminPage from "@/pages/admin-page-new";
 import NFTMarketplacePage from "@/pages/nft-marketplace-page";
 import TokenDashboardPage from "@/pages/token-dashboard-page";
 import PlayToEarnPage from "@/pages/play-to-earn-page";
@@ -35,7 +35,7 @@ import { ProtectedRoute } from "./lib/protected-route";
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from "./hooks/use-auth";
 import { Web3Provider } from "./hooks/use-web3";
-import FloatingChat from "@/components/chat/FloatingChat";
+import SimpleChatWidget from "@/components/chat/SimpleChatWidget";
 import AchievementUnlockNotification from "@/components/achievements/AchievementUnlockNotification";
 import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
 
@@ -86,7 +86,7 @@ function App() {
               <TooltipProvider>
                 <Toaster />
                 <Router />
-                <FloatingChat />
+                <SimpleChatWidget />
                 <AchievementUnlockNotification />
                 <OnboardingFlow />
               </TooltipProvider>
