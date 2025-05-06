@@ -18,7 +18,7 @@ import {
 } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
-import { eq, desc, and, asc, inArray, sql, count } from "drizzle-orm";
+import { eq, desc, and, asc, inArray, sql, count, or } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
 import { Store } from "express-session";
@@ -245,17 +245,7 @@ export class DatabaseStorage implements IStorage {
   async listStreamers(): Promise<Streamer[]> {
     try {
       return await db
-        .select({
-          id: streamers.id,
-          userId: streamers.userId,
-          displayName: streamers.displayName,
-          twitchId: streamers.twitchId,
-          profileImageUrl: streamers.profileImageUrl,
-          isLive: streamers.isLive,
-          currentGame: streamers.currentGame,
-          streamTitle: streamers.streamTitle,
-          viewerCount: streamers.viewerCount
-        })
+        .select()
         .from(streamers);
     } catch (error) {
       console.error("Error fetching streamers:", error);
@@ -266,17 +256,7 @@ export class DatabaseStorage implements IStorage {
   async getLiveStreamers(): Promise<Streamer[]> {
     try {
       return await db
-        .select({
-          id: streamers.id,
-          userId: streamers.userId,
-          displayName: streamers.displayName,
-          twitchId: streamers.twitchId,
-          profileImageUrl: streamers.profileImageUrl,
-          isLive: streamers.isLive,
-          currentGame: streamers.currentGame,
-          streamTitle: streamers.streamTitle,
-          viewerCount: streamers.viewerCount
-        })
+        .select()
         .from(streamers)
         .where(eq(streamers.isLive, true));
     } catch (error) {
@@ -811,6 +791,140 @@ export class DatabaseStorage implements IStorage {
     // For example, if it's tokens, you would increase the user's token balance
     
     return true;
+  }
+
+  // Payment methods
+  async createPayment(insertPayment: InsertPayment): Promise<Payment> {
+    const [payment] = await db.insert(payments).values(insertPayment).returning();
+    return payment;
+  }
+
+  async getPayment(id: number): Promise<Payment | undefined> {
+    const [payment] = await db.select().from(payments).where(eq(payments.id, id));
+    return payment;
+  }
+
+  async getPaymentByIntentId(paymentIntentId: string): Promise<Payment | undefined> {
+    const [payment] = await db.select().from(payments).where(eq(payments.paymentIntentId, paymentIntentId));
+    return payment;
+  }
+
+  async updatePayment(id: number, data: Partial<Payment>): Promise<Payment | undefined> {
+    const [payment] = await db
+      .update(payments)
+      .set(data)
+      .where(eq(payments.id, id))
+      .returning();
+    return payment;
+  }
+
+  async getUserPayments(userId: number): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.userId, userId))
+      .orderBy(desc(payments.createdAt));
+  }
+
+  // Course Purchase methods
+  async createCoursePurchase(insertPurchase: InsertCoursePurchase): Promise<CoursePurchase> {
+    const [purchase] = await db.insert(coursePurchases).values(insertPurchase).returning();
+    return purchase;
+  }
+
+  async getCoursePurchase(id: number): Promise<CoursePurchase | undefined> {
+    const [purchase] = await db.select().from(coursePurchases).where(eq(coursePurchases.id, id));
+    return purchase;
+  }
+
+  async getUserCoursePurchases(userId: number): Promise<CoursePurchase[]> {
+    return await db
+      .select()
+      .from(coursePurchases)
+      .where(eq(coursePurchases.userId, userId))
+      .orderBy(desc(coursePurchases.createdAt));
+  }
+
+  async getUserActiveCourses(userId: number): Promise<Array<Course & { purchase: CoursePurchase }>> {
+    const now = new Date();
+    const results = await db
+      .select({
+        course: courses,
+        purchase: coursePurchases
+      })
+      .from(coursePurchases)
+      .innerJoin(courses, eq(coursePurchases.courseId, courses.id))
+      .where(
+        and(
+          eq(coursePurchases.userId, userId),
+          eq(coursePurchases.status, 'active'),
+          or(
+            sql`${coursePurchases.accessExpires} IS NULL`,
+            sql`${coursePurchases.accessExpires} > ${now}`
+          )
+        )
+      );
+
+    return results.map(r => ({ ...r.course, purchase: r.purchase }));
+  }
+
+  async hasUserPurchasedCourse(userId: number, courseId: number): Promise<boolean> {
+    const now = new Date();
+    const result = await db
+      .select({ count: count() })
+      .from(coursePurchases)
+      .where(
+        and(
+          eq(coursePurchases.userId, userId),
+          eq(coursePurchases.courseId, courseId),
+          eq(coursePurchases.status, 'active'),
+          or(
+            sql`${coursePurchases.accessExpires} IS NULL`,
+            sql`${coursePurchases.accessExpires} > ${now}`
+          )
+        )
+      );
+    return result[0].count > 0;
+  }
+
+  // Rental Purchase methods
+  async createRentalPurchase(insertPurchase: InsertRentalPurchase): Promise<RentalPurchase> {
+    const [purchase] = await db.insert(rentalPurchases).values(insertPurchase).returning();
+    return purchase;
+  }
+
+  async getRentalPurchase(id: number): Promise<RentalPurchase | undefined> {
+    const [purchase] = await db.select().from(rentalPurchases).where(eq(rentalPurchases.id, id));
+    return purchase;
+  }
+
+  async getUserRentalPurchases(userId: number): Promise<RentalPurchase[]> {
+    return await db
+      .select()
+      .from(rentalPurchases)
+      .where(eq(rentalPurchases.userId, userId))
+      .orderBy(desc(rentalPurchases.createdAt));
+  }
+
+  async getUserActiveRentals(userId: number): Promise<Array<Rental & { purchase: RentalPurchase }>> {
+    const now = new Date();
+    const results = await db
+      .select({
+        rental: rentals,
+        purchase: rentalPurchases
+      })
+      .from(rentalPurchases)
+      .innerJoin(rentals, eq(rentalPurchases.rentalId, rentals.id))
+      .where(
+        and(
+          eq(rentalPurchases.userId, userId),
+          eq(rentalPurchases.status, 'active'),
+          sql`${rentalPurchases.startDate} <= ${now}`,
+          sql`${rentalPurchases.endDate} > ${now}`
+        )
+      );
+
+    return results.map(r => ({ ...r.rental, purchase: r.purchase }));
   }
 }
 
