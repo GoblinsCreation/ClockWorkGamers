@@ -11,7 +11,10 @@ import {
   referrals, type Referral, type InsertReferral,
   notifications, type Notification, type InsertNotification,
   guildAchievements, type GuildAchievement, type InsertGuildAchievement,
-  userAchievementProgress, type UserAchievementProgress, type InsertUserAchievementProgress
+  userAchievementProgress, type UserAchievementProgress, type InsertUserAchievementProgress,
+  payments, type Payment, type InsertPayment,
+  coursePurchases, type CoursePurchase, type InsertCoursePurchase,
+  rentalPurchases, type RentalPurchase, type InsertRentalPurchase
 } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
@@ -122,6 +125,26 @@ export interface IStorage {
   getRecentlyCompletedAchievements(userId: number, limit?: number): Promise<Array<GuildAchievement & { progress: UserAchievementProgress }>>;
   claimAchievementReward(userId: number, achievementId: number): Promise<boolean>;
 
+  // Payment operations
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  getPayment(id: number): Promise<Payment | undefined>;
+  getPaymentByIntentId(paymentIntentId: string): Promise<Payment | undefined>;
+  updatePayment(id: number, data: Partial<Payment>): Promise<Payment | undefined>;
+  getUserPayments(userId: number): Promise<Payment[]>;
+
+  // Course Purchase operations
+  createCoursePurchase(purchase: InsertCoursePurchase): Promise<CoursePurchase>;
+  getCoursePurchase(id: number): Promise<CoursePurchase | undefined>;
+  getUserCoursePurchases(userId: number): Promise<CoursePurchase[]>;
+  getUserActiveCourses(userId: number): Promise<Array<Course & { purchase: CoursePurchase }>>;
+  hasUserPurchasedCourse(userId: number, courseId: number): Promise<boolean>;
+
+  // Rental Purchase operations
+  createRentalPurchase(purchase: InsertRentalPurchase): Promise<RentalPurchase>;
+  getRentalPurchase(id: number): Promise<RentalPurchase | undefined>;
+  getUserRentalPurchases(userId: number): Promise<RentalPurchase[]>;
+  getUserActiveRentals(userId: number): Promise<Array<Rental & { purchase: RentalPurchase }>>;
+  
   // Session storage
   sessionStore: Store;
 }

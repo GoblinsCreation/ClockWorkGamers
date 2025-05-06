@@ -285,6 +285,54 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertReferral = z.infer<typeof insertReferralSchema>;
 export type Referral = typeof referrals.$inferSelect;
 
+// Payments model
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  amount: integer("amount").notNull(), // In cents
+  currency: text("currency").default("usd").notNull(),
+  status: text("status").notNull(), // pending, completed, failed, refunded
+  paymentMethod: text("payment_method").notNull(), // stripe, paypal, crypto
+  paymentIntentId: text("payment_intent_id"), // Stripe payment intent ID
+  paypalOrderId: text("paypal_order_id"), // PayPal order ID
+  description: text("description"),
+  metadata: jsonb("metadata").default({}), // Additional data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertPaymentSchema = createInsertSchema(payments)
+  .omit({ id: true, createdAt: true, updatedAt: true });
+
+// Course Purchases model
+export const coursePurchases = pgTable("course_purchases", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  courseId: integer("course_id").notNull(),
+  paymentId: integer("payment_id").notNull(),
+  status: text("status").default("active").notNull(), // active, expired, refunded
+  accessExpires: timestamp("access_expires"), // Null for lifetime access
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCoursePurchaseSchema = createInsertSchema(coursePurchases)
+  .omit({ id: true, createdAt: true });
+
+// Rental Purchases model
+export const rentalPurchases = pgTable("rental_purchases", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  rentalId: integer("rental_id").notNull(),
+  paymentId: integer("payment_id").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  status: text("status").default("pending").notNull(), // pending, active, completed, cancelled
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertRentalPurchaseSchema = createInsertSchema(rentalPurchases)
+  .omit({ id: true, createdAt: true });
+
 // Notifications model
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
@@ -423,7 +471,61 @@ export const usersRelationUpdate = relations(users, ({ many, one }) => ({
   referralsReceived: many(referrals, { relationName: "referred" })
 }));
 
+// Relations for payments and purchases
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  user: one(users, {
+    fields: [payments.userId],
+    references: [users.id],
+  }),
+}));
+
+export const coursePurchasesRelations = relations(coursePurchases, ({ one }) => ({
+  user: one(users, {
+    fields: [coursePurchases.userId],
+    references: [users.id],
+  }),
+  course: one(courses, {
+    fields: [coursePurchases.courseId],
+    references: [courses.id],
+  }),
+  payment: one(payments, {
+    fields: [coursePurchases.paymentId],
+    references: [payments.id],
+  }),
+}));
+
+export const rentalPurchasesRelations = relations(rentalPurchases, ({ one }) => ({
+  user: one(users, {
+    fields: [rentalPurchases.userId],
+    references: [users.id],
+  }),
+  rental: one(rentals, {
+    fields: [rentalPurchases.rentalId],
+    references: [rentals.id],
+  }),
+  payment: one(payments, {
+    fields: [rentalPurchases.paymentId],
+    references: [payments.id],
+  }),
+}));
+
+// Update user relations to include payments and purchases
+export const usersPaymentRelations = relations(users, ({ many }) => ({
+  payments: many(payments),
+  coursePurchases: many(coursePurchases),
+  rentalPurchases: many(rentalPurchases),
+}));
+
 // Type exports
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type Payment = typeof payments.$inferSelect;
+
+export type InsertCoursePurchase = z.infer<typeof insertCoursePurchaseSchema>;
+export type CoursePurchase = typeof coursePurchases.$inferSelect;
+
+export type InsertRentalPurchase = z.infer<typeof insertRentalPurchaseSchema>;
+export type RentalPurchase = typeof rentalPurchases.$inferSelect;
+
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 
