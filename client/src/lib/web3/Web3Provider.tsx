@@ -77,6 +77,10 @@ export function Web3Provider({ children }: Web3ProviderProps) {
             const balance = await ethProvider.getBalance(userAddress);
             setBalance(ethers.formatEther(balance));
             
+            // Get signer for transactions
+            const ethSigner = await ethProvider.getSigner();
+            setSigner(ethSigner);
+            
             setProvider(ethProvider);
             setIsConnected(true);
           }
@@ -161,6 +165,10 @@ export function Web3Provider({ children }: Web3ProviderProps) {
       const balance = await ethProvider.getBalance(userAddress);
       setBalance(ethers.formatEther(balance));
       
+      // Get signer for transactions
+      const ethSigner = await ethProvider.getSigner();
+      setSigner(ethSigner);
+      
       // Save wallet address to user profile if logged in
       try {
         await apiRequest('PUT', '/api/profile', {
@@ -188,6 +196,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
     setNetwork(null);
     setIsConnected(false);
     setProvider(null);
+    setSigner(null);
   };
 
   // Provide the Web3 context to children
@@ -200,7 +209,9 @@ export function Web3Provider({ children }: Web3ProviderProps) {
     isConnecting,
     isConnected,
     error,
-    network
+    network,
+    provider,
+    signer
   };
 
   return (

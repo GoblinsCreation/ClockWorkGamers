@@ -284,7 +284,8 @@ export default function TokenDashboardPage() {
   const fetchGasPrices = async () => {
     if (provider) {
       try {
-        const gasPrice = await provider.getGasPrice();
+        const feeData = await provider.getFeeData();
+        const gasPrice = feeData.gasPrice || ethers.parseUnits('50', 'gwei');
         const gasPriceInGwei = parseFloat(formatUnits(gasPrice, "gwei"));
         
         // Calculate slow, standard, and fast gas prices
@@ -335,7 +336,7 @@ export default function TokenDashboardPage() {
       
       // Get gas price based on selection
       const gasOption = gasOptions.find(g => g.value === data.gasOption);
-      const gasPrice = ethers.utils.parseUnits(
+      const gasPrice = ethers.parseUnits(
         gasOption ? gasOption.priceInGwei.toString() : '50',
         'gwei'
       );
@@ -344,7 +345,7 @@ export default function TokenDashboardPage() {
       if (token.symbol === 'ETH') {
         const tx = await signer.sendTransaction({
           to: data.recipient,
-          value: parseUnits(data.amount, 18),
+          value: ethers.parseUnits(data.amount, 18),
           gasPrice,
         });
         
