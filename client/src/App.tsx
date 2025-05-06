@@ -14,6 +14,7 @@ import CalculatorsPage from "@/pages/calculators-page";
 import ContactPage from "@/pages/contact-page";
 import AdminPage from "@/pages/admin-page-new";
 import NFTMarketplacePage from "@/pages/nft-marketplace-page";
+import NFTCollectionsPage from "@/pages/nft-collections-page";
 import TokenDashboardPage from "@/pages/token-dashboard-page";
 import PlayToEarnPage from "@/pages/play-to-earn-page";
 import PayToEarnPage from "@/pages/pay-to-earn-page";
@@ -62,6 +63,7 @@ function Router() {
       <ProtectedRoute path="/payment" component={PaymentPage} />
       <ProtectedRoute path="/payment-options" component={PaymentOptionsPage} />
       <ProtectedRoute path="/nft-marketplace" component={NFTMarketplacePage} />
+      <ProtectedRoute path="/nft-collections" component={NFTCollectionsPage} />
       <ProtectedRoute path="/token-dashboard" component={TokenDashboardPage} />
       <ProtectedRoute path="/wallet" component={WalletPage} />
       <ProtectedRoute path="/calculators" component={CalculatorsPage} />

@@ -1,891 +1,969 @@
-import { useState, useEffect } from "react";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { useWeb3 } from "@/hooks/use-web3";
-import { formatEthereumAddress } from "@/lib/utils";
-import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useEffect } from 'react';
+import { useWeb3 } from '@/lib/web3/Web3Provider';
+import { WalletConnect } from '@/components/web3/WalletConnect';
+import { Page } from '@/components/ui/page';
+import { PageHeader } from '@/components/ui/page-header';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { ethers } from 'ethers';
+import { formatEther, formatUnits, parseUnits } from '@ethersproject/units';
 import { 
-  Wallet, 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  RefreshCw, 
-  Clock, 
-  CheckCircle, 
-  XCircle,
+  Coins,
+  RefreshCcw,
+  ArrowRightLeft,
   TrendingUp,
-  Award,
-  Users,
-  ArrowRight,
-  BarChart3
-} from "lucide-react";
-import { ProtectedRoute } from "@/lib/protected-route";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "wouter";
+  History,
+  Plus,
+  Info,
+  CheckCircle2,
+  XCircle
+} from 'lucide-react';
 
-// Temporary token data
-const SAMPLE_TOKEN_DATA = {
-  symbol: "CWG",
-  name: "ClockWork Token",
-  balance: 2500,
-  usdValue: 0.15, // Example USD value per token
-  lockedAmount: 750,
-  stakingRewards: 35.5,
-  stakingApy: 12.5,
-  pendingRewards: 15.2,
-  level: 3,
-  levelProgress: 65,
-  nextLevelRequirement: 5000,
-};
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
-// Temporary transaction data
-const SAMPLE_TRANSACTIONS = [
-  { 
-    id: "tx1", 
-    type: "earn", 
-    amount: 150, 
-    description: "Tournament reward", 
-    timestamp: Date.now() - 3600000 * 2, // 2 hours ago
-    status: "completed"
-  },
-  { 
-    id: "tx2", 
-    type: "spend", 
-    amount: 75, 
-    description: "NFT purchase", 
-    timestamp: Date.now() - 3600000 * 24, // 1 day ago
-    status: "completed"
-  },
-  { 
-    id: "tx3", 
-    type: "stake", 
-    amount: 200, 
-    description: "Staking deposit", 
-    timestamp: Date.now() - 3600000 * 48, // 2 days ago
-    status: "completed"
-  },
-  { 
-    id: "tx4", 
-    type: "earn", 
-    amount: 25, 
-    description: "Daily quest completion", 
-    timestamp: Date.now() - 3600000 * 72, // 3 days ago
-    status: "completed"
-  },
-  { 
-    id: "tx5", 
-    type: "transfer", 
-    amount: 50, 
-    description: "Transfer to guild member", 
-    timestamp: Date.now() - 3600000 * 120, // 5 days ago
-    status: "completed"
-  }
-];
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
-// Temporary quests data
-const SAMPLE_QUESTS = [
-  {
-    id: "quest1",
-    title: "Complete 3 Ranked Matches",
-    reward: 50,
-    game: "Boss Fighters",
-    difficulty: "Easy",
-    timeEstimate: "30 mins",
-    completed: true
-  },
-  {
-    id: "quest2",
-    title: "Win a Tournament Match",
-    reward: 150,
-    game: "Boss Fighters",
-    difficulty: "Medium", 
-    timeEstimate: "1 hour",
-    completed: false
-  },
-  {
-    id: "quest3",
-    title: "Reach Level 10 in Campaign",
-    reward: 100,
-    game: "Call of Legends",
-    difficulty: "Medium",
-    timeEstimate: "2 hours", 
-    completed: false
-  },
-  {
-    id: "quest4",
-    title: "Refer a Friend",
-    reward: 200,
-    game: "Guild Activity",
-    difficulty: "Easy",
-    timeEstimate: "5 mins",
-    completed: false
-  },
-  {
-    id: "quest5",
-    title: "Stream for 2 Hours",
-    reward: 250,
-    game: "Spellcraft",
-    difficulty: "Hard",
-    timeEstimate: "2 hours",
-    completed: false
-  }
-];
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-// Guild levels and benefits
-const GUILD_LEVELS = [
-  {
-    level: 1,
-    requirement: 0,
-    benefits: ["Basic Guild Access", "Marketplace Access", "Basic Quests"]
-  },
-  {
-    level: 2,
-    requirement: 1000,
-    benefits: ["5% Marketplace Discount", "Daily Quests", "Basic NFT Access"]
-  },
-  {
-    level: 3, 
-    requirement: 2500,
-    benefits: ["10% Marketplace Discount", "Weekly Tournaments", "Rare NFT Access"]
-  },
-  {
-    level: 4,
-    requirement: 5000,
-    benefits: ["15% Marketplace Discount", "Premium Quests", "Epic NFT Access"]
-  },
-  {
-    level: 5,
-    requirement: 10000,
-    benefits: ["20% Marketplace Discount", "Exclusive Tournaments", "Legendary NFT Access"]
-  }
-];
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
-export function TokenDashboardPage() {
-  const { user } = useAuth();
-  const { connected, account } = useWeb3();
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState("overview");
-  const [tokenData, setTokenData] = useState(SAMPLE_TOKEN_DATA);
-  const [transactions, setTransactions] = useState(SAMPLE_TRANSACTIONS);
-  const [quests, setQuests] = useState(SAMPLE_QUESTS);
-  
-  // Simulate loading state
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
+// Token transaction schema
+const transactionFormSchema = z.object({
+  recipient: z
+    .string()
+    .min(1, "Recipient address is required")
+    .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address format"),
+  amount: z
+    .string()
+    .min(1, "Amount is required")
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Amount must be a positive number",
+    }),
+  token: z.string().min(1, "Token is required"),
+  gasOption: z.enum(["slow", "standard", "fast"]),
+});
+
+type TransactionFormValues = z.infer<typeof transactionFormSchema>;
+
+// Token balance type
+interface TokenBalance {
+  name: string;
+  symbol: string;
+  balance: string;
+  value: number;
+  change24h: number;
+  address: string;
+  decimals: number;
+  logo: string;
+}
+
+// Transaction history type
+interface Transaction {
+  id: string;
+  type: 'send' | 'receive' | 'swap';
+  token: string;
+  amount: string;
+  from: string;
+  to: string;
+  timestamp: number;
+  status: 'completed' | 'pending' | 'failed';
+  hash: string;
+}
+
+// Gas price options
+interface GasPriceOption {
+  label: string;
+  value: 'slow' | 'standard' | 'fast';
+  time: string;
+  price: string;
+  priceInGwei: number;
+}
+
+// Helper function to format addresses
+function formatAddress(address: string) {
+  return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+}
+
+// Helper function to format currency
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
+}
+
+export default function TokenDashboardPage() {
+  const { isConnected, address, provider, signer } = useWeb3();
+  const [selectedTab, setSelectedTab] = useState('holdings');
+  const [isLoading, setIsLoading] = useState(false);
+  const [tokens, setTokens] = useState<TokenBalance[]>([]);
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+  const [gasOptions, setGasOptions] = useState<GasPriceOption[]>([
+    { label: 'Slow', value: 'slow', time: '~10 min', price: '~$1.50', priceInGwei: 35 },
+    { label: 'Standard', value: 'standard', time: '~3 min', price: '~$2.50', priceInGwei: 45 },
+    { label: 'Fast', value: 'fast', time: '~30 sec', price: '~$3.50', priceInGwei: 55 }
+  ]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [transactionHash, setTransactionHash] = useState<string | null>(null);
+  const [transactionStatus, setTransactionStatus] = useState<'pending' | 'completed' | 'failed' | null>(null);
+  const { toast } = useToast();
+
+  // Set up the form
+  const form = useForm<TransactionFormValues>({
+    resolver: zodResolver(transactionFormSchema),
+    defaultValues: {
+      recipient: '',
+      amount: '',
+      token: '',
+      gasOption: 'standard',
+    },
+  });
+
+  // Generate mock token balances for demo
   useEffect(() => {
-    const timer = setTimeout(() => {
+    if (isConnected && address) {
+      setIsLoading(true);
+      
+      // Mock tokens
+      const mockTokens: TokenBalance[] = [
+        {
+          name: 'Ethereum',
+          symbol: 'ETH',
+          balance: '2.45',
+          value: 5635.78,
+          change24h: 2.34,
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 18,
+          logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+        },
+        {
+          name: 'ClockWork Token',
+          symbol: 'CWG',
+          balance: '12500.00',
+          value: 3750.00,
+          change24h: 5.67,
+          address: '0xCWG1234567890123456789012345678901234567',
+          decimals: 18,
+          logo: 'https://via.placeholder.com/40/FF6700/FFFFFF?text=CWG',
+        },
+        {
+          name: 'USD Coin',
+          symbol: 'USDC',
+          balance: '1250.00',
+          value: 1250.00,
+          change24h: 0.01,
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          decimals: 6,
+          logo: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+        },
+        {
+          name: 'Tether',
+          symbol: 'USDT',
+          balance: '750.00',
+          value: 750.00,
+          change24h: 0.00,
+          address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+          decimals: 6,
+          logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png',
+        },
+        {
+          name: 'Arbitrum',
+          symbol: 'ARB',
+          balance: '300.00',
+          value: 120.00,
+          change24h: -1.23,
+          address: '0xFC5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a',
+          decimals: 18,
+          logo: 'https://cryptologos.cc/logos/arbitrum-arb-logo.png',
+        }
+      ];
+      
+      // Calculate total value
+      const total = mockTokens.reduce((acc, token) => acc + token.value, 0);
+      setTotalBalance(total);
+      
+      // Generate mock transaction history
+      const mockTransactions: Transaction[] = [
+        {
+          id: '1',
+          type: 'receive',
+          token: 'ETH',
+          amount: '0.5',
+          from: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+          to: address,
+          timestamp: Date.now() - 86400000, // 1 day ago
+          status: 'completed',
+          hash: '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef1234',
+        },
+        {
+          id: '2',
+          type: 'send',
+          token: 'CWG',
+          amount: '250',
+          from: address,
+          to: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
+          timestamp: Date.now() - 172800000, // 2 days ago
+          status: 'completed',
+          hash: '0xabcdef123456789abcdef123456789abcdef123456789abcdef123456789abcd',
+        },
+        {
+          id: '3',
+          type: 'swap',
+          token: 'ETH',
+          amount: '0.1',
+          from: address,
+          to: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D', // Uniswap router
+          timestamp: Date.now() - 259200000, // 3 days ago
+          status: 'completed',
+          hash: '0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba',
+        }
+      ];
+      
+      // Update state
+      setTokens(mockTokens);
+      setTransactions(mockTransactions);
       setIsLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+      
+      // Set default token for the transaction form
+      form.setValue('token', mockTokens[0].address);
+      
+      // Simulate fetching gas prices
+      fetchGasPrices();
+    }
+  }, [isConnected, address, form]);
   
-  // Format timestamp to readable format
-  const formatTimestamp = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString();
-  };
-  
-  // Calculate time since transaction in human readable format
-  const timeSince = (timestamp: number) => {
-    const seconds = Math.floor((Date.now() - timestamp) / 1000);
-    
-    let interval = seconds / 31536000; // seconds in a year
-    if (interval > 1) return `${Math.floor(interval)} years ago`;
-    
-    interval = seconds / 2592000; // seconds in a month
-    if (interval > 1) return `${Math.floor(interval)} months ago`;
-    
-    interval = seconds / 86400; // seconds in a day
-    if (interval > 1) return `${Math.floor(interval)} days ago`;
-    
-    interval = seconds / 3600; // seconds in an hour
-    if (interval > 1) return `${Math.floor(interval)} hours ago`;
-    
-    interval = seconds / 60; // seconds in a minute
-    if (interval > 1) return `${Math.floor(interval)} minutes ago`;
-    
-    return `${Math.floor(seconds)} seconds ago`;
-  };
-  
-  // Format transaction type to be more readable
-  const formatTxType = (type: string) => {
-    return type.charAt(0).toUpperCase() + type.slice(1);
-  };
-  
-  // Get transaction icon based on type
-  const getTransactionIcon = (type: string) => {
-    switch (type) {
-      case "earn":
-        return <ArrowDownRight className="text-green-500" />;
-      case "spend":
-        return <ArrowUpRight className="text-red-500" />;
-      case "stake":
-        return <TrendingUp className="text-blue-500" />;
-      case "transfer":
-        return <ArrowRight className="text-yellow-500" />;
-      default:
-        return <RefreshCw />;
+  // Fetch gas prices
+  const fetchGasPrices = async () => {
+    if (provider) {
+      try {
+        const gasPrice = await provider.getGasPrice();
+        const gasPriceInGwei = parseFloat(formatUnits(gasPrice, "gwei"));
+        
+        // Calculate slow, standard, and fast gas prices
+        const slow = Math.round(gasPriceInGwei * 0.8);
+        const standard = Math.round(gasPriceInGwei);
+        const fast = Math.round(gasPriceInGwei * 1.2);
+        
+        // Estimate transaction costs in dollars (ETH price estimate $2,300)
+        const ethPrice = 2300;
+        const gasLimit = 21000; // Standard ETH transfer
+        
+        const calculatePriceInUsd = (gweiPrice: number) => {
+          const ethCost = gweiPrice * gasLimit * 1e-9;
+          return formatCurrency(ethCost * ethPrice);
+        };
+        
+        setGasOptions([
+          { label: 'Slow', value: 'slow', time: '~10 min', price: calculatePriceInUsd(slow), priceInGwei: slow },
+          { label: 'Standard', value: 'standard', time: '~3 min', price: calculatePriceInUsd(standard), priceInGwei: standard },
+          { label: 'Fast', value: 'fast', time: '~30 sec', price: calculatePriceInUsd(fast), priceInGwei: fast }
+        ]);
+      } catch (error) {
+        console.error('Error fetching gas prices:', error);
+      }
     }
   };
   
-  // Complete a quest (example functionality)
-  const completeQuest = (questId: string) => {
-    setQuests(quests.map(quest => 
-      quest.id === questId ? { ...quest, completed: true } : quest
-    ));
-    
-    // Add transaction for completed quest
-    const completedQuest = quests.find(q => q.id === questId);
-    if (completedQuest) {
-      const newTransaction = {
-        id: `tx-${Date.now()}`,
-        type: "earn",
-        amount: completedQuest.reward,
-        description: `Completed quest: ${completedQuest.title}`,
-        timestamp: Date.now(),
-        status: "completed"
-      };
-      
-      setTransactions([newTransaction, ...transactions]);
-      
-      // Update token balance
-      setTokenData({
-        ...tokenData,
-        balance: tokenData.balance + completedQuest.reward
+  // Handle form submission
+  async function onSubmit(data: TransactionFormValues) {
+    if (!signer || !provider) {
+      toast({
+        title: "Transaction Failed",
+        description: "Wallet connection is required",
+        variant: "destructive",
       });
+      return;
     }
-  };
-  
-  // Get current level info
-  const getCurrentLevelInfo = () => {
-    return GUILD_LEVELS.find(level => level.level === tokenData.level) || GUILD_LEVELS[0];
-  };
-  
-  // Get next level info
-  const getNextLevelInfo = () => {
-    return GUILD_LEVELS.find(level => level.level === tokenData.level + 1);
-  };
-  
-  if (!connected || !user) {
-    return (
-      <div className="flex flex-col min-h-screen bg-[hsl(var(--cwg-dark))]">
-        <Navbar />
+    
+    setIsSubmitting(true);
+    setTransactionStatus('pending');
+    
+    try {
+      const token = tokens.find(t => t.address === data.token);
+      
+      if (!token) {
+        throw new Error("Selected token not found");
+      }
+      
+      // Get gas price based on selection
+      const gasOption = gasOptions.find(g => g.value === data.gasOption);
+      const gasPrice = ethers.utils.parseUnits(
+        gasOption ? gasOption.priceInGwei.toString() : '50',
+        'gwei'
+      );
+      
+      // For ETH transfers
+      if (token.symbol === 'ETH') {
+        const tx = await signer.sendTransaction({
+          to: data.recipient,
+          value: parseUnits(data.amount, 18),
+          gasPrice,
+        });
         
-        <main className="flex-grow container mx-auto px-4 py-12">
-          <div className="max-w-2xl mx-auto text-center">
-            <h1 className="text-3xl font-bold font-orbitron text-[hsl(var(--cwg-text))]">Token Dashboard</h1>
-            <p className="mt-4 text-[hsl(var(--cwg-muted))]">You need to connect your wallet and be logged in to access the token dashboard.</p>
-            
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/">
-                <Button className="bg-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-dark))]">
-                  <Wallet className="mr-2 h-4 w-4" /> Connect Wallet
-                </Button>
-              </Link>
-              
-              <Link href="/auth">
-                <Button variant="outline" className="border-[hsl(var(--cwg-muted))] text-[hsl(var(--cwg-muted))]">
-                  Sign In
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </main>
+        setTransactionHash(tx.hash);
         
-        <Footer />
-      </div>
-    );
+        // Wait for transaction to be mined
+        const receipt = await tx.wait();
+        
+        if (receipt.status === 1) {
+          setTransactionStatus('completed');
+          toast({
+            title: "Transaction Successful",
+            description: `${data.amount} ETH has been sent to ${formatAddress(data.recipient)}`,
+          });
+          
+          // Add to transactions list
+          const newTransaction: Transaction = {
+            id: Date.now().toString(),
+            type: 'send',
+            token: 'ETH',
+            amount: data.amount,
+            from: address!,
+            to: data.recipient,
+            timestamp: Date.now(),
+            status: 'completed',
+            hash: tx.hash,
+          };
+          
+          setTransactions(prev => [newTransaction, ...prev]);
+          
+          // Update token balance (simplified)
+          setTokens(prev => 
+            prev.map(t => 
+              t.symbol === 'ETH' 
+                ? { 
+                    ...t, 
+                    balance: (parseFloat(t.balance) - parseFloat(data.amount)).toFixed(4),
+                    value: t.value - (parseFloat(data.amount) * 2300) // Assuming $2300/ETH
+                  } 
+                : t
+            )
+          );
+          
+          // Recalculate total balance
+          setTotalBalance(prev => prev - (parseFloat(data.amount) * 2300));
+          
+          // Reset form and close dialog
+          form.reset();
+          setIsTransferDialogOpen(false);
+        } else {
+          setTransactionStatus('failed');
+          throw new Error("Transaction failed");
+        }
+      } else {
+        // For token transfers (ERC20)
+        // This is just a mock since we're not actually connecting to real tokens
+        // In a real app, you would use the token contract and call its transfer method
+        
+        // Simulate a transaction
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const mockTxHash = `0x${Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+        setTransactionHash(mockTxHash);
+        
+        // Simulate success after 1 more second
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        setTransactionStatus('completed');
+        
+        toast({
+          title: "Transaction Successful",
+          description: `${data.amount} ${token.symbol} has been sent to ${formatAddress(data.recipient)}`,
+        });
+        
+        // Add to transactions list
+        const newTransaction: Transaction = {
+          id: Date.now().toString(),
+          type: 'send',
+          token: token.symbol,
+          amount: data.amount,
+          from: address!,
+          to: data.recipient,
+          timestamp: Date.now(),
+          status: 'completed',
+          hash: mockTxHash,
+        };
+        
+        setTransactions(prev => [newTransaction, ...prev]);
+        
+        // Update token balance
+        setTokens(prev => 
+          prev.map(t => 
+            t.symbol === token.symbol 
+              ? { 
+                  ...t, 
+                  balance: (parseFloat(t.balance) - parseFloat(data.amount)).toFixed(2),
+                  value: t.value - (parseFloat(data.amount) * (t.value / parseFloat(t.balance)))
+                } 
+              : t
+          )
+        );
+        
+        // Recalculate total balance
+        const tokenValuePerUnit = token.value / parseFloat(token.balance);
+        setTotalBalance(prev => prev - (parseFloat(data.amount) * tokenValuePerUnit));
+        
+        // Reset form and close dialog
+        form.reset();
+        setIsTransferDialogOpen(false);
+      }
+    } catch (error) {
+      console.error("Transaction error:", error);
+      setTransactionStatus('failed');
+      toast({
+        title: "Transaction Failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
   
   return (
-    <div className="flex flex-col min-h-screen bg-[hsl(var(--cwg-dark))]">
-      <Navbar />
+    <Page>
+      <PageHeader
+        title="Token Dashboard"
+        description="Manage your cryptocurrency assets and track token balances"
+        icon={<Coins className="h-6 w-6" />}
+      />
       
-      <main className="flex-grow">
-        {/* Hero section */}
-        <div className="bg-gradient-to-r from-[hsl(var(--cwg-blue))]/20 to-[hsl(var(--cwg-orange))]/20 py-12">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div>
-                <h1 className="text-3xl font-bold font-orbitron tracking-tight text-[hsl(var(--cwg-text))]">
-                  Token Dashboard
-                </h1>
-                <p className="mt-2 text-[hsl(var(--cwg-muted))]">
-                  Manage your ClockWork Guild tokens and activities
-                </p>
-              </div>
-              
-              <div className="flex flex-col items-end">
-                <div className="text-sm text-[hsl(var(--cwg-muted))]">Connected as</div>
-                <div className="text-[hsl(var(--cwg-blue))] font-orbitron">
-                  {formatEthereumAddress(account || '')}
-                </div>
-                <div className="mt-2 font-orbitron text-lg text-[hsl(var(--cwg-orange))]">
-                  Level {tokenData.level} Guild Member
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Dashboard content */}
-        <div className="container mx-auto px-4 py-8">
-          <Tabs 
-            value={selectedTab} 
-            onValueChange={setSelectedTab}
-            className="space-y-8"
-          >
-            <TabsList className="grid w-full grid-cols-1 md:grid-cols-4 lg:grid-cols-5 h-auto">
-              <TabsTrigger value="overview" className="py-3">Overview</TabsTrigger>
-              <TabsTrigger value="transactions" className="py-3">Activity</TabsTrigger>
-              <TabsTrigger value="quests" className="py-3">Quests</TabsTrigger>
-              <TabsTrigger value="staking" className="py-3">Staking</TabsTrigger>
-              <TabsTrigger value="benefits" className="py-3 hidden lg:flex">Benefits</TabsTrigger>
-            </TabsList>
-            
-            {/* Overview Tab */}
-            <TabsContent value="overview" className="space-y-8">
-              {/* Token Balance Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Balance Card */}
-                <Card className="bg-[hsl(var(--cwg-dark-blue))]/30 border-[hsl(var(--cwg-dark-blue))]">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-[hsl(var(--cwg-text))]">Token Balance</CardTitle>
-                    <CardDescription>Your available ClockWork tokens</CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-center py-4">
-                    <div className="flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-[hsl(var(--cwg-blue))]/20 flex items-center justify-center mb-4">
-                        <Wallet className="text-[hsl(var(--cwg-blue))] h-8 w-8" />
-                      </div>
+      {isConnected ? (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <Card className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-blue))]">
+              <CardHeader className="pb-2">
+                <CardTitle>Total Balance</CardTitle>
+                <CardDescription>All tokens combined</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <Skeleton className="h-10 w-full" />
+                ) : (
+                  <div className="flex flex-col">
+                    <span className="text-3xl font-bold neon-text-blue">
+                      {formatCurrency(totalBalance)}
+                    </span>
+                    <div className="mt-2 flex items-center">
+                      <Badge 
+                        variant={tokens.reduce((acc, token) => acc + token.change24h, 0) > 0 ? "outline" : "destructive"}
+                        className="flex items-center gap-1"
+                      >
+                        <TrendingUp className="h-3 w-3" />
+                        {tokens.reduce((acc, token) => acc + token.change24h, 0).toFixed(2)}%
+                      </Badge>
+                      <span className="text-sm text-[hsl(var(--cwg-muted))] ml-2">24h</span>
                     </div>
-                    <div className="text-4xl font-orbitron text-[hsl(var(--cwg-blue))]">
-                      {tokenData.balance.toLocaleString()}
-                    </div>
-                    <div className="text-[hsl(var(--cwg-muted))] mt-1">
-                      {tokenData.symbol} ≈ ${(tokenData.balance * tokenData.usdValue).toFixed(2)}
-                    </div>
-                  </CardContent>
-                  <CardFooter className="pt-0 justify-center">
-                    <Button variant="outline" className="border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))]">
-                      Transfer Tokens
-                    </Button>
-                  </CardFooter>
-                </Card>
-                
-                {/* Staking Card */}
-                <Card className="bg-[hsl(var(--cwg-dark-blue))]/30 border-[hsl(var(--cwg-dark-blue))]">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-[hsl(var(--cwg-text))]">Staking Rewards</CardTitle>
-                    <CardDescription>Earn passive income from your tokens</CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-center py-4">
-                    <div className="flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-[hsl(var(--cwg-orange))]/20 flex items-center justify-center mb-4">
-                        <TrendingUp className="text-[hsl(var(--cwg-orange))] h-8 w-8" />
-                      </div>
-                    </div>
-                    <div className="text-3xl font-orbitron text-[hsl(var(--cwg-orange))]">
-                      {tokenData.stakingRewards.toLocaleString()} {tokenData.symbol}
-                    </div>
-                    <div className="text-[hsl(var(--cwg-muted))] mt-1">
-                      {tokenData.lockedAmount.toLocaleString()} {tokenData.symbol} staked
-                    </div>
-                    <div className="text-green-500 text-sm mt-2">
-                      APY: {tokenData.stakingApy}%
-                    </div>
-                  </CardContent>
-                  <CardFooter className="pt-0 justify-center">
-                    <Button variant="outline" className="border-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-orange))]">
-                      Claim Rewards
-                    </Button>
-                  </CardFooter>
-                </Card>
-                
-                {/* Guild Level Card */}
-                <Card className="bg-[hsl(var(--cwg-dark-blue))]/30 border-[hsl(var(--cwg-dark-blue))]">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-[hsl(var(--cwg-text))]">Guild Level</CardTitle>
-                    <CardDescription>Your membership status and benefits</CardDescription>
-                  </CardHeader>
-                  <CardContent className="py-4">
-                    <div className="flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-[hsl(var(--cwg-blue))]/20 flex items-center justify-center mb-4">
-                        <Award className="text-[hsl(var(--cwg-blue))] h-8 w-8" />
-                      </div>
-                    </div>
-                    <div className="text-3xl font-orbitron text-center text-[hsl(var(--cwg-blue))]">
-                      Level {tokenData.level}
-                    </div>
-                    <div className="mt-4 space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-[hsl(var(--cwg-muted))]">Progress to Level {tokenData.level + 1}</span>
-                        <span className="text-[hsl(var(--cwg-text))]">{tokenData.levelProgress}%</span>
-                      </div>
-                      <Progress value={tokenData.levelProgress} className="h-2" />
-                      <div className="text-xs text-[hsl(var(--cwg-muted))]">
-                        {tokenData.balance.toLocaleString()} / {tokenData.nextLevelRequirement.toLocaleString()} {tokenData.symbol}
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="pt-0 justify-center">
-                    <Button variant="outline" className="border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))]">
-                      View Benefits
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </div>
-              
-              {/* Recent Activity */}
-              <div className="bg-[hsl(var(--cwg-dark-blue))]/30 rounded-lg border border-[hsl(var(--cwg-dark-blue))] p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-text))]">Recent Activity</h3>
-                  <Button variant="link" className="text-[hsl(var(--cwg-blue))]" onClick={() => setSelectedTab("transactions")}>
-                    View All
-                  </Button>
-                </div>
-                
-                <div className="space-y-4">
-                  {transactions.slice(0, 3).map((tx) => (
-                    <div key={tx.id} className="flex items-center justify-between py-3 border-b border-[hsl(var(--cwg-dark-blue))]">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 rounded-full bg-[hsl(var(--cwg-dark-blue))] flex items-center justify-center mr-4">
-                          {getTransactionIcon(tx.type)}
-                        </div>
-                        <div>
-                          <div className="font-medium text-[hsl(var(--cwg-text))]">{tx.description}</div>
-                          <div className="text-sm text-[hsl(var(--cwg-muted))]">{timeSince(tx.timestamp)}</div>
-                        </div>
-                      </div>
-                      <div className={`text-lg font-orbitron ${tx.type === 'earn' ? 'text-green-500' : tx.type === 'spend' ? 'text-red-500' : 'text-[hsl(var(--cwg-blue))]'}`}>
-                        {tx.type === 'earn' ? '+' : tx.type === 'spend' ? '-' : ''}{tx.amount} {tokenData.symbol}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Active Quests */}
-              <div className="bg-[hsl(var(--cwg-dark-blue))]/30 rounded-lg border border-[hsl(var(--cwg-dark-blue))] p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-text))]">Active Quests</h3>
-                  <Button variant="link" className="text-[hsl(var(--cwg-blue))]" onClick={() => setSelectedTab("quests")}>
-                    View All
-                  </Button>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {quests.filter(q => !q.completed).slice(0, 3).map((quest) => (
-                    <Card key={quest.id} className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]">
-                      <CardHeader className="pb-2">
-                        <div className="text-xs text-[hsl(var(--cwg-muted))]">{quest.game}</div>
-                        <CardTitle className="text-[hsl(var(--cwg-text))] text-base">{quest.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="pb-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-[hsl(var(--cwg-muted))]">Reward:</span>
-                          <span className="text-[hsl(var(--cwg-orange))]">{quest.reward} {tokenData.symbol}</span>
-                        </div>
-                        <div className="flex justify-between text-sm mt-1">
-                          <span className="text-[hsl(var(--cwg-muted))]">Difficulty:</span>
-                          <span className="text-[hsl(var(--cwg-text))]">{quest.difficulty}</span>
-                        </div>
-                        <div className="flex justify-between text-sm mt-1">
-                          <span className="text-[hsl(var(--cwg-muted))]">Est. Time:</span>
-                          <span className="text-[hsl(var(--cwg-text))]">{quest.timeEstimate}</span>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="pt-0">
-                        <Button 
-                          variant="outline" 
-                          className="w-full border-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-orange))]"
-                          onClick={() => completeQuest(quest.id)}
-                        >
-                          Complete Quest
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
-            
-            {/* Transactions Tab */}
-            <TabsContent value="transactions" className="space-y-6">
-              <Card className="bg-[hsl(var(--cwg-dark-blue))]/30 border-[hsl(var(--cwg-dark-blue))]">
-                <CardHeader>
-                  <CardTitle className="text-[hsl(var(--cwg-text))]">Token Activity</CardTitle>
-                  <CardDescription>Your complete transaction history</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {transactions.map((tx) => (
-                      <div key={tx.id} className="flex items-center justify-between py-3 border-b border-[hsl(var(--cwg-dark-blue))]">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full bg-[hsl(var(--cwg-dark-blue))] flex items-center justify-center mr-4">
-                            {getTransactionIcon(tx.type)}
-                          </div>
-                          <div>
-                            <div className="font-medium text-[hsl(var(--cwg-text))]">{tx.description}</div>
-                            <div className="text-xs text-[hsl(var(--cwg-muted))]">
-                              <span className="mr-2">{formatTxType(tx.type)}</span>
-                              <span>{formatTimestamp(tx.timestamp)}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end">
-                          <div className={`text-lg font-orbitron ${tx.type === 'earn' ? 'text-green-500' : tx.type === 'spend' ? 'text-red-500' : 'text-[hsl(var(--cwg-blue))]'}`}>
-                            {tx.type === 'earn' ? '+' : tx.type === 'spend' ? '-' : ''}{tx.amount} {tokenData.symbol}
-                          </div>
-                          <div className="text-xs flex items-center">
-                            {tx.status === 'completed' ? 
-                              <><CheckCircle className="h-3 w-3 text-green-500 mr-1" /> Completed</> : 
-                              <><Clock className="h-3 w-3 text-yellow-500 mr-1" /> Pending</>
-                            }
-                          </div>
-                        </div>
-                      </div>
-                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                )}
+              </CardContent>
+              <CardFooter>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={() => setIsTransferDialogOpen(true)}
+                  >
+                    <ArrowRightLeft className="h-4 w-4" />
+                    Transfer
+                  </Button>
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <Plus className="h-4 w-4" />
+                    Buy
+                  </Button>
+                </div>
+              </CardFooter>
+            </Card>
             
-            {/* Quests Tab */}
-            <TabsContent value="quests" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Active Quests */}
-                <Card className="bg-[hsl(var(--cwg-dark-blue))]/30 border-[hsl(var(--cwg-dark-blue))]">
-                  <CardHeader>
-                    <CardTitle className="text-[hsl(var(--cwg-text))]">Active Quests</CardTitle>
-                    <CardDescription>Complete quests to earn tokens</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {quests.filter(q => !q.completed).map((quest) => (
-                        <Card key={quest.id} className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]">
-                          <CardHeader className="pb-2">
-                            <div className="text-xs text-[hsl(var(--cwg-muted))]">{quest.game}</div>
-                            <CardTitle className="text-[hsl(var(--cwg-text))] text-base">{quest.title}</CardTitle>
-                          </CardHeader>
-                          <CardContent className="pb-2">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-[hsl(var(--cwg-muted))]">Reward:</span>
-                              <span className="text-[hsl(var(--cwg-orange))]">{quest.reward} {tokenData.symbol}</span>
+            <Card className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-blue))] lg:col-span-2">
+              <CardHeader className="pb-2">
+                <CardTitle>CWG Token Staking</CardTitle>
+                <CardDescription>Earn rewards by staking CWG tokens</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <Skeleton className="h-24 w-full" />
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div className="p-4 rounded-lg bg-[hsl(var(--cwg-dark))] border border-[hsl(var(--cwg-blue))/20] flex flex-col">
+                      <span className="text-sm text-[hsl(var(--cwg-muted))]">Available to Stake</span>
+                      <span className="text-xl font-bold neon-text-blue mt-1">12,500 CWG</span>
+                    </div>
+                    <div className="p-4 rounded-lg bg-[hsl(var(--cwg-dark))] border border-[hsl(var(--cwg-blue))/20] flex flex-col">
+                      <span className="text-sm text-[hsl(var(--cwg-muted))]">Staked Amount</span>
+                      <span className="text-xl font-bold neon-text-blue mt-1">0 CWG</span>
+                    </div>
+                    <div className="p-4 rounded-lg bg-[hsl(var(--cwg-dark))] border border-[hsl(var(--cwg-blue))/20] flex flex-col">
+                      <span className="text-sm text-[hsl(var(--cwg-muted))]">Rewards APR</span>
+                      <span className="text-xl font-bold text-green-500 mt-1">12.5%</span>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter>
+                <Button>Stake CWG Tokens</Button>
+              </CardFooter>
+            </Card>
+          </div>
+          
+          <div className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-blue))] rounded-lg p-6">
+            <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+              <div className="flex items-center justify-between mb-6">
+                <TabsList>
+                  <TabsTrigger value="holdings">Holdings</TabsTrigger>
+                  <TabsTrigger value="transactions">Transactions</TabsTrigger>
+                </TabsList>
+                <Button variant="outline" size="sm" onClick={fetchGasPrices} className="flex items-center gap-1">
+                  <RefreshCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              </div>
+              
+              <TabsContent value="holdings" className="space-y-4">
+                {isLoading ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Token</TableHead>
+                        <TableHead>Balance</TableHead>
+                        <TableHead>Value</TableHead>
+                        <TableHead>24h Change</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {tokens.map((token) => (
+                        <TableRow key={token.address}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <img
+                                src={token.logo}
+                                alt={token.name}
+                                className="h-6 w-6 rounded-full"
+                                onError={(e) => {
+                                  e.currentTarget.src = 'https://via.placeholder.com/40/FF6700/FFFFFF?text=' + token.symbol.substring(0, 3);
+                                }}
+                              />
+                              <div>
+                                <div className="font-medium">{token.name}</div>
+                                <div className="text-xs text-[hsl(var(--cwg-muted))]">{token.symbol}</div>
+                              </div>
                             </div>
-                            <div className="flex justify-between text-sm mt-1">
-                              <span className="text-[hsl(var(--cwg-muted))]">Difficulty:</span>
-                              <span className="text-[hsl(var(--cwg-text))]">{quest.difficulty}</span>
-                            </div>
-                            <div className="flex justify-between text-sm mt-1">
-                              <span className="text-[hsl(var(--cwg-muted))]">Est. Time:</span>
-                              <span className="text-[hsl(var(--cwg-text))]">{quest.timeEstimate}</span>
-                            </div>
-                          </CardContent>
-                          <CardFooter className="pt-0">
-                            <Button 
-                              variant="outline" 
-                              className="w-full border-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-orange))]"
-                              onClick={() => completeQuest(quest.id)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-mono font-medium">{token.balance}</div>
+                          </TableCell>
+                          <TableCell>{formatCurrency(token.value)}</TableCell>
+                          <TableCell>
+                            <span className={token.change24h >= 0 ? 'text-green-500' : 'text-red-500'}>
+                              {token.change24h >= 0 ? '+' : ''}{token.change24h.toFixed(2)}%
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="mr-2"
+                              onClick={() => {
+                                form.setValue('token', token.address);
+                                setIsTransferDialogOpen(true);
+                              }}
                             >
-                              Complete Quest
+                              Send
                             </Button>
-                          </CardFooter>
-                        </Card>
+                            <Button variant="outline" size="sm">
+                              Swap
+                            </Button>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                {/* Completed Quests */}
-                <Card className="bg-[hsl(var(--cwg-dark-blue))]/30 border-[hsl(var(--cwg-dark-blue))]">
-                  <CardHeader>
-                    <CardTitle className="text-[hsl(var(--cwg-text))]">Completed Quests</CardTitle>
-                    <CardDescription>Your quest achievements</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {quests.filter(q => q.completed).map((quest) => (
-                        <Card key={quest.id} className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]">
-                          <CardHeader className="pb-2">
-                            <div className="text-xs text-[hsl(var(--cwg-muted))]">{quest.game}</div>
-                            <CardTitle className="text-[hsl(var(--cwg-text))] text-base">{quest.title}</CardTitle>
-                          </CardHeader>
-                          <CardContent className="pb-2">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-[hsl(var(--cwg-muted))]">Reward:</span>
-                              <span className="text-[hsl(var(--cwg-orange))]">{quest.reward} {tokenData.symbol}</span>
-                            </div>
-                            <div className="flex justify-between text-sm mt-1">
-                              <span className="text-[hsl(var(--cwg-muted))]">Status:</span>
-                              <span className="text-green-500 flex items-center">
-                                <CheckCircle className="h-3 w-3 mr-1" /> Completed
-                              </span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                      
-                      {quests.filter(q => q.completed).length === 0 && (
-                        <div className="text-center py-6 text-[hsl(var(--cwg-muted))]">
-                          No completed quests yet. Start earning tokens!
-                        </div>
+                    </TableBody>
+                  </Table>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="transactions">
+                {isLoading ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>From/To</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {transactions.length > 0 ? (
+                        transactions.map((tx) => (
+                          <TableRow key={tx.id}>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  tx.type === 'receive' ? 'outline' :
+                                  tx.type === 'send' ? 'secondary' : 'default'
+                                }
+                              >
+                                {tx.type.charAt(0).toUpperCase() + tx.type.slice(1)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="font-medium">
+                                {tx.type === 'receive' ? '+' : '-'} {tx.amount} {tx.token}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">
+                                {tx.type === 'receive' ? 'From: ' : 'To: '}
+                                <span className="font-mono">
+                                  {formatAddress(tx.type === 'receive' ? tx.from : tx.to)}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {new Date(tx.timestamp).toLocaleDateString()} {new Date(tx.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  tx.status === 'completed' ? 'outline' :
+                                  tx.status === 'pending' ? 'secondary' : 'destructive'
+                                }
+                                className="flex items-center gap-1"
+                              >
+                                {tx.status === 'completed' ? <CheckCircle2 className="h-3 w-3" /> : 
+                                 tx.status === 'pending' ? <RefreshCcw className="h-3 w-3" /> : 
+                                 <XCircle className="h-3 w-3" />}
+                                {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  window.open(`https://etherscan.io/tx/${tx.hash}`, '_blank');
+                                }}
+                              >
+                                View
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-4">
+                            <div className="text-[hsl(var(--cwg-muted))]">No transactions yet</div>
+                          </TableCell>
+                        </TableRow>
                       )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-            
-            {/* Staking Tab */}
-            <TabsContent value="staking" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Staking Stats */}
-                <Card className="bg-[hsl(var(--cwg-dark-blue))]/30 border-[hsl(var(--cwg-dark-blue))] md:col-span-2">
-                  <CardHeader>
-                    <CardTitle className="text-[hsl(var(--cwg-text))]">Staking Stats</CardTitle>
-                    <CardDescription>Earn passive income from staking</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-[hsl(var(--cwg-dark))] p-4 rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
-                        <div className="text-sm text-[hsl(var(--cwg-muted))]">Total Staked</div>
-                        <div className="text-2xl font-orbitron text-[hsl(var(--cwg-blue))]">
-                          {tokenData.lockedAmount.toLocaleString()} {tokenData.symbol}
-                        </div>
-                        <div className="text-xs text-[hsl(var(--cwg-muted))] mt-1">
-                          ≈ ${(tokenData.lockedAmount * tokenData.usdValue).toFixed(2)}
-                        </div>
-                      </div>
-                      
-                      <div className="bg-[hsl(var(--cwg-dark))] p-4 rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
-                        <div className="text-sm text-[hsl(var(--cwg-muted))]">Current APY</div>
-                        <div className="text-2xl font-orbitron text-green-500">
-                          {tokenData.stakingApy}%
-                        </div>
-                        <div className="text-xs text-[hsl(var(--cwg-muted))] mt-1">
-                          Rates updated daily
-                        </div>
-                      </div>
-                      
-                      <div className="bg-[hsl(var(--cwg-dark))] p-4 rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
-                        <div className="text-sm text-[hsl(var(--cwg-muted))]">Earned Rewards</div>
-                        <div className="text-2xl font-orbitron text-[hsl(var(--cwg-orange))]">
-                          {tokenData.stakingRewards.toLocaleString()} {tokenData.symbol}
-                        </div>
-                        <div className="text-xs text-[hsl(var(--cwg-muted))] mt-1">
-                          ≈ ${(tokenData.stakingRewards * tokenData.usdValue).toFixed(2)}
-                        </div>
-                      </div>
-                      
-                      <div className="bg-[hsl(var(--cwg-dark))] p-4 rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
-                        <div className="text-sm text-[hsl(var(--cwg-muted))]">Next Reward</div>
-                        <div className="text-2xl font-orbitron text-[hsl(var(--cwg-blue))]">
-                          23:59:14
-                        </div>
-                        <div className="text-xs text-[hsl(var(--cwg-muted))] mt-1">
-                          Rewards distributed daily
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-6 flex flex-col md:flex-row gap-4">
-                      <Button className="w-full md:w-auto bg-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-dark))]">
-                        Stake More Tokens
-                      </Button>
-                      <Button className="w-full md:w-auto bg-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-dark))]">
-                        Claim Rewards
-                      </Button>
-                      <Button variant="outline" className="w-full md:w-auto border-[hsl(var(--cwg-muted))] text-[hsl(var(--cwg-muted))]">
-                        Unstake Tokens
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                {/* Staking Tiers */}
-                <Card className="bg-[hsl(var(--cwg-dark-blue))]/30 border-[hsl(var(--cwg-dark-blue))]">
-                  <CardHeader>
-                    <CardTitle className="text-[hsl(var(--cwg-text))]">Staking Tiers</CardTitle>
-                    <CardDescription>Boost your rewards with higher tiers</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className={`p-3 rounded-lg border ${tokenData.lockedAmount >= 5000 ? 'bg-[hsl(var(--cwg-blue))]/20 border-[hsl(var(--cwg-blue))]' : 'bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]'}`}>
-                        <div className="font-orbitron text-[hsl(var(--cwg-text))]">Diamond</div>
-                        <div className="text-sm text-[hsl(var(--cwg-muted))]">5,000+ {tokenData.symbol}</div>
-                        <div className="text-sm text-green-500 mt-1">20% APY</div>
-                      </div>
-                      
-                      <div className={`p-3 rounded-lg border ${tokenData.lockedAmount >= 2500 && tokenData.lockedAmount < 5000 ? 'bg-[hsl(var(--cwg-blue))]/20 border-[hsl(var(--cwg-blue))]' : 'bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]'}`}>
-                        <div className="font-orbitron text-[hsl(var(--cwg-text))]">Platinum</div>
-                        <div className="text-sm text-[hsl(var(--cwg-muted))]">2,500+ {tokenData.symbol}</div>
-                        <div className="text-sm text-green-500 mt-1">15% APY</div>
-                      </div>
-                      
-                      <div className={`p-3 rounded-lg border ${tokenData.lockedAmount >= 1000 && tokenData.lockedAmount < 2500 ? 'bg-[hsl(var(--cwg-blue))]/20 border-[hsl(var(--cwg-blue))]' : 'bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]'}`}>
-                        <div className="font-orbitron text-[hsl(var(--cwg-text))]">Gold</div>
-                        <div className="text-sm text-[hsl(var(--cwg-muted))]">1,000+ {tokenData.symbol}</div>
-                        <div className="text-sm text-green-500 mt-1">12.5% APY</div>
-                      </div>
-                      
-                      <div className={`p-3 rounded-lg border ${tokenData.lockedAmount >= 500 && tokenData.lockedAmount < 1000 ? 'bg-[hsl(var(--cwg-blue))]/20 border-[hsl(var(--cwg-blue))]' : 'bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]'}`}>
-                        <div className="font-orbitron text-[hsl(var(--cwg-text))]">Silver</div>
-                        <div className="text-sm text-[hsl(var(--cwg-muted))]">500+ {tokenData.symbol}</div>
-                        <div className="text-sm text-green-500 mt-1">10% APY</div>
-                      </div>
-                      
-                      <div className={`p-3 rounded-lg border ${tokenData.lockedAmount > 0 && tokenData.lockedAmount < 500 ? 'bg-[hsl(var(--cwg-blue))]/20 border-[hsl(var(--cwg-blue))]' : 'bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]'}`}>
-                        <div className="font-orbitron text-[hsl(var(--cwg-text))]">Bronze</div>
-                        <div className="text-sm text-[hsl(var(--cwg-muted))]">1+ {tokenData.symbol}</div>
-                        <div className="text-sm text-green-500 mt-1">7.5% APY</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-            
-            {/* Benefits Tab */}
-            <TabsContent value="benefits" className="space-y-6">
-              <Card className="bg-[hsl(var(--cwg-dark-blue))]/30 border-[hsl(var(--cwg-dark-blue))]">
-                <CardHeader>
-                  <CardTitle className="text-[hsl(var(--cwg-text))]">Guild Member Benefits</CardTitle>
-                  <CardDescription>Perks and rewards for token holders</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Current Level */}
-                    <div>
-                      <h3 className="text-lg font-orbitron text-[hsl(var(--cwg-blue))] mb-4">
-                        Your Current Level: {tokenData.level}
-                      </h3>
-                      
-                      <div className="bg-[hsl(var(--cwg-dark))] p-4 rounded-lg border border-[hsl(var(--cwg-blue))]">
-                        <div className="text-sm font-medium text-[hsl(var(--cwg-text))]">
-                          Level {tokenData.level} Benefits
-                        </div>
-                        <ul className="mt-2 space-y-2">
-                          {getCurrentLevelInfo()?.benefits.map((benefit, index) => (
-                            <li key={index} className="flex items-center text-sm text-[hsl(var(--cwg-muted))]">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              {benefit}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      {getNextLevelInfo() && (
-                        <div className="mt-6">
-                          <h4 className="text-sm font-medium text-[hsl(var(--cwg-muted))] mb-2">
-                            Progress to Level {tokenData.level + 1}
-                          </h4>
-                          <Progress value={tokenData.levelProgress} className="h-2" />
-                          <div className="flex justify-between text-xs text-[hsl(var(--cwg-muted))] mt-1">
-                            <span>{tokenData.balance.toLocaleString()} {tokenData.symbol}</span>
-                            <span>{tokenData.nextLevelRequirement.toLocaleString()} {tokenData.symbol}</span>
-                          </div>
-                        </div>
+                    </TableBody>
+                  </Table>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+          
+          {/* Transfer Token Dialog */}
+          <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
+            <DialogContent className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-blue))]">
+              <DialogHeader>
+                <DialogTitle className="neon-text-blue text-2xl font-orbitron">Transfer Tokens</DialogTitle>
+                <DialogDescription>
+                  Send tokens to another wallet address
+                </DialogDescription>
+              </DialogHeader>
+              
+              {!transactionStatus ? (
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="token"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Token</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a token" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-blue))]">
+                              {tokens.map((token) => (
+                                <SelectItem key={token.address} value={token.address}>
+                                  <div className="flex items-center gap-2">
+                                    <img
+                                      src={token.logo}
+                                      alt={token.name}
+                                      className="h-4 w-4 rounded-full"
+                                      onError={(e) => {
+                                        e.currentTarget.src = 'https://via.placeholder.com/40/FF6700/FFFFFF?text=' + token.symbol.substring(0, 3);
+                                      }}
+                                    />
+                                    <span>
+                                      {token.symbol} - Balance: {token.balance}
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
                       )}
-                    </div>
+                    />
                     
-                    {/* Next Level */}
-                    {getNextLevelInfo() && (
-                      <div>
-                        <h3 className="text-lg font-orbitron text-[hsl(var(--cwg-orange))] mb-4">
-                          Next Level: {tokenData.level + 1}
-                        </h3>
-                        
-                        <div className="bg-[hsl(var(--cwg-dark))] p-4 rounded-lg border border-[hsl(var(--cwg-orange))]">
-                          <div className="text-sm font-medium text-[hsl(var(--cwg-text))]">
-                            Level {tokenData.level + 1} Benefits
-                          </div>
-                          <ul className="mt-2 space-y-2">
-                            {getNextLevelInfo()?.benefits.map((benefit, index) => (
-                              <li key={index} className="flex items-center text-sm text-[hsl(var(--cwg-muted))]">
-                                {getCurrentLevelInfo()?.benefits.includes(benefit) ? (
-                                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                                ) : (
-                                  <ArrowRight className="h-4 w-4 text-[hsl(var(--cwg-orange))] mr-2" />
-                                )}
-                                {benefit}
-                                {!getCurrentLevelInfo()?.benefits.includes(benefit) && (
-                                  <span className="ml-2 text-xs text-[hsl(var(--cwg-orange))]">New!</span>
-                                )}
-                              </li>
+                    <FormField
+                      control={form.control}
+                      name="amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Amount</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input {...field} placeholder="0.00" />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 text-xs px-2"
+                                onClick={() => {
+                                  const selectedToken = tokens.find(t => t.address === form.getValues('token'));
+                                  if (selectedToken) {
+                                    field.onChange(selectedToken.balance);
+                                  }
+                                }}
+                              >
+                                MAX
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="recipient"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Recipient Address</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="0x..." />
+                          </FormControl>
+                          <FormDescription>
+                            Enter a valid Ethereum wallet address
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="gasOption"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Gas Price</FormLabel>
+                          <div className="grid grid-cols-3 gap-2">
+                            {gasOptions.map((option) => (
+                              <div
+                                key={option.value}
+                                className={`p-2 rounded-lg border cursor-pointer transition-colors ${
+                                  field.value === option.value
+                                    ? 'bg-[hsl(var(--cwg-blue))/20] border-[hsl(var(--cwg-blue))]'
+                                    : 'bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-blue))/20]'
+                                }`}
+                                onClick={() => field.onChange(option.value)}
+                              >
+                                <div className="font-medium mb-1">{option.label}</div>
+                                <div className="text-xs text-[hsl(var(--cwg-muted))]">
+                                  {option.time}
+                                </div>
+                                <div className="text-xs text-[hsl(var(--cwg-muted))]">
+                                  {option.price}
+                                </div>
+                              </div>
                             ))}
-                          </ul>
-                        </div>
-                        
-                        <div className="mt-4 text-sm text-[hsl(var(--cwg-muted))]">
-                          You need <span className="font-orbitron text-[hsl(var(--cwg-orange))]">{(tokenData.nextLevelRequirement - tokenData.balance).toLocaleString()} {tokenData.symbol}</span> more to reach Level {tokenData.level + 1}
-                        </div>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <DialogFooter>
+                      <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? (
+                          <>
+                            <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          'Send Tokens'
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              ) : (
+                <div className="py-6">
+                  <div className="flex flex-col items-center justify-center text-center space-y-4">
+                    {transactionStatus === 'pending' && (
+                      <>
+                        <RefreshCcw className="h-12 w-12 animate-spin text-[hsl(var(--cwg-blue))]" />
+                        <h3 className="text-xl font-medium">Transaction in Progress</h3>
+                        <p className="text-[hsl(var(--cwg-muted))] max-w-md">
+                          Your transaction is being processed on the blockchain. This may take a few moments.
+                        </p>
+                      </>
+                    )}
+                    
+                    {transactionStatus === 'completed' && (
+                      <>
+                        <CheckCircle2 className="h-12 w-12 text-green-500" />
+                        <h3 className="text-xl font-medium">Transaction Completed</h3>
+                        <p className="text-[hsl(var(--cwg-muted))] max-w-md">
+                          Your transaction has been confirmed on the blockchain.
+                        </p>
+                      </>
+                    )}
+                    
+                    {transactionStatus === 'failed' && (
+                      <>
+                        <XCircle className="h-12 w-12 text-red-500" />
+                        <h3 className="text-xl font-medium">Transaction Failed</h3>
+                        <p className="text-[hsl(var(--cwg-muted))] max-w-md">
+                          Your transaction could not be completed. Please try again.
+                        </p>
+                      </>
+                    )}
+                    
+                    {transactionHash && (
+                      <div className="p-3 bg-[hsl(var(--cwg-dark))] rounded-lg w-full mt-4">
+                        <div className="text-xs text-[hsl(var(--cwg-muted))] mb-1">Transaction Hash:</div>
+                        <div className="font-mono text-sm break-all">{transactionHash}</div>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="mt-2 text-[hsl(var(--cwg-blue))] p-0 h-auto"
+                          onClick={() => {
+                            window.open(`https://etherscan.io/tx/${transactionHash}`, '_blank');
+                          }}
+                        >
+                          View on Etherscan
+                        </Button>
                       </div>
                     )}
                   </div>
                   
-                  {/* All Levels */}
-                  <div className="mt-8">
-                    <h3 className="text-lg font-orbitron text-[hsl(var(--cwg-text))] mb-4">
-                      All Guild Levels
-                    </h3>
-                    
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-[hsl(var(--cwg-dark-blue))]">
-                            <th className="px-4 py-2 text-left text-[hsl(var(--cwg-muted))]">Level</th>
-                            <th className="px-4 py-2 text-left text-[hsl(var(--cwg-muted))]">Required Tokens</th>
-                            <th className="px-4 py-2 text-left text-[hsl(var(--cwg-muted))]">Benefits</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {GUILD_LEVELS.map((level) => (
-                            <tr 
-                              key={level.level} 
-                              className={`border-b border-[hsl(var(--cwg-dark-blue))] ${level.level === tokenData.level ? 'bg-[hsl(var(--cwg-blue))]/10' : ''}`}
-                            >
-                              <td className="px-4 py-3 text-[hsl(var(--cwg-text))]">
-                                {level.level === tokenData.level ? (
-                                  <span className="flex items-center">
-                                    {level.level} <CheckCircle className="h-4 w-4 text-green-500 ml-2" />
-                                  </span>
-                                ) : level.level}
-                              </td>
-                              <td className="px-4 py-3 text-[hsl(var(--cwg-muted))]">
-                                {level.requirement.toLocaleString()} {tokenData.symbol}
-                              </td>
-                              <td className="px-4 py-3 text-[hsl(var(--cwg-muted))]">
-                                <ul className="list-disc list-inside">
-                                  {level.benefits.map((benefit, index) => (
-                                    <li key={index} className="text-sm">{benefit}</li>
-                                  ))}
-                                </ul>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                  <DialogFooter className="mt-6">
+                    <Button onClick={() => {
+                      setTransactionStatus(null);
+                      setTransactionHash(null);
+                      if (transactionStatus === 'completed') {
+                        setIsTransferDialogOpen(false);
+                      }
+                    }}>
+                      {transactionStatus === 'completed' ? 'Close' : 'Try Again'}
+                    </Button>
+                  </DialogFooter>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        </>
+      ) : (
+        <div className="bg-[hsl(var(--cwg-dark-blue))] border border-[hsl(var(--cwg-blue))] rounded-lg p-8 flex flex-col items-center justify-center text-center space-y-6">
+          <div className="bg-[hsl(var(--cwg-dark))] p-4 rounded-full">
+            <Coins className="h-12 w-12 text-[hsl(var(--cwg-muted))]" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold neon-text-blue mb-2">Connect Your Wallet</h2>
+            <p className="text-[hsl(var(--cwg-muted))] max-w-md mx-auto">
+              Connect your Web3 wallet to view your token balances, transfer assets, and manage your cryptocurrency portfolio.
+            </p>
+          </div>
+          
+          <div className="w-full max-w-xs">
+            <WalletConnect />
+          </div>
+          
+          <div className="p-4 bg-[hsl(var(--cwg-dark))] rounded-lg flex items-start gap-3 max-w-lg text-left">
+            <Info className="h-5 w-5 text-[hsl(var(--cwg-blue))] mt-0.5" />
+            <div>
+              <h3 className="font-medium text-[hsl(var(--cwg-blue))]">Why connect a wallet?</h3>
+              <p className="text-sm text-[hsl(var(--cwg-muted))]">
+                Connecting your Web3 wallet allows you to manage your cryptocurrency assets, participate in CWG token staking, and unlock special features within the ClockWork Gamers ecosystem.
+              </p>
+            </div>
+          </div>
         </div>
-      </main>
-      
-      <Footer />
-    </div>
-  );
-}
-
-export default function TokenDashboardPageWrapper() {
-  return (
-    <ProtectedRoute
-      path="/token-dashboard"
-      component={TokenDashboardPage}
-    />
+      )}
+    </Page>
   );
 }

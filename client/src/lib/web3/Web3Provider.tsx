@@ -13,6 +13,8 @@ interface Web3ContextType {
   isConnected: boolean;
   error: Error | null;
   network: string | null;
+  provider: ethers.BrowserProvider | null;
+  signer: ethers.JsonRpcSigner | null;
 }
 
 const Web3Context = createContext<Web3ContextType | null>(null);
@@ -53,6 +55,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
   const [error, setError] = useState<Error | null>(null);
   const [network, setNetwork] = useState<string | null>(null);
   const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
+  const [signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null);
 
   // Check if wallet is already connected on mount
   useEffect(() => {
