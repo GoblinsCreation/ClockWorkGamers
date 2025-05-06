@@ -280,6 +280,48 @@ const OnboardingFlow = () => {
     }
   };
 
+  // Enhanced personalized welcome for first-time users
+  const renderWelcomeMessage = () => {
+    if (currentStep === 0) {
+      return (
+        <div className="welcome-message mb-4">
+          <div className="welcome-icon-container mb-4 flex justify-center">
+            <div className="welcome-icon">
+              <img 
+                src="/public/cwg-logo.png" 
+                alt="ClockWork Gamers Logo" 
+                className="h-20 w-20 object-contain"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://via.placeholder.com/80/FF6700/FFFFFF?text=CWG';
+                  e.currentTarget.onerror = null;
+                }}
+              />
+            </div>
+          </div>
+          <h3 className="text-xl font-bold text-center mb-2 neon-text-orange">
+            Welcome to the Web3 Gaming Revolution
+          </h3>
+          <p className="text-center text-muted-foreground mb-3">
+            We're excited to have you join our guild! Let's customize your experience based on your gaming style and Web3 interests.
+          </p>
+          <div className="flex justify-center">
+            <div className="bg-cwg-dark-blue/50 rounded-lg p-3 max-w-md">
+              <div className="flex items-start">
+                <div className="mr-2 mt-0.5">
+                  <Info size={16} className="text-cwg-blue" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Your preferences help us tailor recommendations, connect you with like-minded gamers, and keep you updated on relevant Web3 gaming opportunities.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   // Render step content based on current step
   const renderStepContent = () => {
     switch (currentStep) {
@@ -509,120 +551,90 @@ const OnboardingFlow = () => {
     }
   };
 
-  // Enhanced personalized welcome for first-time users
-  const renderWelcomeMessage = () => {
-    if (currentStep === 0) {
-      return (
-        <div className="welcome-message mb-4">
-          <div className="welcome-icon-container mb-4 flex justify-center">
-            <div className="welcome-icon">
-              <img 
-                src="/public/cwg-logo.png" 
-                alt="ClockWork Gamers Logo" 
-                className="h-20 w-20 object-contain"
-                onError={(e) => {
-                  e.currentTarget.src = 'https://via.placeholder.com/80/FF6700/FFFFFF?text=CWG';
-                  e.currentTarget.onerror = null;
-                }}
-              />
-            </div>
-          </div>
-          <h3 className="text-xl font-bold text-center mb-2 neon-text-orange">
-            Welcome to the Web3 Gaming Revolution
-          </h3>
-          <p className="text-center text-muted-foreground mb-3">
-            We're excited to have you join our guild! Let's customize your experience based on your gaming style and Web3 interests.
-          </p>
-          <div className="welcome-features grid grid-cols-3 gap-2 mb-4 text-center">
-            <div className="welcome-feature">
-              <div className="feature-icon text-cwg-blue">🎮</div>
-              <div className="feature-label text-xs">Play & Earn</div>
-            </div>
-            <div className="welcome-feature">
-              <div className="feature-icon text-cwg-blue">👥</div>
-              <div className="feature-label text-xs">Community</div>
-            </div>
-            <div className="welcome-feature">
-              <div className="feature-icon text-cwg-blue">🏆</div>
-              <div className="feature-label text-xs">Achievements</div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
-    <Dialog open={showOnboarding} onOpenChange={setShowOnboarding}>
-      <DialogContent className="onboarding-dialog sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl neon-text-orange">ClockWork Gamers Onboarding</DialogTitle>
-          <DialogDescription>
-            {user?.username ? `Welcome, ${user.username}! ` : ''}Let's personalize your Web3 gaming experience.
-          </DialogDescription>
-        </DialogHeader>
-        
-        {renderWelcomeMessage()}
-        
-        <Progress 
-          value={progress} 
-          className="w-full my-2"
-          style={{
-            height: '8px',
-            background: 'hsla(var(--cwg-blue), 0.2)',
-          }}
-        />
-        
-        <Card className="border-none shadow-none">
-          {renderStepContent()}
-          
-          <CardFooter className="flex justify-between pt-6">
-            <div>
-              {currentStep > 0 ? (
-                <Button variant="outline" onClick={prevStep} className="border-cwg-blue hover:border-cwg-blue/80 hover:bg-cwg-dark-blue/30">
-                  <ChevronLeft className="mr-1 h-4 w-4" /> Back
-                </Button>
-              ) : (
-                <Button variant="ghost" onClick={skipOnboarding} className="hover:bg-cwg-dark-blue/30 text-cwg-blue hover:text-cwg-blue/90">
-                  Skip for now
-                </Button>
-              )}
-            </div>
-            
-            <Button 
-              onClick={nextStep} 
-              disabled={!canProceed() || isSubmitting}
-              className="bg-cwg-orange hover:bg-cwg-orange/90 text-black font-medium"
+    <>
+      <Dialog open={showOnboarding} onOpenChange={setShowOnboarding}>
+        <DialogContent className="sm:max-w-[600px] bg-cwg-dark-blue/90 border-cwg-blue">
+          <div className="absolute right-4 top-4">
+            <button
+              onClick={skipOnboarding}
+              className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
             >
-              {currentStep === totalSteps - 1 ? (
-                <>
-                  {isSubmitting ? 'Saving...' : 'Complete Setup'}
-                  {!isSubmitting && <Check className="ml-1 h-4 w-4" />}
-                </>
-              ) : (
-                <>
-                  Next <ChevronRight className="ml-1 h-4 w-4" />
-                </>
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
-        
-        <div className="onboarding-steps">
-          {Array.from({ length: totalSteps }).map((_, index) => (
-            <div 
-              key={index}
-              className={`onboarding-step ${currentStep === index ? 'active' : ''} ${
-                currentStep > index ? 'completed' : ''
-              }`}
-              onClick={() => index < currentStep && setCurrentStep(index)}
-              title={`Step ${index + 1} of ${totalSteps}`}
-            />
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
+              <X className="h-4 w-4 text-cwg-blue" />
+              <span className="sr-only">Close</span>
+            </button>
+          </div>
+          
+          <div className="flex justify-between items-center mb-4">
+            <div className="step-indicator">
+              Step {currentStep + 1} of {totalSteps}
+            </div>
+            <Progress value={progress} className="progress-bar" />
+          </div>
+          
+          {currentStep === 0 && renderWelcomeMessage()}
+          
+          <Card className="bg-cwg-dark border-cwg-blue/20">
+            {renderStepContent()}
+            
+            <CardFooter className="flex justify-between pt-6">
+              <div>
+                {currentStep > 0 ? (
+                  <Button variant="outline" onClick={prevStep} className="border-cwg-blue hover:border-cwg-blue/80 hover:bg-cwg-dark-blue/30">
+                    <ChevronLeft className="mr-1 h-4 w-4" /> Back
+                  </Button>
+                ) : (
+                  <Button variant="ghost" onClick={skipOnboarding} className="hover:bg-cwg-dark-blue/30 text-cwg-blue hover:text-cwg-blue/90">
+                    Skip for now
+                  </Button>
+                )}
+              </div>
+              
+              <Button 
+                onClick={nextStep} 
+                disabled={!canProceed() || isSubmitting}
+                className="bg-cwg-orange hover:bg-cwg-orange/90 text-black font-medium"
+              >
+                {currentStep === totalSteps - 1 ? (
+                  <>
+                    {isSubmitting ? 'Saving...' : 'Complete Setup'}
+                    {!isSubmitting && <Check className="ml-1 h-4 w-4" />}
+                  </>
+                ) : (
+                  <>
+                    Next <ChevronRight className="ml-1 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          <div className="onboarding-steps">
+            {Array.from({ length: totalSteps }).map((_, index) => (
+              <div 
+                key={index}
+                className={`onboarding-step ${currentStep === index ? 'active' : ''} ${
+                  currentStep > index ? 'completed' : ''
+                }`}
+                onClick={() => index < currentStep && setCurrentStep(index)}
+                title={`Step ${index + 1} of ${totalSteps}`}
+              />
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <PersonalizationComplete 
+        isOpen={showCompletionModal}
+        onClose={handleCompletionClose}
+        preferences={{
+          preferredGames: onboardingData.preferredGames,
+          experienceLevel: onboardingData.experienceLevel,
+          web3Interests: onboardingData.web3Interests
+        }}
+        username={user?.username}
+      />
+    </>
   );
 };
 
