@@ -12,12 +12,12 @@ export function ProtectedRoute({
   path,
   component: Component,
 }: ProtectedRouteProps) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, error } = useAuth();
 
   // Create actual route renderers to ensure they return React.ReactElement
   const renderLoading = () => (
     <div className="flex items-center justify-center min-h-screen">
-      <Loader2 className="h-8 w-8 animate-spin text-border" />
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
     </div>
   );
 
@@ -25,11 +25,14 @@ export function ProtectedRoute({
   
   const renderRedirectToHome = () => <Redirect to="/" />;
 
+  // Handle loading state
   if (isLoading) {
     return <Route path={path}>{renderLoading}</Route>;
   }
 
+  // If there's an error or no user, redirect to auth page
   if (!user) {
+    console.log("No authenticated user, redirecting to auth page");
     return <Route path={path}>{renderRedirectToAuth}</Route>;
   }
 
@@ -39,6 +42,7 @@ export function ProtectedRoute({
       user.role !== "Mod" && 
       user.role !== "Admin" && 
       user.role !== "Owner") {
+    console.log("User doesn't have admin privileges, redirecting to home");
     return <Route path={path}>{renderRedirectToHome}</Route>;
   }
 

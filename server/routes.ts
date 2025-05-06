@@ -1511,15 +1511,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
   // Set up WebSocket server for real-time chat
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws',
-    // Allow connections from any origin
-    verifyClient: (info: { origin: string }) => {
-      console.log('WebSocket connection attempt from:', info.origin);
-      return true; // Accept all connections for now
-    }
-  });
+  console.log("Setting up WebSocket server on /ws path");
+  let wss;
+  try {
+    wss = new WebSocketServer({ 
+      server: httpServer, 
+      path: '/ws',
+      // Allow connections from any origin
+      verifyClient: (info: { origin: string }) => {
+        console.log('WebSocket connection attempt from:', info.origin);
+        return true; // Accept all connections for now
+      }
+    });
+    console.log("WebSocket server setup complete");
+  } catch (error) {
+    console.error("Error setting up WebSocket server:", error);
+    // Create a dummy WebSocket server that does nothing
+    wss = {
+      on: (event: string, handler: any) => {
+        console.log(`Dummy WebSocket server ignoring event: ${event}`);
+      }
+    };
+  }
   
   // Store connected clients with their user info
   const clients = new Map();

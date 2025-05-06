@@ -173,10 +173,15 @@ export default function SimpleChatWidget({
   // Fetch messages when component mounts
   useEffect(() => {
     if (user) {
-      connectWebSocket();
-      
-      // Load private messages
-      fetchContacts();
+      try {
+        connectWebSocket();
+        
+        // Load private messages
+        fetchContacts();
+      } catch (error) {
+        console.error("Error initializing chat:", error);
+        // Don't let chat errors break the whole app
+      }
     }
     
     return () => {

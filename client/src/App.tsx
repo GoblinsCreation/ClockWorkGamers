@@ -1,8 +1,10 @@
+import React, { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
@@ -38,6 +40,53 @@ import { Web3Provider } from "./hooks/use-web3";
 import SimpleChatWidget from "@/components/chat/SimpleChatWidget";
 import AchievementUnlockNotification from "@/components/achievements/AchievementUnlockNotification";
 import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
+
+// Fallback component to show if there are critical errors
+function ErrorBoundaryFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
+      <div className="container max-w-md text-center p-6 rounded-lg border border-orange-500 bg-gray-900">
+        <h2 className="text-2xl font-bold mb-4 text-orange-500">ClockWork Gamers</h2>
+        <p className="mb-4">There was a problem loading the application. Please try again.</p>
+        <Button 
+          onClick={() => window.location.reload()}
+          variant="outline"
+          className="border-orange-500 text-orange-500 hover:bg-orange-950"
+        >
+          Reload Application
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Simple error boundary class component
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    console.error("Application error caught by boundary:", error);
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("Error details:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <ErrorBoundaryFallback />;
+    }
+
+    return this.props.children;
+  }
+}
 
 function Router() {
   return (
@@ -78,22 +127,52 @@ function Router() {
 }
 
 function App() {
+  // Check if app is in an unrecoverable state
+  const [isCriticalError, setIsCriticalError] = useState(false);
+
+  useEffect(() => {
+    // Setup global error handler
+    const originalConsoleError = console.error;
+    console.error = (...args) => {
+      // Check for critical 403 errors
+      if (args.some(arg => 
+        (typeof arg === 'string' && arg.includes('403 Forbidden')) ||
+        (typeof arg === 'object' && arg?.message?.includes('403 Forbidden'))
+      )) {
+        setIsCriticalError(true);
+      }
+      originalConsoleError(...args);
+    };
+
+    return () => {
+      console.error = originalConsoleError;
+    };
+  }, []);
+
+  // Show fallback UI if in critical error state
+  if (isCriticalError) {
+    return <ErrorBoundaryFallback />;
+  }
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Web3Provider>
-            <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-              <TooltipProvider>
-                <Toaster />
-                <Router />
-                <SimpleChatWidget />
-                <AchievementUnlockNotification />
-                <OnboardingFlow />
-              </TooltipProvider>
-            </ThemeProvider>
-        </Web3Provider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Web3Provider>
+              <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+                <TooltipProvider>
+                  <Toaster />
+                  <Router />
+                  {/* Temporarily disable components that might be causing WebSocket issues */}
+                  {/* <SimpleChatWidget /> */}
+                  {/* <AchievementUnlockNotification /> */}
+                  {/* <OnboardingFlow /> */}
+                </TooltipProvider>
+              </ThemeProvider>
+          </Web3Provider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
