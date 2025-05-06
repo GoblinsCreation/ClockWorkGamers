@@ -45,8 +45,17 @@ export default function AuthPage() {
               );
             }}
             onRegister={(username, email, password) => {
+              // Include the minimum required fields for registration
               registerMutation.mutate(
-                { username, email, password, role: "user" },
+                { 
+                  username, 
+                  email, 
+                  password, 
+                  fullName: username,  // Use username as fallback
+                  dateOfBirth: new Date().toISOString().split('T')[0], // Today as placeholder
+                  guild: "ClockWork Gamers", // Default guild
+                  role: "user" 
+                },
                 {
                   onSuccess: () => {
                     setLocation("/");

@@ -514,6 +514,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
+  // Health check endpoint - doesn't require authentication, 
+  // used to verify server is responding
+  app.get("/api/healthcheck", (req, res) => {
+    res.status(200).json({ status: "ok", timestamp: Date.now() });
+  });
+  
   // Contact form route
   app.post("/api/contact", async (req, res) => {
     try {

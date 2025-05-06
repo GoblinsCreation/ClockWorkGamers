@@ -18,7 +18,14 @@ type RegisterData = {
   username: string;
   email: string; 
   password: string;
+  fullName: string;
+  dateOfBirth: string;
+  guild: string;
   role?: string;
+  discordUsername?: string | null;
+  twitchHandle?: string | null;
+  referralCode?: string | null;
+  isAdmin?: boolean;
 };
 
 type AuthContextType = {
@@ -241,7 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user,
+        user: user ?? null, // Ensure it's never undefined
         isLoading,
         isAuthError,
         error,
