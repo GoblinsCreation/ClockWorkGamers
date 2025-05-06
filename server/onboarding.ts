@@ -121,7 +121,7 @@ export async function completeOnboarding(req: Request, res: Response) {
             achievementNotifications: notifications.achievements,
             eventNotifications: notifications.events,
             onboardingCompleted: true,
-            onboardingCompletedAt: new Date().toISOString(),
+            onboardingCompletedAt: new Date(),
           })
           .where(eq(userPreferences.userId, userId));
       } else {
@@ -134,7 +134,7 @@ export async function completeOnboarding(req: Request, res: Response) {
             achievementNotifications: notifications.achievements,
             eventNotifications: notifications.events,
             onboardingCompleted: true,
-            onboardingCompletedAt: new Date().toISOString(),
+            onboardingCompletedAt: new Date(),
           });
       }
 
@@ -209,7 +209,7 @@ export async function skipOnboarding(req: Request, res: Response) {
       await db.update(userPreferences)
         .set({
           onboardingCompleted: true,
-          onboardingCompletedAt: new Date().toISOString(),
+          onboardingCompletedAt: new Date(),
           onboardingSkipped: true,
         })
         .where(eq(userPreferences.userId, userId));
@@ -223,7 +223,7 @@ export async function skipOnboarding(req: Request, res: Response) {
           achievementNotifications: true,
           eventNotifications: true,
           onboardingCompleted: true,
-          onboardingCompletedAt: new Date().toISOString(),
+          onboardingCompletedAt: new Date(),
           onboardingSkipped: true,
         });
     }
