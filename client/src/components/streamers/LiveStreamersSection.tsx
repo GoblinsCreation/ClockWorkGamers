@@ -6,10 +6,11 @@ import { Loader2, Users, Radio } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
+import { Streamer } from '@shared/schema';
 
 export default function LiveStreamersSection() {
   // Query to fetch all currently live streamers
-  const { data: liveStreamers, isLoading, error } = useQuery({
+  const { data: liveStreamers, isLoading, error } = useQuery<Streamer[]>({
     queryKey: ['/api/streamers/live'],
     queryFn: async () => {
       const res = await apiRequest('GET', '/api/streamers/live');
@@ -20,12 +21,12 @@ export default function LiveStreamersSection() {
   });
 
   // Format stream duration
-  const formatDuration = (startedAt: string) => {
+  const formatDuration = (startedAt: string | Date | null) => {
     if (!startedAt) return 'N/A';
     
     try {
-      const startTime = new Date(startedAt);
-      return formatDistanceToNow(startTime, { addSuffix: false });
+      const startTime = typeof startedAt === 'string' ? new Date(startedAt) : startedAt;
+      return formatDistanceToNow(startTime instanceof Date ? startTime : new Date(), { addSuffix: false });
     } catch (error) {
       return 'N/A';
     }
@@ -60,7 +61,7 @@ export default function LiveStreamersSection() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-4">
-      {liveStreamers.map((streamer) => (
+      {liveStreamers.map((streamer: Streamer) => (
         <Card 
           key={streamer.id} 
           className="group overflow-hidden border border-[#9146FF]/30 relative"
