@@ -16,6 +16,7 @@ import {
 } from "./php-integration";
 import { scheduleStreamStatusUpdates, updateStreamStatus, linkTwitchAccount, getLiveStreamers } from "./twitch";
 import { handleContactForm, sendTestEmail } from "./email";
+import { getWalletNFTs, getNFTDetails, getNFTCollection } from "./nft";
 import { WebSocketServer, WebSocket } from 'ws';
 import { 
   createSystemNotification, 
@@ -334,6 +335,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // NFT routes
+  app.get("/api/nfts/wallet", async (req, res) => {
+    try {
+      await getWalletNFTs(req, res);
+    } catch (error) {
+      console.error("Error fetching wallet NFTs:", error);
+      res.status(500).json({ message: "Failed to fetch wallet NFTs" });
+    }
+  });
+  
+  app.get("/api/nfts/:contractAddress/:tokenId", async (req, res) => {
+    try {
+      await getNFTDetails(req, res);
+    } catch (error) {
+      console.error("Error fetching NFT details:", error);
+      res.status(500).json({ message: "Failed to fetch NFT details" });
+    }
+  });
+  
+  app.get("/api/nfts/collection/:contractAddress", async (req, res) => {
+    try {
+      await getNFTCollection(req, res);
+    } catch (error) {
+      console.error("Error fetching NFT collection:", error);
+      res.status(500).json({ message: "Failed to fetch NFT collection" });
+    }
+  });
+
   // News routes
   app.get("/api/news", async (req, res) => {
     try {
