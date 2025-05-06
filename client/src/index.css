@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import custom micro-interactions */
+@import './styles/micro-interactions.css';
+
 @layer base {
   :root {
     --background: 240 15% 2.5%;
