@@ -179,8 +179,7 @@ export async function completeOnboarding(req: Request, res: Response) {
       type: 'system',
       title: 'Welcome to ClockWork Gamers!',
       message: 'Your profile has been personalized based on your preferences. Explore the platform to discover features tailored to your interests!',
-      read: false,
-      createdAt: new Date().toISOString(),
+      isRead: false,
     });
 
     return res.status(200).json({ success: true });
@@ -235,8 +234,7 @@ export async function skipOnboarding(req: Request, res: Response) {
       type: 'system',
       title: 'Welcome to ClockWork Gamers!',
       message: 'You can personalize your experience anytime from your profile settings.',
-      read: false,
-      createdAt: new Date().toISOString(),
+      isRead: false,
     });
 
     return res.status(200).json({ success: true });

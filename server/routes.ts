@@ -22,6 +22,12 @@ import {
   createAchievementUnlockedNotification,
   createAchievementClaimedNotification
 } from "./notifications";
+import { 
+  checkOnboardingStatus, 
+  completeOnboarding, 
+  skipOnboarding, 
+  getPersonalizedRecommendations 
+} from "./onboarding";
 
 // Extend session with our custom properties
 declare module "express-session" {
@@ -35,6 +41,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
   // API routes - all prefixed with /api
+
+  // Onboarding routes
+  app.get("/api/user/onboarding-status", async (req, res) => {
+    try {
+      await checkOnboardingStatus(req, res);
+    } catch (error) {
+      console.error("Error checking onboarding status:", error);
+      res.status(500).json({ message: "Failed to check onboarding status" });
+    }
+  });
+
+  app.post("/api/user/complete-onboarding", async (req, res) => {
+    try {
+      await completeOnboarding(req, res);
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      res.status(500).json({ message: "Failed to complete onboarding" });
+    }
+  });
+
+  app.post("/api/user/skip-onboarding", async (req, res) => {
+    try {
+      await skipOnboarding(req, res);
+    } catch (error) {
+      console.error("Error skipping onboarding:", error);
+      res.status(500).json({ message: "Failed to skip onboarding" });
+    }
+  });
+
+  app.get("/api/user/personalized-recommendations", async (req, res) => {
+    try {
+      await getPersonalizedRecommendations(req, res);
+    } catch (error) {
+      console.error("Error getting personalized recommendations:", error);
+      res.status(500).json({ message: "Failed to get personalized recommendations" });
+    }
+  });
   
   // Streamers routes
   app.get("/api/streamers", async (req, res) => {
@@ -488,6 +531,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Onboarding routes
+  app.get("/api/user/onboarding-status", async (req, res) => {
+    try {
+      await checkOnboardingStatus(req, res);
+    } catch (error) {
+      console.error("Error checking onboarding status:", error);
+      res.status(500).json({ message: "Failed to check onboarding status" });
+    }
+  });
+
+  app.post("/api/user/complete-onboarding", async (req, res) => {
+    try {
+      await completeOnboarding(req, res);
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      res.status(500).json({ message: "Failed to complete onboarding" });
+    }
+  });
+
+  app.post("/api/user/skip-onboarding", async (req, res) => {
+    try {
+      await skipOnboarding(req, res);
+    } catch (error) {
+      console.error("Error skipping onboarding:", error);
+      res.status(500).json({ message: "Failed to skip onboarding" });
+    }
+  });
+
+  app.get("/api/user/personalized-recommendations", async (req, res) => {
+    try {
+      await getPersonalizedRecommendations(req, res);
+    } catch (error) {
+      console.error("Error getting personalized recommendations:", error);
+      res.status(500).json({ message: "Failed to get personalized recommendations" });
+    }
+  });
+
   // Notification routes
   app.get("/api/notifications", async (req, res) => {
     try {

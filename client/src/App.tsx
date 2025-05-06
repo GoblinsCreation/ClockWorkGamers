@@ -35,6 +35,7 @@ import { AuthProvider } from "./hooks/use-auth";
 import { Web3Provider } from "./hooks/use-web3";
 import FloatingChat from "@/components/chat/FloatingChat";
 import AchievementUnlockNotification from "@/components/achievements/AchievementUnlockNotification";
+import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
 
 function Router() {
   return (
@@ -83,6 +84,7 @@ function App() {
                 <Router />
                 <FloatingChat />
                 <AchievementUnlockNotification />
+                <OnboardingFlow />
               </TooltipProvider>
             </ThemeProvider>
         </Web3Provider>

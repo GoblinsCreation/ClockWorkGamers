@@ -232,7 +232,9 @@ const OnboardingFlow = () => {
       await apiRequest('POST', '/api/user/complete-onboarding', onboardingData);
       
       // Update user profile data in client cache
-      queryClient.invalidateQueries(['/api/user/profile']);
+      queryClient.invalidateQueries({
+        queryKey: ['/api/user/profile']
+      });
       
       // Close onboarding
       setShowOnboarding(false);
