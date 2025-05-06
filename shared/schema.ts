@@ -34,6 +34,13 @@ export const streamers = pgTable("streamers", {
   currentGame: text("current_game"),
   streamTitle: text("stream_title"),
   viewerCount: integer("viewer_count").default(0).notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  startedAt: timestamp("started_at"),
+  lastUpdated: timestamp("last_updated"),
+  gameId: text("game_id"),
+  streamType: text("stream_type"), // "live", "playlist", "watch_party", "premiere", etc.
+  tags: text("tags").array(),
+  language: text("language"),
 });
 
 export const insertStreamerSchema = createInsertSchema(streamers)
