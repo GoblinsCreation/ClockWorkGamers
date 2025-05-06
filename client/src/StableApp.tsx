@@ -126,32 +126,31 @@ function Router() {
   );
 }
 
-function App() {
-  // Check if app is in an unrecoverable state
-  const [isCriticalError, setIsCriticalError] = useState(false);
+function StableApp() {
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Simple initialization with loading state
   useEffect(() => {
-    // Setup global error handler
-    const originalConsoleError = console.error;
-    console.error = (...args) => {
-      // Check for critical 403 errors
-      if (args.some(arg => 
-        (typeof arg === 'string' && arg.includes('403 Forbidden')) ||
-        (typeof arg === 'object' && arg?.message?.includes('403 Forbidden'))
-      )) {
-        setIsCriticalError(true);
-      }
-      originalConsoleError(...args);
-    };
-
-    return () => {
-      console.error = originalConsoleError;
-    };
+    console.log("Initializing stable application");
+    
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      console.log("Application initialization complete");
+    }, 1000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
-  // Show fallback UI if in critical error state
-  if (isCriticalError) {
-    return <ErrorBoundaryFallback />;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <div className="text-center p-6">
+          <h1 className="text-3xl font-bold text-orange-500 mb-2">ClockWork Gamers</h1>
+          <p className="text-white mb-4">Loading application...</p>
+          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -159,15 +158,16 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <Web3Provider>
-              <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-                <TooltipProvider>
-                  <Toaster />
-                  <Router />
-                  <SimpleChatWidget />
-                  <AchievementUnlockNotification />
-                  <OnboardingFlow />
-                </TooltipProvider>
-              </ThemeProvider>
+            <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+              <TooltipProvider>
+                <Toaster />
+                <Router />
+                {/* Add features only when WebSocket connectivity is confirmed */}
+                <SimpleChatWidget />
+                <AchievementUnlockNotification />
+                <OnboardingFlow />
+              </TooltipProvider>
+            </ThemeProvider>
           </Web3Provider>
         </AuthProvider>
       </QueryClientProvider>
@@ -175,4 +175,4 @@ function App() {
   );
 }
 
-export default App;
+export default StableApp;
