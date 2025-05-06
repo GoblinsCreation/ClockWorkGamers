@@ -61,40 +61,40 @@ function GuildShareModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-[hsl(var(--cwg-dark))] border border-[hsl(var(--cwg-dark-blue))] rounded-lg w-full max-w-md p-6 shadow-xl"
+        className="neon-card-orange bg-[hsl(var(--cwg-dark))/90] backdrop-blur-md rounded-lg w-full max-w-md p-6 shadow-xl"
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-orbitron font-semibold text-[hsl(var(--cwg-orange))]">
+          <h3 className="text-xl font-orbitron font-semibold neon-text-orange">
             Share Guild
           </h3>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="text-[hsl(var(--cwg-muted))]"
+            className="text-[hsl(var(--cwg-muted))] hover:neon-text-orange"
           >
             ✕
           </Button>
         </div>
         
         <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">Customize your message:</label>
+          <label className="block text-sm font-medium mb-2 neon-text-orange">Customize your message:</label>
           <div className="relative">
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="w-full h-32 p-3 bg-[hsl(var(--cwg-dark-blue))] text-[hsl(var(--cwg-text))] rounded-md border border-[hsl(var(--cwg-border))] focus:border-[hsl(var(--cwg-blue))] focus:ring-1 focus:ring-[hsl(var(--cwg-blue))] outline-none resize-none"
+              className="w-full h-32 p-3 bg-[hsl(var(--cwg-dark-blue))/80] text-[hsl(var(--cwg-text))] rounded-md neon-border-orange focus:neon-glow outline-none resize-none"
             />
             <Button
               variant="ghost"
               size="sm"
               onClick={copyToClipboard}
-              className="absolute bottom-2 right-2 text-xs text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-blue))]"
+              className="absolute bottom-2 right-2 text-xs text-[hsl(var(--cwg-muted))] hover:neon-text-orange"
             >
               Copy
             </Button>
@@ -105,7 +105,7 @@ function GuildShareModal({
           {shareOptions.map((option) => (
             <Button
               key={option.name}
-              className={`${option.bgColor} text-white font-medium flex items-center justify-center gap-2`}
+              className={`${option.bgColor} text-white font-medium flex items-center justify-center gap-2 transition-all duration-300 hover:neon-glow hover:scale-105`}
               onClick={option.action}
             >
               {option.icon}
@@ -184,15 +184,15 @@ export default function ShowcasePage() {
         </TabsList>
 
         <TabsContent value="features" className="mt-0">
-          <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+          <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))] neon-border-blue">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-orbitron font-semibold text-[hsl(var(--cwg-blue))] mb-4">
+              <h2 className="text-2xl font-orbitron font-semibold neon-text-blue mb-4">
                 ClockWork Gamers Features
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div className="bg-[hsl(var(--cwg-dark-blue))] rounded-lg p-5 border border-[hsl(var(--cwg-border))]">
-                  <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-orange))] mb-3">Web3 Integration</h3>
+                <div className="neon-card-blue bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-5 transition-all duration-300 hover:neon-glow-blue">
+                  <h3 className="text-xl font-orbitron neon-text-orange mb-3">Web3 Integration</h3>
                   <ul className="space-y-2">
                     <li className="flex items-start">
                       <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
@@ -213,8 +213,8 @@ export default function ShowcasePage() {
                   </ul>
                 </div>
                 
-                <div className="bg-[hsl(var(--cwg-dark-blue))] rounded-lg p-5 border border-[hsl(var(--cwg-border))]">
-                  <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-orange))] mb-3">Community Features</h3>
+                <div className="neon-card-orange bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-5 transition-all duration-300 hover:neon-glow">
+                  <h3 className="text-xl font-orbitron neon-text-orange mb-3">Community Features</h3>
                   <ul className="space-y-2">
                     <li className="flex items-start">
                       <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
@@ -235,23 +235,23 @@ export default function ShowcasePage() {
                   </ul>
                 </div>
                 
-                <div className="bg-[hsl(var(--cwg-dark-blue))] rounded-lg p-5 border border-[hsl(var(--cwg-border))]">
-                  <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-orange))] mb-3">Guild Tools</h3>
+                <div className="neon-card bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-5 transition-all duration-300 hover:neon-glow-purple">
+                  <h3 className="text-xl font-orbitron neon-text-purple mb-3">Guild Tools</h3>
                   <ul className="space-y-2">
                     <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
+                      <span className="text-[hsl(var(--web3-neon-purple))] mr-2">✓</span>
                       <span>NFT & in-game item rentals</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
+                      <span className="text-[hsl(var(--web3-neon-purple))] mr-2">✓</span>
                       <span>Gaming courses & tutorials</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
+                      <span className="text-[hsl(var(--web3-neon-purple))] mr-2">✓</span>
                       <span>Play-to-earn calculators</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
+                      <span className="text-[hsl(var(--web3-neon-purple))] mr-2">✓</span>
                       <span>Referral program with rewards</span>
                     </li>
                   </ul>
@@ -266,9 +266,9 @@ export default function ShowcasePage() {
         </TabsContent>
 
         <TabsContent value="sharing" className="mt-0">
-          <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+          <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))] neon-border-orange">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-orbitron font-semibold text-[hsl(var(--cwg-blue))] mb-4">
+              <h2 className="text-2xl font-orbitron font-semibold neon-text-orange mb-4">
                 Guild Social Sharing
               </h2>
               <p className="text-[hsl(var(--cwg-muted))] mb-6">
@@ -281,7 +281,7 @@ export default function ShowcasePage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                  <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-orange))] mb-4">
+                  <h3 className="text-xl font-orbitron neon-text-orange mb-4">
                     Share Features
                   </h3>
                   <ul className="space-y-3">
@@ -309,12 +309,12 @@ export default function ShowcasePage() {
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-orange))] mb-4">
+                  <h3 className="text-xl font-orbitron neon-text-orange mb-4">
                     Try it now
                   </h3>
-                  <div className="bg-[hsl(var(--cwg-dark-blue))] rounded-lg p-6 border border-[hsl(var(--cwg-border))]">
+                  <div className="neon-card-orange bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-6 transition-all duration-300 hover:neon-glow">
                     <Button
-                      className="w-full bg-[hsl(var(--cwg-orange))] hover:bg-[hsl(var(--cwg-orange))/90] text-white"
+                      className="w-full bg-[hsl(var(--cwg-orange))] hover:bg-[hsl(var(--cwg-orange))/90] text-white hover:neon-glow"
                       onClick={() => setShowShareModal(true)}
                     >
                       <Share className="h-4 w-4 mr-2" />
@@ -329,22 +329,23 @@ export default function ShowcasePage() {
 
               <div className="mt-12 space-y-8">
                 <div>
-                  <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-blue))] mb-4">
+                  <h3 className="text-xl font-orbitron neon-text-blue mb-4">
                     Achievement Sharing
                   </h3>
-                  <div className="bg-[hsl(var(--cwg-dark-blue))] rounded-lg p-6 border border-[hsl(var(--cwg-border))]">
+                  <div className="neon-card-blue bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-6 transition-all duration-300 hover:neon-glow-blue">
                     <p className="mb-4">
                       In addition to guild sharing, users can share individual achievements on social media. When you earn badges or complete guild achievements, you can share them with friends.
                     </p>
                     <div className="flex flex-wrap gap-3">
                       <Button
                         variant="outline"
-                        className="border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))] hover:bg-[hsl(var(--cwg-blue))/10]"
+                        className="neon-border-blue neon-text-blue hover:neon-glow-blue"
                       >
                         Share Achievement
                       </Button>
                       <Button
                         variant="secondary"
+                        className="hover:neon-glow-blue"
                       >
                         View Achievements
                       </Button>
@@ -353,22 +354,23 @@ export default function ShowcasePage() {
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-orbitron text-[hsl(var(--cwg-blue))] mb-4">
+                  <h3 className="text-xl font-orbitron neon-text-purple mb-4">
                     Referral Program
                   </h3>
-                  <div className="bg-[hsl(var(--cwg-dark-blue))] rounded-lg p-6 border border-[hsl(var(--cwg-border))]">
+                  <div className="neon-border-purple bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-6 transition-all duration-300 hover:neon-glow-purple">
                     <p className="mb-4">
                       Our referral program allows you to earn points and exclusive rewards by inviting friends to join ClockWork Gamers. Each successful referral increases your ranking on the leaderboard.
                     </p>
                     <div className="flex flex-wrap gap-3">
                       <Button
                         variant="outline"
-                        className="border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))] hover:bg-[hsl(var(--cwg-blue))/10]"
+                        className="neon-border-purple neon-text-purple hover:neon-glow-purple"
                       >
                         My Referral Link
                       </Button>
                       <Button
                         variant="secondary"
+                        className="hover:neon-glow-purple"
                       >
                         Referral Stats
                       </Button>
