@@ -5,11 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trophy, Star, Clock, Check, Gift, Shield } from 'lucide-react';
+import { Trophy, Star, Clock, Check, Gift, Shield, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
+import { AchievementShareModal, AchievementData } from './AchievementShareModal';
 
 // Typing for achievements data
 type Achievement = {
@@ -43,6 +44,14 @@ const AchievementsTracker: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showOnlyCompleted, setShowOnlyCompleted] = useState(false);
   const [animatedAchievementId, setAnimatedAchievementId] = useState<number | null>(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedAchievement, setSelectedAchievement] = useState<AchievementData | null>(null);
+  
+  // Handler for opening the share modal
+  const handleShareClick = (achievement: AchievementData) => {
+    setSelectedAchievement(achievement);
+    setShareModalOpen(true);
+  };
 
   // Fetch all achievements with user's progress
   const { data: achievements, isLoading } = useQuery({
@@ -145,6 +154,13 @@ const AchievementsTracker: React.FC = () => {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
+      {/* Achievement Share Modal */}
+      <AchievementShareModal 
+        achievement={selectedAchievement}
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+      />
+      
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-primary">Guild Achievements</h2>
         <div className="flex items-center space-x-2">
@@ -242,8 +258,28 @@ const AchievementsTracker: React.FC = () => {
                           </Button>
                         )}
                         {achievement.progress?.isCompleted && achievement.progress?.rewardClaimed && (
-                          <Button variant="outline" className="w-full" disabled>
-                            <Check className="mr-2 h-4 w-4" /> Reward Claimed
+                          <div className="flex gap-2">
+                            <Button variant="outline" className="flex-1" disabled>
+                              <Check className="mr-2 h-4 w-4" /> Reward Claimed
+                            </Button>
+                            <Button 
+                              variant="secondary" 
+                              className="flex-none aspect-square p-2" 
+                              onClick={() => handleShareClick(achievement as AchievementData)}
+                            >
+                              <Share2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                        {/* Share button for completed achievements without reward */}
+                        {achievement.progress?.isCompleted && !achievement.progress?.rewardClaimed && (
+                          <Button 
+                            variant="secondary" 
+                            size="sm"
+                            className="w-full mt-2" 
+                            onClick={() => handleShareClick(achievement as AchievementData)}
+                          >
+                            <Share2 className="mr-2 h-4 w-4" /> Share Achievement
                           </Button>
                         )}
                         {/* Test button - for development only */}
