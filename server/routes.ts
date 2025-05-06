@@ -430,6 +430,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Payment routes
   
+  // User payment history route
+  app.get("/api/payments", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const payments = await storage.getUserPayments(userId);
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching user payments:", error);
+      res.status(500).json({ message: "Failed to fetch payment history" });
+    }
+  });
+  
+  // Course purchase routes
+  app.get("/api/user/courses", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const courses = await storage.getUserActiveCourses(userId);
+      res.json(courses);
+    } catch (error) {
+      console.error("Error fetching user courses:", error);
+      res.status(500).json({ message: "Failed to fetch purchased courses" });
+    }
+  });
+  
+  app.post("/api/courses/purchase", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const { courseId } = req.body;
+      
+      if (!courseId) {
+        return res.status(400).json({ message: "Course ID is required" });
+      }
+      
+      // Check if course exists
+      const course = await storage.getCourse(courseId);
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+      
+      // Check if user already has an active purchase for this course
+      const hasActivePurchase = await storage.hasUserPurchasedCourse(userId, courseId);
+      if (hasActivePurchase) {
+        return res.status(409).json({ message: "You already own this course" });
+      }
+      
+      // Create payment intent
+      // We'll pass all the required metadata for Stripe to process this as a course purchase
+      req.body.amount = course.price;
+      req.body.currency = 'usd';
+      req.body.description = `Purchase of course: ${course.title}`;
+      req.body.metadata = {
+        type: 'course',
+        courseId: courseId.toString(),
+        title: course.title
+      };
+      
+      // Forward to createPaymentIntent function
+      await createPaymentIntent(req, res);
+    } catch (error) {
+      console.error("Error processing course purchase:", error);
+      res.status(500).json({ message: "Failed to initiate course purchase" });
+    }
+  });
+  
+  // Rental purchase routes
+  app.get("/api/user/rentals", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const rentals = await storage.getUserActiveRentals(userId);
+      res.json(rentals);
+    } catch (error) {
+      console.error("Error fetching user rentals:", error);
+      res.status(500).json({ message: "Failed to fetch active rentals" });
+    }
+  });
+  
+  app.post("/api/rentals/purchase", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const { rentalId, durationDays = 7 } = req.body;
+      
+      if (!rentalId) {
+        return res.status(400).json({ message: "Rental ID is required" });
+      }
+      
+      // Check if rental exists
+      const rental = await storage.getRental(rentalId);
+      if (!rental) {
+        return res.status(404).json({ message: "Rental item not found" });
+      }
+      
+      // Calculate the price based on rental price and duration
+      const price = rental.pricePerDay * durationDays;
+      
+      // Create payment intent
+      req.body.amount = price;
+      req.body.currency = 'usd';
+      req.body.description = `Rental of ${rental.title} for ${durationDays} days`;
+      req.body.metadata = {
+        type: 'rental',
+        rentalId: rentalId.toString(),
+        title: rental.title,
+        durationDays: durationDays.toString()
+      };
+      
+      // Forward to createPaymentIntent function
+      await createPaymentIntent(req, res);
+    } catch (error) {
+      console.error("Error processing rental purchase:", error);
+      res.status(500).json({ message: "Failed to initiate rental purchase" });
+    }
+  });
+  
   // Stripe payment routes
   app.post("/api/create-payment-intent", async (req, res) => {
     try {

@@ -165,9 +165,9 @@ export async function handleWebhook(req: Request, res: Response) {
           await storage.updatePayment(payment.id, { status: 'completed' });
           
           // Check metadata to see what this payment was for
-          const metadata = payment.metadata || {};
+          const metadata = payment.metadata as Record<string, any> || {};
           
-          if (metadata.type === 'course' && metadata.courseId) {
+          if (metadata && typeof metadata === 'object' && metadata.type === 'course' && metadata.courseId) {
             const courseId = Number(metadata.courseId);
             // Create course purchase record
             await storage.createCoursePurchase({
@@ -182,7 +182,7 @@ export async function handleWebhook(req: Request, res: Response) {
             console.log(`Course purchase created for course ${courseId}, user ${payment.userId}`);
           }
           
-          if (metadata.type === 'rental' && metadata.rentalId) {
+          if (metadata && typeof metadata === 'object' && metadata.type === 'rental' && metadata.rentalId) {
             const rentalId = Number(metadata.rentalId);
             const startDate = new Date();
             
@@ -213,12 +213,13 @@ export async function handleWebhook(req: Request, res: Response) {
         // Update payment status in our database
         const failedDbPayment = await storage.getPaymentByIntentId(failedPayment.id);
         if (failedDbPayment) {
+          const existingMetadata = failedDbPayment.metadata as Record<string, any> || {};
           await storage.updatePayment(failedDbPayment.id, { 
             status: 'failed',
             metadata: {
-              ...failedDbPayment.metadata,
-              failureReason: failedPayment.last_payment_error?.message
-            }
+              ...(typeof existingMetadata === 'object' ? existingMetadata : {}),
+              failureReason: failedPayment.last_payment_error?.message || 'Unknown error'
+            } as any
           });
         }
         break;
