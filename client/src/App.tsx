@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
+import TestPage from "@/pages/test-page";
 import StreamersPage from "@/pages/streamers-page";
 import StreamerProfilePage from "@/pages/streamer-profile-page";
 import RentalsPage from "@/pages/rentals-page";
@@ -96,6 +97,7 @@ function Router() {
       <Route path="/privacy-policy" component={PrivacyPolicyPage} />
       <Route path="/terms-of-service" component={TermsOfServicePage} />
       <Route path="/cookie-policy" component={CookiePolicyPage} />
+      <Route path="/test" component={TestPage} />
       
       {/* Protected Routes - Require Authentication */}
       <ProtectedRoute path="/" component={HomePage} />
@@ -154,6 +156,61 @@ function App() {
     return <ErrorBoundaryFallback />;
   }
 
+  const [enableFeatures, setEnableFeatures] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('initializing');
+  
+  // Attempt to verify WebSocket connectivity
+  useEffect(() => {
+    let wsCheckTimer: ReturnType<typeof setTimeout>;
+    let wsCheckAttempts = 0;
+    const MAX_ATTEMPTS = 3;
+    
+    const checkWebSocketConnectivity = () => {
+      try {
+        // Try to establish a WebSocket connection
+        const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`);
+        
+        ws.onopen = () => {
+          console.log('WebSocket connection successful');
+          setConnectionStatus('connected');
+          setEnableFeatures(true);
+          ws.close();
+        };
+        
+        ws.onerror = (error) => {
+          console.warn('WebSocket connection check failed:', error);
+          wsCheckAttempts++;
+          
+          if (wsCheckAttempts >= MAX_ATTEMPTS) {
+            console.log('Maximum WebSocket connection attempts reached, continuing with limited features');
+            setConnectionStatus('failed');
+            setEnableFeatures(false);
+          } else {
+            // Retry after delay
+            wsCheckTimer = setTimeout(checkWebSocketConnectivity, 2000);
+          }
+        };
+        
+        // Set a timeout to close the connection if it doesn't establish quickly
+        setTimeout(() => {
+          if (ws.readyState !== WebSocket.OPEN) {
+            ws.close();
+          }
+        }, 5000);
+      } catch (error) {
+        console.error('WebSocket initialization error:', error);
+        setConnectionStatus('failed');
+        setEnableFeatures(false);
+      }
+    };
+    
+    checkWebSocketConnectivity();
+    
+    return () => {
+      if (wsCheckTimer) clearTimeout(wsCheckTimer);
+    };
+  }, []);
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -163,10 +220,20 @@ function App() {
                 <TooltipProvider>
                   <Toaster />
                   <Router />
-                  {/* Temporarily disable components that might be causing WebSocket issues */}
-                  {/* <SimpleChatWidget /> */}
-                  {/* <AchievementUnlockNotification /> */}
-                  {/* <OnboardingFlow /> */}
+                  {/* Enable features conditionally based on WebSocket connectivity */}
+                  {enableFeatures && (
+                    <>
+                      <SimpleChatWidget />
+                      <AchievementUnlockNotification />
+                      <OnboardingFlow />
+                    </>
+                  )}
+                  {connectionStatus === 'failed' && (
+                    <div className="fixed bottom-4 left-4 z-50 bg-gray-800 border border-orange-500 text-white p-3 rounded shadow-lg text-sm">
+                      <p className="font-semibold">Limited Functionality Mode</p>
+                      <p className="text-xs text-gray-300">Some features are disabled</p>
+                    </div>
+                  )}
                 </TooltipProvider>
               </ThemeProvider>
           </Web3Provider>

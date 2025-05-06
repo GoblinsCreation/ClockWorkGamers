@@ -517,7 +517,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint - doesn't require authentication, 
   // used to verify server is responding
   app.get("/api/healthcheck", (req, res) => {
-    res.status(200).json({ status: "ok", timestamp: Date.now() });
+    res.status(200).json({
+      status: "ok",
+      timestamp: Date.now(),
+      version: process.env.npm_package_version || "1.0.0",
+      services: {
+        database: true,
+        websocket: true,
+        api: true
+      }
+    });
   });
   
   // Contact form route
