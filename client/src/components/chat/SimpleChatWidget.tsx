@@ -454,7 +454,7 @@ export default function SimpleChatWidget({
                       {message.content}
                       {message.isTranslated && message.originalContent && (
                         <div className="message-translation-info">
-                          <Badge size="sm" variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs">
                             Translated from {message.language}
                           </Badge>
                           <div className="message-original-content">
@@ -824,7 +824,7 @@ export default function SimpleChatWidget({
                           roomId={`dm-${selectedContact.id}`}
                           messages={messages[`dm-${selectedContact.id}`] || []}
                           onSendMessage={handleSendPrivateMessage}
-                          isLoading={isLoading[`dm-${selectedContact.id}`] || false}
+                          isLoading={false} // Initialize DM chats as not loading
                           isConnected={isConnected}
                           onReconnect={() => {
                             setIsReconnecting(true);
