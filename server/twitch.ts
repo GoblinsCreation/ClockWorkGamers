@@ -314,10 +314,10 @@ export async function getLiveStreamers() {
  * Schedule regular updates of stream status
  * @param intervalMinutes How often to check Twitch API (in minutes)
  */
-export function scheduleStreamStatusUpdates(intervalMinutes: number = DEFAULT_UPDATE_INTERVAL_MINUTES): NodeJS.Timer {
+export function scheduleStreamStatusUpdates(intervalMinutes: number = DEFAULT_UPDATE_INTERVAL_MINUTES): NodeJS.Timeout {
   // Clear any existing interval
   if (updateInterval) {
-    clearInterval(updateInterval);
+    clearInterval(updateInterval as NodeJS.Timeout);
   }
   
   // Run immediately on startup
@@ -331,7 +331,7 @@ export function scheduleStreamStatusUpdates(intervalMinutes: number = DEFAULT_UP
   
   log(`Scheduled Twitch stream status updates every ${intervalMinutes} minutes`, 'twitch');
   
-  return updateInterval;
+  return updateInterval as NodeJS.Timeout;
 }
 
 /**
@@ -339,7 +339,7 @@ export function scheduleStreamStatusUpdates(intervalMinutes: number = DEFAULT_UP
  */
 export function stopStreamStatusUpdates(): void {
   if (updateInterval) {
-    clearInterval(updateInterval);
+    clearInterval(updateInterval as NodeJS.Timeout);
     updateInterval = null;
     log('Stopped Twitch stream status updates', 'twitch');
   }

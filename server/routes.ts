@@ -14,7 +14,7 @@ import {
   handlePasswordReset,
   servePhpAdminPanel
 } from "./php-integration";
-import { scheduleStreamStatusUpdates, updateStreamStatus, linkTwitchAccount } from "./twitch";
+import { scheduleStreamStatusUpdates, updateStreamStatus, linkTwitchAccount, getLiveStreamers } from "./twitch";
 import { handleContactForm, sendTestEmail } from "./email";
 import { WebSocketServer, WebSocket } from 'ws';
 import { 
@@ -91,17 +91,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/streamers/live", async (req, res) => {
     try {
-      // Wrap in try-catch to handle any errors in getLiveStreamers
-      try {
-        const liveStreamers = await storage.getLiveStreamers();
-        res.json(liveStreamers || []);
-      } catch (storageError) {
-        console.error("Error fetching live streamers:", storageError);
-        // Return empty array as fallback
-        res.json([]);
-      }
+      // Get live streamers from twitch.ts using the getLiveStreamers function
+      const liveStreamers = await getLiveStreamers();
+      res.json(liveStreamers || []);
     } catch (error) {
-      console.error("Error in /api/streamers/live route:", error);
+      console.error("Error fetching live streamers:", error);
       res.status(500).json({ message: "Failed to fetch live streamers" });
     }
   });
@@ -842,6 +836,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating streamer status:", error);
       res.status(500).json({ message: "Failed to update streamer status" });
+    }
+  });
+  
+  // Route to get all currently live streamers
+  app.get("/api/streamers/live", async (req, res) => {
+    try {
+      const liveStreamers = await getLiveStreamers();
+      res.json(liveStreamers);
+    } catch (error) {
+      console.error("Error fetching live streamers:", error);
+      res.status(500).json({ message: "Failed to fetch live streamers" });
     }
   });
 
