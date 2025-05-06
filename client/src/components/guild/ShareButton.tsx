@@ -1,65 +1,42 @@
 import React, { useState } from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
-import { Share2 } from 'lucide-react';
 import { GuildShareModal } from './GuildShareModal';
-
-// Default guild data
-const DEFAULT_GUILD_DATA = {
-  name: 'ClockWork Gamers',
-  description: 'A Web3 gaming guild connecting players, streamers, and creators',
-  memberCount: 350,
-  websiteUrl: window.location.origin,
-  imageUrl: '/images/cwg-logo.png'
-};
+import { Share2 } from 'lucide-react';
 
 interface ShareButtonProps extends ButtonProps {
-  variant?: 'default' | 'secondary' | 'outline';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
+  guildName?: string;
+  guildDescription?: string;
+  guildImage?: string;
   showIcon?: boolean;
   label?: string;
-  customGuildData?: {
-    name?: string;
-    description?: string;
-    memberCount?: number;
-    imageUrl?: string;
-    websiteUrl?: string;
-  };
 }
 
 export function ShareButton({
-  variant = 'default',
-  size = 'default',
+  guildName,
+  guildDescription,
+  guildImage,
   showIcon = true,
-  label = 'Share Guild',
-  customGuildData,
-  className,
+  label = "Share",
   ...props
 }: ShareButtonProps) {
-  const [showShareModal, setShowShareModal] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Merge custom guild data with defaults
-  const guildData = {
-    ...DEFAULT_GUILD_DATA,
-    ...(customGuildData || {})
-  };
-
   return (
     <>
-      <Button
-        variant={variant}
-        size={size}
-        className={className}
-        onClick={() => setShowShareModal(true)}
+      <Button 
+        onClick={() => setIsModalOpen(true)}
         {...props}
       >
-        {showIcon && <Share2 className={`h-4 w-4 ${label ? 'mr-2' : ''}`} />}
-        {label && <span>{label}</span>}
+        {showIcon && <Share2 className="h-4 w-4 mr-2" />}
+        {label}
       </Button>
-
+      
       <GuildShareModal
-        isOpen={showShareModal}
-        onClose={() => setShowShareModal(false)}
-        guildData={guildData}
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        guildName={guildName}
+        guildDescription={guildDescription}
+        guildImage={guildImage}
       />
     </>
   );

@@ -1105,6 +1105,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Leaderboard API routes
+  app.get("/api/leaderboard", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    try {
+      // Extract query parameters with defaults
+      const timeframe = (req.query.timeframe as string) || 'weekly';
+      const category = (req.query.category as string) || 'points';
+      
+      // For now, return demo data
+      // In a real implementation, this would query the database based on the parameters
+      const users = await storage.listUsers();
+      
+      // Create a simulated leaderboard based on real users
+      const leaderboard = users.map((user, index) => {
+        // Create some simulated stats based on the user
+        const rank = index + 1;
+        const previousRank = Math.min(users.length, Math.max(1, 
+          rank + (Math.random() > 0.7 ? Math.floor(Math.random() * 3) + 1 : 
+                 Math.random() > 0.3 ? 0 : -Math.floor(Math.random() * 3) - 1)));
+        
+        // Points calculation simulation based on user ID and timeframe
+        let points = 1000 + (user.id * 100) - (index * 200);
+        if (timeframe === 'monthly') points *= 2.5;
+        if (timeframe === 'alltime') points *= 5;
+        
+        // Calculate user level based on points
+        const level = Math.max(1, Math.floor(Math.sqrt(points / 100)));
+        
+        // Calculate achievements based on level
+        const achievements = Math.floor(level * 0.7);
+        
+        // Determine activity level
+        let activity: 'high' | 'medium' | 'low' = 'medium';
+        if (rank <= 3) activity = 'high';
+        if (rank > users.length - 3) activity = 'low';
+        
+        // Generate some simulated badges
+        const badges = [];
+        if (level >= 5) badges.push('Bronze');
+        if (level >= 15) badges.push('Silver');
+        if (level >= 30) badges.push('Gold');
+        if (level >= 40) badges.push('Diamond');
+        if (user.isAdmin) badges.push('Verified');
+        if (user.id === 1) badges.push('Founder');
+        
+        return {
+          id: user.id,
+          username: user.username,
+          displayName: user.username,
+          avatar: null, // In a real app, this would come from user profiles
+          rank,
+          previousRank,
+          points: Math.floor(points),
+          level,
+          achievements,
+          activity,
+          role: user.isAdmin ? 'Admin' : 'Member',
+          badges,
+          joinDate: new Date().toISOString().split('T')[0], // Simulated join date
+        };
+      });
+      
+      res.json(leaderboard);
+    } catch (error) {
+      console.error("Error fetching leaderboard data:", error);
+      res.status(500).json({ message: "Failed to fetch leaderboard data" });
+    }
+  });
+
   // Create HTTP server
   // PHP Integration Routes
   app.get("/api/php/db-report", async (req, res) => {

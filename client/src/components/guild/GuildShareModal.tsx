@@ -2,215 +2,249 @@ import React, { useState } from 'react';
 import { 
   Dialog, 
   DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
   DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Share2, 
-  Copy, 
-  Check, 
-  Twitter, 
-  Facebook, 
-  Linkedin, 
-  Mail
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { ToastAction } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
+import { Check, Copy, Facebook, Linkedin, Mail, Twitter } from "lucide-react";
+import { FaDiscord } from "react-icons/fa";
 
 interface GuildShareModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  guildData: {
-    name: string;
-    description: string;
-    memberCount: number;
-    imageUrl?: string;
-    websiteUrl: string;
-  };
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  guildName?: string;
+  guildDescription?: string;
+  guildImage?: string;
 }
 
-export function GuildShareModal({ 
-  isOpen, 
-  onClose,
-  guildData 
+export function GuildShareModal({
+  open,
+  onOpenChange,
+  guildName = "ClockWork Gamers",
+  guildDescription = "Join our Web3 gaming guild to connect with players, streamers, and creators!",
+  guildImage = "/images/cwg-logo.png"
 }: GuildShareModalProps) {
-  const [activeTab, setActiveTab] = useState('social');
-  const [customMessage, setCustomMessage] = useState(`Join me on ${guildData.name} - a Web3 gaming guild with ${guildData.memberCount} members! #ClockWorkGamers #Web3Gaming`);
-  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
-
-  // Format the base share URL
-  const shareUrl = guildData.websiteUrl || window.location.origin;
-
-  // Generate the various sharing URLs
-  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(customMessage)}&url=${encodeURIComponent(shareUrl)}`;
-  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(customMessage)}`;
-  const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&summary=${encodeURIComponent(customMessage)}`;
-  const emailSubject = `Join ${guildData.name} Gaming Guild`;
-  const emailBody = `${customMessage}\n\n${shareUrl}`;
-  const emailUrl = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-
+  const [copied, setCopied] = useState(false);
+  const [customMessage, setCustomMessage] = useState(
+    `Check out ${guildName}! ${guildDescription} Join me on this amazing platform.`
+  );
+  
+  const websiteUrl = window.location.origin;
+  const shareUrl = `${websiteUrl}?ref=${encodeURIComponent(guildName.toLowerCase().replace(/\s+/g, '-'))}`;
+  
   // Handle copy to clipboard
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
+  const handleCopy = () => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
       setCopied(true);
-      toast({
-        title: "Copied to clipboard",
-        description: "You can now paste the text anywhere",
-      });
       setTimeout(() => setCopied(false), 2000);
-    }).catch(err => {
-      console.error('Could not copy text: ', err);
+      
       toast({
-        title: "Failed to copy",
-        description: "Please try again or copy manually",
-        variant: "destructive",
+        title: "URL copied!",
+        description: "Guild URL has been copied to your clipboard.",
       });
     });
   };
-
+  
+  // Share functions for different platforms
+  const shareToTwitter = () => {
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(customMessage)}&url=${encodeURIComponent(shareUrl)}`;
+    window.open(twitterUrl, '_blank');
+    
+    toast({
+      title: "Sharing to Twitter",
+      description: "Opening Twitter to share your guild."
+    });
+  };
+  
+  const shareToFacebook = () => {
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(customMessage)}`;
+    window.open(facebookUrl, '_blank');
+    
+    toast({
+      title: "Sharing to Facebook",
+      description: "Opening Facebook to share your guild."
+    });
+  };
+  
+  const shareToLinkedin = () => {
+    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+    window.open(linkedinUrl, '_blank');
+    
+    toast({
+      title: "Sharing to LinkedIn",
+      description: "Opening LinkedIn to share your guild."
+    });
+  };
+  
+  const shareToDiscord = () => {
+    // Discord doesn't have a direct share URL, so we'll copy a formatted message
+    const discordMessage = `**${guildName}**\n${customMessage}\n${shareUrl}`;
+    navigator.clipboard.writeText(discordMessage);
+    
+    toast({
+      title: "Discord message copied!",
+      description: "Paste in Discord to share with your friends.",
+      action: (
+        <ToastAction altText="Join our Discord">Join Discord</ToastAction>
+      ),
+    });
+  };
+  
+  const shareByEmail = () => {
+    const subject = `Join me on ${guildName}`;
+    const body = `${customMessage}\n\n${shareUrl}`;
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoUrl, '_blank');
+    
+    toast({
+      title: "Sharing via Email",
+      description: "Opening your email client."
+    });
+  };
+  
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Share2 className="h-5 w-5" />
-            Share CWG Guild
-          </DialogTitle>
+          <DialogTitle>Share Guild</DialogTitle>
           <DialogDescription>
-            Invite friends to join our Web3 gaming community
+            Invite friends to join ClockWork Gamers
           </DialogDescription>
         </DialogHeader>
         
-        <Tabs defaultValue="social" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue="social" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="social">Social Media</TabsTrigger>
             <TabsTrigger value="custom">Custom Message</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="social" className="space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-3">
+          <TabsContent value="social" className="py-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <Button
                 variant="outline"
-                className="flex items-center gap-2 h-auto py-3"
-                onClick={() => window.open(twitterUrl, '_blank')}
+                className="justify-start gap-2 p-2 h-auto flex-col items-center"
+                onClick={shareToTwitter}
               >
                 <Twitter className="h-5 w-5 text-[#1DA1F2]" />
-                <span>Twitter / X</span>
+                <span className="text-xs">Twitter</span>
               </Button>
               
               <Button
                 variant="outline"
-                className="flex items-center gap-2 h-auto py-3"
-                onClick={() => window.open(facebookUrl, '_blank')}
+                className="justify-start gap-2 p-2 h-auto flex-col items-center"
+                onClick={shareToFacebook}
               >
                 <Facebook className="h-5 w-5 text-[#1877F2]" />
-                <span>Facebook</span>
+                <span className="text-xs">Facebook</span>
               </Button>
               
               <Button
                 variant="outline"
-                className="flex items-center gap-2 h-auto py-3"
-                onClick={() => window.open(linkedinUrl, '_blank')}
+                className="justify-start gap-2 p-2 h-auto flex-col items-center"
+                onClick={shareToLinkedin}
               >
                 <Linkedin className="h-5 w-5 text-[#0A66C2]" />
-                <span>LinkedIn</span>
+                <span className="text-xs">LinkedIn</span>
               </Button>
               
               <Button
                 variant="outline"
-                className="flex items-center gap-2 h-auto py-3"
-                onClick={() => window.open(emailUrl, '_blank')}
+                className="justify-start gap-2 p-2 h-auto flex-col items-center"
+                onClick={shareToDiscord}
               >
-                <Mail className="h-5 w-5 text-amber-500" />
-                <span>Email</span>
+                <FaDiscord className="h-5 w-5 text-[#5865F2]" />
+                <span className="text-xs">Discord</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                className="justify-start gap-2 p-2 h-auto flex-col items-center"
+                onClick={shareByEmail}
+              >
+                <Mail className="h-5 w-5 text-muted-foreground" />
+                <span className="text-xs">Email</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                className="justify-start gap-2 p-2 h-auto flex-col items-center"
+                onClick={handleCopy}
+              >
+                {copied ? 
+                  <Check className="h-5 w-5 text-green-500" /> : 
+                  <Copy className="h-5 w-5 text-muted-foreground" />
+                }
+                <span className="text-xs">{copied ? "Copied!" : "Copy Link"}</span>
               </Button>
             </div>
             
-            <div className="pt-2">
-              <Label htmlFor="copy-link" className="text-sm font-medium">
-                Direct Link
-              </Label>
-              <div className="flex items-center mt-1.5 gap-2">
-                <Input 
-                  id="copy-link" 
-                  value={shareUrl} 
-                  readOnly 
+            <div className="mt-4">
+              <div className="flex items-center mb-2">
+                <Label htmlFor="guild-url">Guild URL</Label>
+              </div>
+              <div className="flex space-x-2">
+                <Input
+                  id="guild-url"
+                  value={shareUrl}
+                  readOnly
                   className="flex-1"
                 />
-                <Button 
-                  size="icon" 
-                  variant="outline"
-                  className="h-10 w-10 shrink-0"
-                  onClick={() => copyToClipboard(shareUrl)}
-                >
-                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                <Button size="icon" onClick={handleCopy} variant="secondary">
+                  {copied ? 
+                    <Check className="h-4 w-4 text-green-500" /> : 
+                    <Copy className="h-4 w-4" />
+                  }
                 </Button>
               </div>
             </div>
           </TabsContent>
           
-          <TabsContent value="custom" className="space-y-4 pt-4">
+          <TabsContent value="custom" className="py-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="custom-message">Customize Your Message</Label>
+              <Label htmlFor="custom-message">Customize your message</Label>
               <Textarea
                 id="custom-message"
                 value={customMessage}
                 onChange={(e) => setCustomMessage(e.target.value)}
                 rows={4}
-                placeholder="Enter your custom invitation message"
               />
               <p className="text-xs text-muted-foreground">
-                {280 - customMessage.length} characters remaining
+                This message will be included when sharing to social platforms.
               </p>
-            </div>
-            
-            <div className="bg-muted/50 rounded-md p-3 text-sm">
-              <h4 className="font-medium mb-1">Preview:</h4>
-              <p className="text-muted-foreground">{customMessage}</p>
-              <p className="text-primary text-xs mt-1">{shareUrl}</p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <Button
-                variant="default"
-                className="flex items-center gap-2"
-                onClick={() => window.open(twitterUrl, '_blank')}
-              >
-                <Twitter className="h-4 w-4" />
-                <span>Share on Twitter</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="flex items-center gap-2"
-                onClick={() => copyToClipboard(customMessage + '\n\n' + shareUrl)}
-              >
-                <Copy className="h-4 w-4" />
-                <span>Copy Text</span>
-              </Button>
             </div>
           </TabsContent>
         </Tabs>
         
         <DialogFooter className="sm:justify-start">
-          <div className="w-full flex items-center justify-between gap-2 pt-2">
-            <div className="text-xs text-muted-foreground">
-              Share with your gaming community
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onClose}
-            >
-              Done
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-between w-full gap-2">
+            <Button variant="secondary" onClick={() => onOpenChange(false)}>
+              Cancel
             </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleCopy}>
+                {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                Copy Link
+              </Button>
+              <Button onClick={shareToTwitter}>
+                <Twitter className="h-4 w-4 mr-2" />
+                Share Now
+              </Button>
+            </div>
           </div>
         </DialogFooter>
       </DialogContent>
