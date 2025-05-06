@@ -867,18 +867,18 @@ const FloatingChat: React.FC = () => {
     // Get position from settings
     const { position } = chatSettings;
     
-    // Default positions (can be expanded with more precise positioning)
+    // Default positions with !important to ensure they override any conflicting styles
     switch (position) {
       case 'bottom-right':
-        return { bottom: '20px', right: '20px', top: 'auto', left: 'auto' };
+        return { bottom: '20px', right: '20px', top: 'auto', left: 'auto', position: 'fixed', zIndex: 1000 };
       case 'bottom-left':
-        return { bottom: '20px', left: '20px', top: 'auto', right: 'auto' };
+        return { bottom: '20px', left: '20px', top: 'auto', right: 'auto', position: 'fixed', zIndex: 1000 };
       case 'top-right':
-        return { top: '20px', right: '20px', bottom: 'auto', left: 'auto' };
+        return { top: '20px', right: '20px', bottom: 'auto', left: 'auto', position: 'fixed', zIndex: 1000 };
       case 'top-left':
-        return { top: '20px', left: '20px', bottom: 'auto', right: 'auto' };
+        return { top: '20px', left: '20px', bottom: 'auto', right: 'auto', position: 'fixed', zIndex: 1000 };
       default:
-        return { bottom: '20px', right: '20px', top: 'auto', left: 'auto' };
+        return { bottom: '20px', right: '20px', top: 'auto', left: 'auto', position: 'fixed', zIndex: 1000 };
     }
   };
   
