@@ -1,155 +1,216 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { useWeb3 } from '@/lib/web3/Web3Provider';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, AlertCircle, ExternalLink } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Wallet, Copy, CheckCircle2, RefreshCw, ExternalLink } from 'lucide-react';
+import { formatEthereumAddress } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 
-interface WalletInfoProps {
-  showDisconnect?: boolean;
+export interface WalletInfoProps {
   className?: string;
 }
 
-export function WalletInfo({ showDisconnect = true, className = '' }: WalletInfoProps) {
-  const { address, balance, chainId, network, isConnected, disconnectWallet } = useWeb3();
+export function WalletInfo({ className }: WalletInfoProps) {
+  const { address, balance, chainId, isConnected, isConnecting, network, error } = useWeb3();
+  const [copied, setCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
-  if (!isConnected || !address) {
+  useEffect(() => {
+    if (copied) {
+      const timeout = setTimeout(() => setCopied(false), 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [copied]);
+  
+  const copyToClipboard = () => {
+    if (address) {
+      navigator.clipboard.writeText(address);
+      setCopied(true);
+    }
+  };
+  
+  const openExplorer = () => {
+    if (!address) return;
+    
+    let explorerUrl;
+    if (chainId === 1) {
+      explorerUrl = `https://etherscan.io/address/${address}`;
+    } else if (chainId === 137) {
+      explorerUrl = `https://polygonscan.com/address/${address}`;
+    } else if (chainId === 42161) {
+      explorerUrl = `https://arbiscan.io/address/${address}`;
+    } else {
+      explorerUrl = `https://etherscan.io/address/${address}`;
+    }
+    
+    window.open(explorerUrl, '_blank');
+  };
+  
+  // Simulated wallet data for the demo
+  const walletStats = {
+    totalNFTs: Math.floor(Math.random() * 50) + 1,
+    totalCollections: Math.floor(Math.random() * 10) + 1,
+    rarity: {
+      common: Math.floor(Math.random() * 20),
+      uncommon: Math.floor(Math.random() * 15),
+      rare: Math.floor(Math.random() * 10),
+      epic: Math.floor(Math.random() * 5),
+      legendary: Math.floor(Math.random() * 3)
+    },
+    totalGames: Math.floor(Math.random() * 5) + 1,
+    lastActivity: new Date(Date.now() - Math.random() * 14 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+    walletHealth: Math.floor(Math.random() * 100),
+  };
+  
+  // Refresh wallet data
+  const refreshWalletData = () => {
+    setIsLoading(true);
+    // In a real app, this would trigger a refresh of wallet data
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+  };
+  
+  if (!isConnected) {
     return (
-      <Card className={`w-full ${className}`}>
+      <Card className={`${className} bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-blue))]`}>
         <CardHeader>
-          <CardTitle>Wallet Not Connected</CardTitle>
-          <CardDescription>
-            Connect your wallet to view your account information
-          </CardDescription>
+          <CardTitle className="neon-text-blue">No Wallet Connected</CardTitle>
+          <CardDescription>Connect your wallet to view your Web3 assets</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center p-4">
-            <AlertCircle className="w-10 h-10 text-gray-400" />
-          </div>
-        </CardContent>
       </Card>
     );
   }
   
-  // Format wallet address
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 10)}...${address.slice(-8)}`;
-  };
-  
-  // Get network name and color
-  const getNetworkInfo = () => {
-    if (!chainId) return { name: 'Unknown', color: 'gray' };
-    
-    switch (chainId) {
-      case 1:
-        return { name: 'Ethereum Mainnet', color: 'blue' };
-      case 137:
-        return { name: 'Polygon', color: 'purple' };
-      case 80001:
-        return { name: 'Polygon Mumbai', color: 'indigo' };
-      case 42161:
-        return { name: 'Arbitrum', color: 'blue' };
-      default:
-        return { name: network || 'Unknown', color: 'gray' };
-    }
-  };
-  
-  const networkInfo = getNetworkInfo();
-  
-  // Generate Etherscan link
-  const getEtherscanLink = () => {
-    if (!address) return '#';
-    
-    let baseUrl = 'https://etherscan.io';
-    if (chainId === 137) {
-      baseUrl = 'https://polygonscan.com';
-    } else if (chainId === 80001) {
-      baseUrl = 'https://mumbai.polygonscan.com';
-    } else if (chainId === 42161) {
-      baseUrl = 'https://arbiscan.io';
-    }
-    
-    return `${baseUrl}/address/${address}`;
-  };
-  
   return (
-    <Card className={`w-full ${className}`}>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle>Wallet Info</CardTitle>
-          <Badge className="bg-green-100 text-green-800 border-green-200">
-            <Check className="w-3 h-3 mr-1" /> Connected
-          </Badge>
-        </div>
-        <CardDescription>
-          Your connected wallet details
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <div className="text-sm font-medium mb-1">Address</div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-sm">{formatAddress(address)}</span>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-6 w-6 p-0"
-              onClick={() => {
-                navigator.clipboard.writeText(address);
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-              </svg>
-            </Button>
+    <Card className={`${className} bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-blue))]`}>
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex items-center">
+            <Wallet className="mr-2 h-5 w-5 text-[hsl(var(--cwg-blue))]" />
+            <CardTitle className="neon-text-blue">My Wallet</CardTitle>
           </div>
-        </div>
-        
-        <div>
-          <div className="text-sm font-medium mb-1">Network</div>
-          <Badge variant="outline" className={`bg-${networkInfo.color}-100 text-${networkInfo.color}-800 border-${networkInfo.color}-200`}>
-            {networkInfo.name}
-          </Badge>
-        </div>
-        
-        {balance && (
-          <div>
-            <div className="text-sm font-medium mb-1">Balance</div>
-            <div className="font-mono">{parseFloat(balance).toFixed(4)} ETH</div>
-          </div>
-        )}
-      </CardContent>
-      
-      {showDisconnect && (
-        <CardFooter className="flex justify-between">
           <Button 
             variant="outline" 
-            size="sm" 
-            onClick={disconnectWallet}
+            size="icon" 
+            className="h-8 w-8" 
+            onClick={refreshWalletData}
+            disabled={isLoading}
           >
-            Disconnect Wallet
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
-          
-          <a 
-            href={getEtherscanLink()} 
-            target="_blank" 
-            rel="noopener noreferrer"
-          >
-            <Button variant="ghost" size="sm">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              View on Explorer
+        </div>
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-mono bg-[hsl(var(--cwg-dark))] px-2 py-1 rounded-md">
+              {formatEthereumAddress(address || '', 8, 6)}
+            </span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 bg-[hsl(var(--cwg-dark))] hover:bg-[hsl(var(--cwg-dark-blue))]" 
+              onClick={copyToClipboard}
+            >
+              {copied ? (
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+              ) : (
+                <Copy className="h-4 w-4 text-[hsl(var(--cwg-blue))]" />
+              )}
             </Button>
-          </a>
-        </CardFooter>
-      )}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 bg-[hsl(var(--cwg-dark))] hover:bg-[hsl(var(--cwg-dark-blue))]" 
+              onClick={openExplorer}
+            >
+              <ExternalLink className="h-4 w-4 text-[hsl(var(--cwg-blue))]" />
+            </Button>
+          </div>
+          <Badge variant="outline" className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))]">
+            {network || (chainId === 1 ? 'Ethereum' : 
+                      chainId === 5 ? 'Goerli' : 
+                      chainId === 137 ? 'Polygon' : 
+                      chainId === 80001 ? 'Mumbai' :
+                      chainId === 42161 ? 'Arbitrum' : 
+                      chainId ? `Chain #${chainId}` : 'Unknown')}
+          </Badge>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="pb-3">
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="bg-[hsl(var(--cwg-dark))] rounded-md p-3">
+            <p className="text-sm text-[hsl(var(--cwg-muted))]">Balance</p>
+            <p className="text-lg font-medium neon-text-orange">{balance || '0.00 ETH'}</p>
+          </div>
+          <div className="bg-[hsl(var(--cwg-dark))] rounded-md p-3">
+            <p className="text-sm text-[hsl(var(--cwg-muted))]">NFTs</p>
+            <p className="text-lg font-medium neon-text-orange">{walletStats.totalNFTs}</p>
+          </div>
+        </div>
+        
+        <Separator className="mb-4 bg-[hsl(var(--cwg-muted))/20]" />
+        
+        <div className="space-y-3">
+          <div>
+            <div className="flex justify-between mb-1">
+              <span className="text-sm text-[hsl(var(--cwg-muted))]">Wallet Health</span>
+              <span className="text-sm font-medium">{walletStats.walletHealth}%</span>
+            </div>
+            <Progress value={walletStats.walletHealth} className="h-2" />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-[hsl(var(--cwg-muted))]">Collections:</span>
+              <span>{walletStats.totalCollections}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[hsl(var(--cwg-muted))]">Games:</span>
+              <span>{walletStats.totalGames}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[hsl(var(--cwg-muted))]">Last Activity:</span>
+              <span>{walletStats.lastActivity}</span>
+            </div>
+          </div>
+          
+          <div>
+            <p className="text-sm text-[hsl(var(--cwg-muted))] mb-2">Rarity Distribution</p>
+            <div className="flex h-2 overflow-hidden bg-[hsl(var(--cwg-dark))] rounded-full">
+              {Object.entries(walletStats.rarity).map(([rarity, count], index) => {
+                const total = Object.values(walletStats.rarity).reduce((a, b) => a + b, 0);
+                const width = count > 0 ? (count / total) * 100 : 0;
+                
+                if (width === 0) return null;
+                
+                const colorMap: Record<string, string> = {
+                  common: 'bg-zinc-400',
+                  uncommon: 'bg-green-400',
+                  rare: 'bg-blue-400',
+                  epic: 'bg-purple-400',
+                  legendary: 'bg-amber-400',
+                };
+                
+                return (
+                  <div 
+                    key={rarity} 
+                    className={`${colorMap[rarity]} h-full`} 
+                    style={{ width: `${width}%` }}
+                    title={`${rarity}: ${count}`}
+                  />
+                );
+              })}
+            </div>
+            <div className="flex justify-between mt-1 text-xs text-[hsl(var(--cwg-muted))]">
+              <span>Common</span>
+              <span>Legendary</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
     </Card>
   );
 }
