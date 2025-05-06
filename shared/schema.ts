@@ -352,3 +352,73 @@ export type InsertGuildAchievement = z.infer<typeof insertGuildAchievementSchema
 export type GuildAchievement = typeof guildAchievements.$inferSelect;
 export type InsertUserAchievementProgress = z.infer<typeof insertUserAchievementProgressSchema>;
 export type UserAchievementProgress = typeof userAchievementProgress.$inferSelect;
+
+// User Preferences model - for onboarding and personalization
+export const userPreferences = pgTable("user_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  experienceLevel: text("experience_level").notNull().default('beginner'),
+  emailNotifications: boolean("email_notifications").default(true).notNull(),
+  browserNotifications: boolean("browser_notifications").default(true).notNull(),
+  achievementNotifications: boolean("achievement_notifications").default(true).notNull(),
+  eventNotifications: boolean("event_notifications").default(true).notNull(),
+  onboardingCompleted: boolean("onboarding_completed").default(false).notNull(),
+  onboardingCompletedAt: timestamp("onboarding_completed_at"),
+  onboardingSkipped: boolean("onboarding_skipped").default(false).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserPreferencesSchema = createInsertSchema(userPreferences)
+  .omit({ id: true, updatedAt: true });
+
+// User Interests model - for games, web3 interests, and goals
+export const userInterests = pgTable("user_interests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  interestType: text("interest_type").notNull(), // "game", "web3", "goal"
+  interestId: text("interest_id").notNull(), // The ID of the game, web3 interest, or goal
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    userInterestUnique: primaryKey({ columns: [table.userId, table.interestType, table.interestId] }),
+  };
+});
+
+export const insertUserInterestSchema = createInsertSchema(userInterests)
+  .omit({ id: true, createdAt: true });
+
+// Relations
+export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userPreferences.userId],
+    references: [users.id]
+  })
+}));
+
+export const userInterestsRelations = relations(userInterests, ({ one }) => ({
+  user: one(users, {
+    fields: [userInterests.userId],
+    references: [users.id]
+  })
+}));
+
+// Add relations to users
+export const usersRelationUpdate = relations(users, ({ many, one }) => ({
+  streamers: many(streamers),
+  rentalRequests: many(rentalRequests),
+  newsAuthored: many(news, { relationName: "author" }),
+  coursesInstructed: many(courses, { relationName: "instructor" }),
+  profile: one(userProfiles),
+  preferences: one(userPreferences),
+  interests: many(userInterests),
+  chatMessages: many(chatMessages),
+  referralsGiven: many(referrals, { relationName: "referrer" }),
+  referralsReceived: many(referrals, { relationName: "referred" })
+}));
+
+// Type exports
+export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
+export type UserPreferences = typeof userPreferences.$inferSelect;
+
+export type InsertUserInterest = z.infer<typeof insertUserInterestSchema>;
+export type UserInterest = typeof userInterests.$inferSelect;
