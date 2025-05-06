@@ -1,56 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ethers } from 'ethers';
-import { 
-  createClient,
-  configureChains,
-  mainnet, 
-  WagmiConfig,
-  Chain 
-} from 'wagmi';
-import { polygon, polygonMumbai, arbitrum } from 'wagmi/chains';
-import { publicProvider } from 'wagmi/providers/public';
-import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet';
-import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
-import { WalletConnectConnector } from 'wagmi/connectors/walletConnect';
 import { apiRequest } from '../queryClient';
-
-// Define supported chains
-const supportedChains = [mainnet, polygon, polygonMumbai, arbitrum];
-
-// Configure chains & providers
-const { chains, provider, webSocketProvider } = configureChains(
-  supportedChains,
-  [publicProvider()],
-);
-
-// Set up client
-const client = createClient({
-  autoConnect: true,
-  connectors: [
-    new MetaMaskConnector({ chains }),
-    new CoinbaseWalletConnector({
-      chains,
-      options: {
-        appName: 'ClockWork Gamers',
-      },
-    }),
-    new WalletConnectConnector({
-      chains,
-      options: {
-        projectId: 'clockwork-gamers',
-      },
-    }),
-  ],
-  provider,
-  webSocketProvider,
-});
 
 // Create context for Web3 state
 interface Web3ContextType {
   address: string | null;
   balance: string | null;
   chainId: number | null;
-  connectWallet: (connectorId: string) => Promise<void>;
+  connectWallet: (walletType: string) => Promise<void>;
   disconnectWallet: () => void;
   isConnecting: boolean;
   isConnected: boolean;
@@ -72,6 +29,21 @@ interface Web3ProviderProps {
   children: ReactNode;
 }
 
+// Helper function to get network name from chain ID
+function getNetworkName(chainId: number): string {
+  const networks: Record<number, string> = {
+    1: 'Ethereum Mainnet',
+    5: 'Goerli Testnet',
+    11155111: 'Sepolia Testnet',
+    137: 'Polygon Mainnet',
+    80001: 'Polygon Mumbai',
+    42161: 'Arbitrum One',
+    421613: 'Arbitrum Goerli'
+  };
+  
+  return networks[chainId] || `Chain ID: ${chainId}`;
+}
+
 export function Web3Provider({ children }: Web3ProviderProps) {
   const [address, setAddress] = useState<string | null>(null);
   const [balance, setBalance] = useState<string | null>(null);
@@ -80,9 +52,85 @@ export function Web3Provider({ children }: Web3ProviderProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [network, setNetwork] = useState<string | null>(null);
+  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
+
+  // Check if wallet is already connected on mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          // Check if we're already connected
+          const ethProvider = new ethers.BrowserProvider(window.ethereum);
+          const accounts = await ethProvider.listAccounts();
+          
+          if (accounts.length > 0) {
+            const userAddress = accounts[0].address;
+            setAddress(userAddress);
+            
+            const network = await ethProvider.getNetwork();
+            setChainId(Number(network.chainId));
+            setNetwork(getNetworkName(Number(network.chainId)));
+            
+            const balance = await ethProvider.getBalance(userAddress);
+            setBalance(ethers.formatEther(balance));
+            
+            setProvider(ethProvider);
+            setIsConnected(true);
+          }
+        } catch (err) {
+          console.error("Error checking initial connection:", err);
+        }
+      }
+    };
+    
+    checkConnection();
+  }, []);
+
+  // Set up event listeners
+  useEffect(() => {
+    if (typeof window.ethereum !== 'undefined' && isConnected) {
+      const handleAccountsChanged = async (accounts: string[]) => {
+        if (accounts.length === 0) {
+          disconnectWallet();
+        } else {
+          setAddress(accounts[0]);
+          if (provider) {
+            const balance = await provider.getBalance(accounts[0]);
+            setBalance(ethers.formatEther(balance));
+          }
+        }
+      };
+      
+      const handleChainChanged = (_chainId: string) => {
+        // Convert chainId from hex to decimal
+        const newChainId = parseInt(_chainId, 16);
+        setChainId(newChainId);
+        setNetwork(getNetworkName(newChainId));
+        
+        // Reload the page to ensure all state is fresh with the new network
+        window.location.reload();
+      };
+      
+      const handleDisconnect = () => {
+        disconnectWallet();
+      };
+      
+      // Subscribe to events
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+      window.ethereum.on('disconnect', handleDisconnect);
+      
+      // Cleanup function
+      return () => {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+        window.ethereum.removeListener('disconnect', handleDisconnect);
+      };
+    }
+  }, [isConnected, provider]);
 
   // Function to connect to a wallet
-  const connectWallet = async (connectorId: string) => {
+  const connectWallet = async (walletType: string) => {
     try {
       setIsConnecting(true);
       setError(null);
@@ -92,22 +140,23 @@ export function Web3Provider({ children }: Web3ProviderProps) {
         throw new Error('No Ethereum browser extension detected. Please install MetaMask.');
       }
 
-      // Create ethers provider
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const ethProvider = new ethers.BrowserProvider(window.ethereum);
+      setProvider(ethProvider);
       
       // Request account access
-      const accounts = await provider.send('eth_requestAccounts', []);
+      const accounts = await ethProvider.send('eth_requestAccounts', []);
       const userAddress = accounts[0];
       setAddress(userAddress);
       
-      // Get network
-      const network = await provider.getNetwork();
-      setChainId(network.chainId);
-      setNetwork(network.name);
+      // Get network information
+      const network = await ethProvider.getNetwork();
+      const chainId = Number(network.chainId);
+      setChainId(chainId);
+      setNetwork(getNetworkName(chainId));
       
       // Get balance
-      const balance = await provider.getBalance(userAddress);
-      setBalance(ethers.utils.formatEther(balance));
+      const balance = await ethProvider.getBalance(userAddress);
+      setBalance(ethers.formatEther(balance));
       
       // Save wallet address to user profile if logged in
       try {
@@ -120,23 +169,9 @@ export function Web3Provider({ children }: Web3ProviderProps) {
       
       setIsConnected(true);
       
-      // Listen for account changes
-      window.ethereum.on('accountsChanged', (accounts: string[]) => {
-        if (accounts.length === 0) {
-          disconnectWallet();
-        } else {
-          setAddress(accounts[0]);
-        }
-      });
-      
-      // Listen for chain changes
-      window.ethereum.on('chainChanged', (chainId: string) => {
-        window.location.reload();
-      });
-      
     } catch (err: any) {
       console.error('Error connecting to wallet:', err);
-      setError(err);
+      setError(err instanceof Error ? err : new Error(err.message || 'Unknown error connecting wallet'));
     } finally {
       setIsConnecting(false);
     }
@@ -149,6 +184,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
     setChainId(null);
     setNetwork(null);
     setIsConnected(false);
+    setProvider(null);
   };
 
   // Provide the Web3 context to children
@@ -166,9 +202,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
 
   return (
     <Web3Context.Provider value={contextValue}>
-      <WagmiConfig client={client}>
-        {children}
-      </WagmiConfig>
+      {children}
     </Web3Context.Provider>
   );
 }

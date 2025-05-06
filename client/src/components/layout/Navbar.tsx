@@ -31,6 +31,7 @@ export function Navbar() {
     { name: "Investments", path: "/investments" },
     { name: "CWG NFTs", path: "/nft-marketplace" },
     { name: "Guild Tokens", path: "/token-dashboard" },
+    { name: "Web3 Wallet", path: "/wallet" },
     { name: "Showcase", path: "/showcase" },
     { name: "Achievements", path: "/achievements" },
     { name: "Calculators", path: "/calculators" },

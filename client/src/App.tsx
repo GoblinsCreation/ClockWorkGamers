@@ -26,6 +26,7 @@ import ChatPage from "@/pages/chat-page";
 import ReferralsPage from "@/pages/referrals-page";
 import NewsPage from "@/pages/news-page";
 import AchievementsPage from "@/pages/achievements-page";
+import WalletPage from "@/pages/wallet-page";
 import DemoPage from "@/pages/demo-page";
 import ShowcasePage from "@/pages/showcase-page";
 import PrivacyPolicyPage from "@/pages/privacy-policy-page";
@@ -34,7 +35,7 @@ import CookiePolicyPage from "@/pages/cookie-policy-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from "./hooks/use-auth";
-import { Web3Provider } from "./hooks/use-web3";
+import { Web3Provider } from "./lib/web3/Web3Provider";
 import SimpleChatWidget from "@/components/chat/SimpleChatWidget";
 import AchievementUnlockNotification from "@/components/achievements/AchievementUnlockNotification";
 import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
@@ -62,6 +63,7 @@ function Router() {
       <ProtectedRoute path="/payment-options" component={PaymentOptionsPage} />
       <ProtectedRoute path="/nft-marketplace" component={NFTMarketplacePage} />
       <ProtectedRoute path="/token-dashboard" component={TokenDashboardPage} />
+      <ProtectedRoute path="/wallet" component={WalletPage} />
       <ProtectedRoute path="/calculators" component={CalculatorsPage} />
       <ProtectedRoute path="/contact" component={ContactPage} />
       <ProtectedRoute path="/news" component={NewsPage} />

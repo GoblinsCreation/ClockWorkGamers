@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -8,9 +7,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { useWeb3 } from '@/lib/web3/Web3Provider';
 import { Wallet, AlertCircle, Plus, Check, ExternalLink } from 'lucide-react';
-import { SiMetamask, SiCoinbase, SiWalletconnect } from 'react-icons/si';
+import { FaEthereum } from 'react-icons/fa';
+import { SiOpera, SiBrave } from 'react-icons/si';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { ethers } from 'ethers';
@@ -24,22 +25,22 @@ type WalletOption = {
 
 const walletOptions: WalletOption[] = [
   {
-    id: 'metamask',
+    id: 'ethereum',
     name: 'MetaMask',
-    icon: <SiMetamask className="w-8 h-8 text-orange-500" />,
-    description: 'Connect to your MetaMask wallet'
+    icon: <FaEthereum className="w-8 h-8 text-orange-500" />,
+    description: 'Connect to your MetaMask or other Ethereum wallet'
   },
   {
-    id: 'coinbase',
-    name: 'Coinbase Wallet',
-    icon: <SiCoinbase className="w-8 h-8 text-blue-500" />,
-    description: 'Connect to your Coinbase wallet'
+    id: 'brave',
+    name: 'Brave Wallet',
+    icon: <SiBrave className="w-8 h-8 text-orange-600" />,
+    description: 'Connect using Brave browser wallet'
   },
   {
-    id: 'walletconnect',
-    name: 'WalletConnect',
-    icon: <SiWalletconnect className="w-8 h-8 text-blue-600" />,
-    description: 'Scan with your favorite wallet to connect'
+    id: 'opera',
+    name: 'Opera Wallet',
+    icon: <SiOpera className="w-8 h-8 text-red-600" />,
+    description: 'Connect using Opera browser wallet'
   }
 ];
 
