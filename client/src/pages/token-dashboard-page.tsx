@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { ethers } from 'ethers';
-import { formatEther, formatUnits, parseUnits } from '@ethersproject/units';
+// Using ethers v6 formatting utilities
 import { 
   Coins,
   RefreshCcw,
@@ -286,7 +286,7 @@ export default function TokenDashboardPage() {
       try {
         const feeData = await provider.getFeeData();
         const gasPrice = feeData.gasPrice || ethers.parseUnits('50', 'gwei');
-        const gasPriceInGwei = parseFloat(formatUnits(gasPrice, "gwei"));
+        const gasPriceInGwei = parseFloat(ethers.formatUnits(gasPrice, "gwei"));
         
         // Calculate slow, standard, and fast gas prices
         const slow = Math.round(gasPriceInGwei * 0.8);
@@ -354,7 +354,7 @@ export default function TokenDashboardPage() {
         // Wait for transaction to be mined
         const receipt = await tx.wait();
         
-        if (receipt.status === 1) {
+        if (receipt && receipt.status === 1) {
           setTransactionStatus('completed');
           toast({
             title: "Transaction Successful",
