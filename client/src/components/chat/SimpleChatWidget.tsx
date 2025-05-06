@@ -108,7 +108,7 @@ export default function SimpleChatWidget({
               avatar: '',
               content: 'Hey everyone! Anyone playing Axie Infinity today?',
               roomId: 'public',
-              timestamp: new Date(Date.now() - 35 * 60000).toISOString(),
+              timestamp: new Date(Date.now() - 36 * 60000).toISOString(),
             },
             {
               id: 2,
@@ -118,7 +118,7 @@ export default function SimpleChatWidget({
               avatar: '',
               content: 'Just minted a new ClockWork Gamers NFT! Check it out in the marketplace!',
               roomId: 'public',
-              timestamp: new Date(Date.now() - 20 * 60000).toISOString(),
+              timestamp: new Date(Date.now() - 21 * 60000).toISOString(),
             },
             {
               id: 3,
@@ -128,7 +128,7 @@ export default function SimpleChatWidget({
               avatar: '',
               content: 'Welcome to all new members! Make sure to check out the achievement system.',
               roomId: 'public',
-              timestamp: new Date(Date.now() - 5 * 60000).toISOString(),
+              timestamp: new Date(Date.now() - 6 * 60000).toISOString(),
             },
           ],
           support: [
@@ -228,8 +228,8 @@ export default function SimpleChatWidget({
       id: Date.now(),
       userId: user?.id || 0,
       username: user?.username || 'Anonymous',
-      displayName: user?.displayName,
-      avatar: user?.avatar,
+      displayName: user?.fullName, // Using fullName as displayName
+      avatar: '', // User avatar placeholder
       content: message,
       roomId,
       timestamp: new Date().toISOString(),
@@ -252,8 +252,8 @@ export default function SimpleChatWidget({
       id: Date.now(),
       userId: user?.id || 0,
       username: user?.username || 'Anonymous',
-      displayName: user?.displayName,
-      avatar: user?.avatar,
+      displayName: user?.fullName, // Using fullName as displayName
+      avatar: '', // User avatar placeholder
       content: message,
       roomId: dmRoomId,
       timestamp: new Date().toISOString(),

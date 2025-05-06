@@ -49,6 +49,18 @@ import {
   Bell
 } from 'lucide-react';
 
+// Define neon colors for the admin dashboard
+const NEON_COLORS = {
+  blue: "#00c2ff",
+  purple: "#8855ff",
+  pink: "#ff00cc",
+  green: "#00ff9d",
+  yellow: "#ffcc00",
+  orange: "#ff5500",
+  glow: (color: string) => `0 0 15px ${color}, 0 0 30px ${color}40`,
+  glowText: (color: string) => `0 0 8px ${color}60, 0 0 12px ${color}40`,
+};
+
 export default function AdminPageNew() {
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -106,8 +118,8 @@ export default function AdminPageNew() {
     ],
   };
 
-  // Chart colors
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+  // Chart colors - using neon colors
+  const COLORS = [NEON_COLORS.blue, NEON_COLORS.green, NEON_COLORS.yellow, NEON_COLORS.orange, NEON_COLORS.purple];
 
   return (
     <div className="container mx-auto py-10 px-4">
