@@ -26,6 +26,7 @@ import ChatPage from "@/pages/chat-page";
 import ReferralsPage from "@/pages/referrals-page";
 import NewsPage from "@/pages/news-page";
 import AchievementsPage from "@/pages/achievements-page";
+import DemoPage from "@/pages/demo-page";
 import PrivacyPolicyPage from "@/pages/privacy-policy-page";
 import TermsOfServicePage from "@/pages/terms-of-service-page";
 import CookiePolicyPage from "@/pages/cookie-policy-page";
@@ -68,6 +69,7 @@ function Router() {
       <ProtectedRoute path="/achievements" component={AchievementsPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/admin" component={AdminPage} />
+      <ProtectedRoute path="/demo" component={DemoPage} />
       <Route component={NotFound} />
     </Switch>
   );
