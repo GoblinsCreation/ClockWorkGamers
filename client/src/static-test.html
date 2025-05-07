@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Basic Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      color: #0066cc;
+      text-align: center;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    button {
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0055aa;
+    }
+  </style>
+</head>
+<body>
+  <h1>Static Test Page</h1>
+  
+  <div class="card">
+    <h2>This is a Static HTML Page</h2>
+    <p>This page is a simple static HTML file to test if the server is correctly serving static content.</p>
+    <button onclick="alert('Button clicked!')">Click Me</button>
+  </div>
+  
+  <div class="card">
+    <h2>Troubleshooting Information</h2>
+    <p>If you can see this page but not the React application, there may be an issue with:</p>
+    <ul>
+      <li>JavaScript execution or errors in the React code</li>
+      <li>Missing dependencies or incorrect imports</li>
+      <li>Webpack/Vite configuration</li>
+    </ul>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Static test page loaded successfully');
+    });
+  </script>
+</body>
+</html>
