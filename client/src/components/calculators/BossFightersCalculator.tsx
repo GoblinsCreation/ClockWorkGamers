@@ -125,20 +125,26 @@ export default function BossFightersCalculator() {
       (rechargeCost.flex * MARKET_PRICES.flex) + 
       (rechargeCost.sponsor * MARKET_PRICES.sponsorMark);
     
-    // Calculate profit per recharge duration
-    const profitPerRecharge = (usdPerHour * rechargeCost.duration) - rechargeCostUsd;
+    // For a more accurate calculation, we need to consider the total cost per hour with all active badges
+    const totalRechargeFlexPerHour = totalFlex * (1 / rechargeCost.duration);
+    const totalRechargeSponsorPerHour = totalSponsor * (1 / rechargeCost.duration);
     
-    // Calculate hourly profit
-    const hourlyProfit = profitPerRecharge / rechargeCost.duration;
+    // Calculate hourly recharge cost
+    const hourlyRechargeCost = 
+      (totalRechargeFlexPerHour * MARKET_PRICES.flex) + 
+      (totalRechargeSponsorPerHour * MARKET_PRICES.sponsorMark);
     
-    // Calculate weekly profit (assuming 3 hours of play per day)
+    // Calculate hourly profit directly (income - costs)
+    const hourlyProfit = usdPerHour - hourlyRechargeCost;
+    
+    // Calculate weekly profit (3 hours of play per day)
     const weeklyProfit = hourlyProfit * 3 * 7;
     
-    // Calculate monthly profit (assuming 3 hours per day, 30 days)
+    // Calculate monthly profit (3 hours per day, 30 days)
     const monthlyProfit = hourlyProfit * 3 * 30;
     
     // Calculate return on investment (ROI)
-    const roi = rechargeCostUsd > 0 ? (profitPerRecharge / rechargeCostUsd) * 100 : 0;
+    const roi = rechargeCostUsd > 0 ? ((hourlyProfit * rechargeCost.duration) / rechargeCostUsd) * 100 : 0;
     
     setEarningsResults({
       tokensPerMinute,
@@ -146,7 +152,6 @@ export default function BossFightersCalculator() {
       usdPerHour,
       rechargeCost,
       rechargeCostUsd,
-      profitPerRecharge,
       hourlyProfit,
       weeklyProfit,
       monthlyProfit,
