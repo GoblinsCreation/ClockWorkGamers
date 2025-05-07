@@ -576,11 +576,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create payment intent
       req.body.amount = price;
       req.body.currency = 'usd';
-      req.body.description = `Rental of ${rental.title} for ${durationDays} days`;
+      req.body.description = `Rental of ${rental.name} for ${durationDays} days`;
       req.body.metadata = {
         type: 'rental',
         rentalId: rentalId.toString(),
-        title: rental.title,
+        title: rental.name,
         durationDays: durationDays.toString()
       };
       
@@ -2255,7 +2255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: "achievement_tier_unlocked",
           title: "New Achievement Tier Unlocked",
           message: `You've unlocked ${achievement.name}! Keep going to reach higher tiers.`,
-          data: JSON.stringify({
+          metadata: JSON.stringify({
             achievementId: achievement.id,
             icon: achievement.icon,
             tier: achievement.tier
