@@ -15,7 +15,6 @@ interface Web3ContextType {
   network: string | null;
   provider: ethers.BrowserProvider | null;
   signer: ethers.JsonRpcSigner | null;
-  getBalance: () => Promise<string>;
 }
 
 const Web3Context = createContext<Web3ContextType | null>(null);
@@ -200,23 +199,6 @@ export function Web3Provider({ children }: Web3ProviderProps) {
     setSigner(null);
   };
 
-  // Function to get latest balance
-  const getBalance = async (): Promise<string> => {
-    if (!address || !provider) {
-      return "0.00";
-    }
-
-    try {
-      const balance = await provider.getBalance(address);
-      const formattedBalance = ethers.formatEther(balance);
-      setBalance(formattedBalance);
-      return formattedBalance;
-    } catch (err) {
-      console.error("Error fetching balance:", err);
-      return "0.00";
-    }
-  };
-
   // Provide the Web3 context to children
   const contextValue: Web3ContextType = {
     address,
@@ -229,8 +211,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
     error,
     network,
     provider,
-    signer,
-    getBalance
+    signer
   };
 
   return (

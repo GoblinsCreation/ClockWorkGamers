@@ -10,10 +10,8 @@ import {
   chatMessages, type ChatMessage, type InsertChatMessage,
   referrals, type Referral, type InsertReferral,
   notifications, type Notification, type InsertNotification,
-  achievementSeries, type AchievementSeries, type InsertAchievementSeries,
   guildAchievements, type GuildAchievement, type InsertGuildAchievement,
   userAchievementProgress, type UserAchievementProgress, type InsertUserAchievementProgress,
-  userSeriesProgress, type UserSeriesProgress, type InsertUserSeriesProgress,
   payments, type Payment, type InsertPayment,
   coursePurchases, type CoursePurchase, type InsertCoursePurchase,
   rentalPurchases, type RentalPurchase, type InsertRentalPurchase
@@ -111,22 +109,13 @@ export interface IStorage {
   markAllUserNotificationsAsRead(userId: number): Promise<boolean>;
   getUnreadNotificationCount(userId: number): Promise<number>;
   
-  // Achievement Series operations
-  createAchievementSeries(series: InsertAchievementSeries): Promise<AchievementSeries>;
-  getAchievementSeries(id: number): Promise<AchievementSeries | undefined>;
-  updateAchievementSeries(id: number, data: Partial<AchievementSeries>): Promise<AchievementSeries | undefined>;
-  deleteAchievementSeries(id: number): Promise<boolean>;
-  listAchievementSeries(): Promise<AchievementSeries[]>;
-  getAchievementSeriesWithTiers(seriesId: number): Promise<AchievementSeries & { achievements: GuildAchievement[] } | undefined>;
-
   // Guild Achievement operations
   createGuildAchievement(achievement: InsertGuildAchievement): Promise<GuildAchievement>;
   getGuildAchievement(id: number): Promise<GuildAchievement | undefined>;
   updateGuildAchievement(id: number, data: Partial<GuildAchievement>): Promise<GuildAchievement | undefined>;
   deleteGuildAchievement(id: number): Promise<boolean>;
   listGuildAchievements(): Promise<GuildAchievement[]>;
-  createTieredAchievement(seriesId: number, tier: number): Promise<GuildAchievement>;
-
+  
   // User Achievement Progress operations
   getUserAchievementProgress(userId: number, achievementId: number): Promise<UserAchievementProgress | undefined>;
   createUserAchievementProgress(progress: InsertUserAchievementProgress): Promise<UserAchievementProgress>;
@@ -135,15 +124,6 @@ export interface IStorage {
   listUserAchievements(userId: number): Promise<Array<GuildAchievement & { progress: UserAchievementProgress | null }>>;
   getRecentlyCompletedAchievements(userId: number, limit?: number): Promise<Array<GuildAchievement & { progress: UserAchievementProgress }>>;
   claimAchievementReward(userId: number, achievementId: number): Promise<boolean>;
-  unlockNextTier(userId: number, achievementId: number): Promise<UserAchievementProgress | undefined>;
-
-  // User Series Progress operations
-  getUserSeriesProgress(userId: number, seriesId: number): Promise<UserSeriesProgress | undefined>;
-  createUserSeriesProgress(progress: InsertUserSeriesProgress): Promise<UserSeriesProgress>;
-  updateUserSeriesProgress(userId: number, seriesId: number, data: Partial<UserSeriesProgress>): Promise<UserSeriesProgress | undefined>;
-  incrementSeriesTier(userId: number, seriesId: number): Promise<UserSeriesProgress | undefined>;
-  listUserSeriesProgress(userId: number): Promise<Array<UserSeriesProgress & { series: AchievementSeries }>>;
-  getCompletedSeries(userId: number, limit?: number): Promise<Array<UserSeriesProgress & { series: AchievementSeries }>>;
 
   // Payment operations
   createPayment(payment: InsertPayment): Promise<Payment>;
@@ -621,56 +601,6 @@ export class DatabaseStorage implements IStorage {
     return result[0]?.count || 0;
   }
 
-  // Achievement Series methods
-  async createAchievementSeries(series: InsertAchievementSeries): Promise<AchievementSeries> {
-    const [newSeries] = await db.insert(achievementSeries).values(series).returning();
-    return newSeries;
-  }
-
-  async getAchievementSeries(id: number): Promise<AchievementSeries | undefined> {
-    const [series] = await db.select().from(achievementSeries).where(eq(achievementSeries.id, id));
-    return series;
-  }
-
-  async updateAchievementSeries(id: number, data: Partial<AchievementSeries>): Promise<AchievementSeries | undefined> {
-    const [updatedSeries] = await db
-      .update(achievementSeries)
-      .set(data)
-      .where(eq(achievementSeries.id, id))
-      .returning();
-    return updatedSeries;
-  }
-
-  async deleteAchievementSeries(id: number): Promise<boolean> {
-    const deleted = await db.delete(achievementSeries).where(eq(achievementSeries.id, id)).returning();
-    return deleted.length > 0;
-  }
-
-  async listAchievementSeries(): Promise<AchievementSeries[]> {
-    return await db.select().from(achievementSeries);
-  }
-
-  async getAchievementSeriesWithTiers(seriesId: number): Promise<AchievementSeries & { achievements: GuildAchievement[] } | undefined> {
-    // Get the series
-    const series = await this.getAchievementSeries(seriesId);
-    
-    if (!series) {
-      return undefined;
-    }
-    
-    // Get all achievements in this series
-    const tiers = await db
-      .select()
-      .from(guildAchievements)
-      .where(eq(guildAchievements.seriesId, seriesId))
-      .orderBy(guildAchievements.tier);
-    
-    return {
-      ...series,
-      achievements: tiers
-    };
-  }
-  
   // Guild Achievement methods
   async createGuildAchievement(achievement: InsertGuildAchievement): Promise<GuildAchievement> {
     const [newAchievement] = await db.insert(guildAchievements).values(achievement).returning();
@@ -698,43 +628,6 @@ export class DatabaseStorage implements IStorage {
 
   async listGuildAchievements(): Promise<GuildAchievement[]> {
     return await db.select().from(guildAchievements);
-  }
-  
-  async createTieredAchievement(seriesId: number, tier: number): Promise<GuildAchievement> {
-    // Get the series first
-    const series = await this.getAchievementSeries(seriesId);
-    if (!series) {
-      throw new Error(`Achievement series with ID ${seriesId} not found`);
-    }
-    
-    // Use the achievement-tiers util functions to calculate requirements and rewards
-    const { calculateTierRequirement, calculateTierReward, getTierById } = await import("@shared/achievement-tiers");
-    
-    const tierInfo = getTierById(tier);
-    const requirementValue = calculateTierRequirement(series.baseRequirementValue, tier);
-    const rewardValue = calculateTierReward(series.baseRewardValue, tier);
-    
-    // Generate tier-specific name and description
-    const name = `${series.name} ${tierInfo.name}`;
-    const description = `${series.description} (${tierInfo.description})`;
-    
-    // Create the achievement
-    const achievement: InsertGuildAchievement = {
-      name,
-      description,
-      icon: `${series.baseIcon}-${tier}`,
-      category: series.category,
-      requirementType: series.requirementType,
-      requirementValue,
-      rewardType: series.baseRewardType,
-      rewardValue,
-      tier,
-      seriesId,
-      isGlobal: true,
-      isActive: true
-    };
-    
-    return await this.createGuildAchievement(achievement);
   }
 
   // User Achievement Progress methods
@@ -899,78 +792,6 @@ export class DatabaseStorage implements IStorage {
     
     return true;
   }
-  
-  async unlockNextTier(userId: number, achievementId: number): Promise<UserAchievementProgress | undefined> {
-    // Get current achievement and progress
-    const achievement = await this.getGuildAchievement(achievementId);
-    const progress = await this.getUserAchievementProgress(userId, achievementId);
-    
-    if (!achievement || !progress || !progress.isCompleted || !progress.rewardClaimed) {
-      return undefined; // Cannot unlock next tier if current one isn't complete and claimed
-    }
-    
-    // Check if this achievement is part of a series
-    if (!achievement.seriesId) {
-      return undefined; // Not part of a series, no next tier
-    }
-    
-    // Get all achievements in the series to find the next tier
-    const tieredAchievements = await db
-      .select()
-      .from(guildAchievements)
-      .where(eq(guildAchievements.seriesId, achievement.seriesId))
-      .orderBy(guildAchievements.tier);
-    
-    // Find current tier index
-    const currentTierIndex = tieredAchievements.findIndex(a => a.id === achievementId);
-    
-    if (currentTierIndex === -1 || currentTierIndex === tieredAchievements.length - 1) {
-      // Current achievement not found in series or it's the last tier
-      return undefined;
-    }
-    
-    // Get the next tier achievement
-    const nextTierAchievement = tieredAchievements[currentTierIndex + 1];
-    
-    // Check if user already has progress for the next tier
-    let nextTierProgress = await this.getUserAchievementProgress(userId, nextTierAchievement.id);
-    
-    if (!nextTierProgress) {
-      // Create progress for next tier if it doesn't exist
-      nextTierProgress = await this.createUserAchievementProgress({
-        userId,
-        achievementId: nextTierAchievement.id,
-        currentValue: 0,
-        isCompleted: false,
-        rewardClaimed: false
-      });
-    }
-    
-    // If all achievements in the series are complete, update the series progress too
-    const allComplete = tieredAchievements.length === currentTierIndex + 2; // +2 because we're about to unlock the next one which is the last
-    
-    if (allComplete) {
-      // Get or create series progress
-      const seriesProgress = await this.getUserSeriesProgress(userId, achievement.seriesId);
-      
-      if (seriesProgress) {
-        await this.updateUserSeriesProgress(userId, achievement.seriesId, {
-          isCompleted: true,
-          completedAt: new Date()
-        });
-      } else {
-        await this.createUserSeriesProgress({
-          userId,
-          seriesId: achievement.seriesId,
-          currentTier: tieredAchievements.length,
-          isCompleted: true,
-          completedAt: new Date()
-        });
-      }
-    }
-    
-    return nextTierProgress;
-  }
 
   // Payment methods
   async createPayment(insertPayment: InsertPayment): Promise<Payment> {
@@ -1104,108 +925,6 @@ export class DatabaseStorage implements IStorage {
       );
 
     return results.map(r => ({ ...r.rental, purchase: r.purchase }));
-  }
-  
-  // User Series Progress methods
-  async getUserSeriesProgress(userId: number, seriesId: number): Promise<UserSeriesProgress | undefined> {
-    const [progress] = await db
-      .select()
-      .from(userSeriesProgress)
-      .where(and(
-        eq(userSeriesProgress.userId, userId),
-        eq(userSeriesProgress.seriesId, seriesId)
-      ));
-    
-    return progress;
-  }
-  
-  async createUserSeriesProgress(progress: InsertUserSeriesProgress): Promise<UserSeriesProgress> {
-    const [newProgress] = await db.insert(userSeriesProgress).values(progress).returning();
-    return newProgress;
-  }
-  
-  async updateUserSeriesProgress(
-    userId: number, 
-    seriesId: number, 
-    data: Partial<UserSeriesProgress>
-  ): Promise<UserSeriesProgress | undefined> {
-    const [progress] = await db
-      .update(userSeriesProgress)
-      .set(data)
-      .where(and(
-        eq(userSeriesProgress.userId, userId),
-        eq(userSeriesProgress.seriesId, seriesId)
-      ))
-      .returning();
-    
-    return progress;
-  }
-  
-  async incrementSeriesTier(userId: number, seriesId: number): Promise<UserSeriesProgress | undefined> {
-    // Get current progress
-    const progress = await this.getUserSeriesProgress(userId, seriesId);
-    
-    // If no progress exists, create it with tier 1
-    if (!progress) {
-      return await this.createUserSeriesProgress({
-        userId,
-        seriesId,
-        currentTier: 1,
-        isCompleted: false
-      });
-    }
-    
-    // Get the series to check completion
-    const series = await this.getAchievementSeriesWithTiers(seriesId);
-    
-    if (!series) {
-      return undefined;
-    }
-    
-    // Calculate new tier
-    const newTier = progress.currentTier + 1;
-    const isCompleted = newTier >= series.achievements.length;
-    
-    // Update with new tier
-    return await this.updateUserSeriesProgress(userId, seriesId, {
-      currentTier: newTier,
-      isCompleted,
-      completedAt: isCompleted ? new Date() : null
-    });
-  }
-  
-  async listUserSeriesProgress(userId: number): Promise<Array<UserSeriesProgress & { series: AchievementSeries }>> {
-    const results = await db
-      .select({
-        progress: userSeriesProgress,
-        series: achievementSeries
-      })
-      .from(userSeriesProgress)
-      .innerJoin(achievementSeries, eq(userSeriesProgress.seriesId, achievementSeries.id))
-      .where(eq(userSeriesProgress.userId, userId));
-    
-    return results.map(r => ({ ...r.progress, series: r.series }));
-  }
-  
-  async getCompletedSeries(
-    userId: number, 
-    limit: number = 5
-  ): Promise<Array<UserSeriesProgress & { series: AchievementSeries }>> {
-    const results = await db
-      .select({
-        progress: userSeriesProgress,
-        series: achievementSeries
-      })
-      .from(userSeriesProgress)
-      .innerJoin(achievementSeries, eq(userSeriesProgress.seriesId, achievementSeries.id))
-      .where(and(
-        eq(userSeriesProgress.userId, userId),
-        eq(userSeriesProgress.isCompleted, true)
-      ))
-      .orderBy(desc(userSeriesProgress.completedAt))
-      .limit(limit);
-    
-    return results.map(r => ({ ...r.progress, series: r.series }));
   }
 }
 
