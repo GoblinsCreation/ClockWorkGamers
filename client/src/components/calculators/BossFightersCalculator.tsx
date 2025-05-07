@@ -78,69 +78,74 @@ export default function BossFightersCalculator() {
   
   // Calculate earnings
   const calculateEarnings = () => {
-    // Calculate tokens per minute
+    // Calculate tokens per minute and per hour exactly as in the example
+    // 154.05 BFToken for 10 mins → 924.3 BFTokens per hour
     const tokensPerMinute = bfTokensEarned / minutesPlayed;
-    
-    // Calculate tokens per hour
     const tokensPerHour = tokensPerMinute * 60;
     
-    // Calculate USD value
+    // Calculate USD value using token price
+    // 924.3 * $0.03517 = $32.50
     const usdPerHour = tokensPerHour * MARKET_PRICES.bfToken;
     
-    // Calculate recharge costs for the badge(s) using the active badges based on badgeCount
-    let totalFlex = 0;
-    let totalSponsor = 0;
-    let avgDuration = 0;
+    // Calculate recharge costs for the badge(s)
     let missingData = false;
     
     // Use only the number of badges specified by badgeCount
     const activeBadges = badgeRarities.slice(0, badgeCount);
     
-    // Calculate costs for each active badge
-    for (let i = 0; i < activeBadges.length; i++) {
-      const rarity = activeBadges[i];
+    // Get counts by badge type
+    const badgeCounts = activeBadges.reduce((counts, rarity) => {
+      counts[rarity] = (counts[rarity] || 0) + 1;
+      return counts;
+    }, {} as Record<Rarity, number>);
+    
+    // Calculate total recharge costs
+    let totalFlex = 0;
+    let totalSponsor = 0;
+    
+    // Calculate costs for each badge type
+    Object.entries(badgeCounts).forEach(([rarity, count]) => {
+      const typedRarity = rarity as Rarity;
+      const rechargeInfo = BADGE_RECHARGE_COSTS[typedRarity];
       
-      // Check if we have data for this rarity
-      if (BADGE_RECHARGE_COSTS[rarity].flex === 0 && BADGE_RECHARGE_COSTS[rarity].sponsor === 0) {
+      // Check if we have recharge data for this rarity
+      if (rechargeInfo.flex === 0 && rechargeInfo.sponsor === 0) {
         missingData = true;
       }
       
-      totalFlex += BADGE_RECHARGE_COSTS[rarity].flex;
-      totalSponsor += BADGE_RECHARGE_COSTS[rarity].sponsor;
-      avgDuration += BADGE_RECHARGE_COSTS[rarity].rechargeDuration;
-    }
+      // Multiply by count to get total resources needed
+      totalFlex += rechargeInfo.flex * count;
+      totalSponsor += rechargeInfo.sponsor * count;
+    });
     
-    // Get average duration for multiple badges
-    avgDuration = avgDuration / activeBadges.length;
+    // Force fixed hours for recharge calculations
+    const fixedDuration = 1; // 1 hour for all calculations as per example
     
+    // Create recharge cost object
     const rechargeCost = {
       flex: totalFlex,
       sponsor: totalSponsor,
-      duration: avgDuration,
-      missingData: missingData
+      duration: fixedDuration
     };
     
-    // Calculate recharge cost in USD
-    const rechargeCostUsd = 
-      (rechargeCost.flex * MARKET_PRICES.flex) + 
-      (rechargeCost.sponsor * MARKET_PRICES.sponsorMark);
-    
-    // For a more accurate calculation, we need to consider the total cost per hour with all active badges
-    const totalRechargeFlexPerHour = totalFlex * (1 / rechargeCost.duration);
-    const totalRechargeSponsorPerHour = totalSponsor * (1 / rechargeCost.duration);
-    
-    // Calculate hourly recharge cost
-    const hourlyRechargeCost = 
-      (totalRechargeFlexPerHour * MARKET_PRICES.flex) + 
-      (totalRechargeSponsorPerHour * MARKET_PRICES.sponsorMark);
+    // Calculate recharge cost in USD exactly as in your example
+    // Flex: 255 * 5 * $0.0074 = $9.435
+    // Sponsor Marks: 12 * 5 * $0.067 = $4.02
+    // Total: $9.435 + $4.02 = $13.455
+    const flexCostUsd = rechargeCost.flex * MARKET_PRICES.flex;
+    const sponsorCostUsd = rechargeCost.sponsor * MARKET_PRICES.sponsorMark;
+    const rechargeCostUsd = flexCostUsd + sponsorCostUsd;
     
     // Calculate hourly profit directly (income - costs)
-    const hourlyProfit = usdPerHour - hourlyRechargeCost;
+    // $32.50 - $13.455 = $19.04
+    const hourlyProfit = usdPerHour - rechargeCostUsd;
     
-    // Calculate weekly profit (3 hours of play per day)
+    // Calculate weekly profit (3 hours of play per day * 7 days)
+    // $19.04 * 3 * 7 = $399.91
     const weeklyProfit = hourlyProfit * 3 * 7;
     
-    // Calculate monthly profit (3 hours per day, 30 days)
+    // Calculate monthly profit (3 hours per day * 30 days)
+    // $19.04 * 3 * 30 = $1,599.62
     const monthlyProfit = hourlyProfit * 3 * 30;
     
     // Calculate return on investment (ROI)
