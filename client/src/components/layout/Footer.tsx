@@ -1,162 +1,88 @@
 import { Link } from "wouter";
-import { 
-  MessageCircleCode, 
-  Twitter, 
-  Twitch,
-  Youtube,
-  Mail,
-  Send
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export function Footer() {
   return (
-    <footer className="bg-[hsl(var(--cwg-dark-blue))] pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          {/* Logo and Social Links */}
-          <div>
-            <div className="flex items-center mb-4">
-              <div className="h-10 w-10 bg-[hsl(var(--cwg-orange))] rounded-full flex items-center justify-center">
-                <span className="text-white font-orbitron font-bold">CWG</span>
-              </div>
-              <span className="ml-3 text-[hsl(var(--cwg-orange))] font-orbitron font-bold text-lg">ClockWork Gamers</span>
-            </div>
-            <p className="text-[hsl(var(--cwg-muted))] mb-6">
-              The premier Web3 gaming guild where players earn, compete, and thrive in the blockchain gaming revolution.
+    <footer className="bg-gray-900 text-white py-8">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="mb-4">
+            <h3 className="text-xl font-bold mb-4 text-orange-500">ClockWork Gamers</h3>
+            <p className="text-gray-300">
+              A Web3 gaming guild building the future of gaming with blockchain technology.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                <MessageCircleCode className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                <Twitch className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                <Youtube className="h-5 w-5" />
-              </a>
-            </div>
           </div>
           
-          {/* Quick Links */}
           <div>
-            <h3 className="text-[hsl(var(--cwg-orange))] font-orbitron font-semibold text-lg mb-4">Quick Links</h3>
+            <h4 className="text-lg font-bold mb-4 text-orange-500">Links</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/">
-                  <a className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">Home</a>
+                  <a className="text-gray-300 hover:text-orange-400 transition-colors">Home</a>
                 </Link>
               </li>
               <li>
                 <Link href="/streamers">
-                  <a className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">Streamers</a>
+                  <a className="text-gray-300 hover:text-orange-400 transition-colors">Streamers</a>
                 </Link>
               </li>
               <li>
                 <Link href="/rentals">
-                  <a className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">Rentals</a>
+                  <a className="text-gray-300 hover:text-orange-400 transition-colors">Rentals</a>
                 </Link>
               </li>
               <li>
                 <Link href="/courses">
-                  <a className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">Courses</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/calculators">
-                  <a className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">Calculators</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact">
-                  <a className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">Contact</a>
+                  <a className="text-gray-300 hover:text-orange-400 transition-colors">Courses</a>
                 </Link>
               </li>
             </ul>
           </div>
           
-          {/* Games */}
           <div>
-            <h3 className="text-[hsl(var(--cwg-orange))] font-orbitron font-semibold text-lg mb-4">Games</h3>
+            <h4 className="text-lg font-bold mb-4 text-orange-500">Resources</h4>
             <ul className="space-y-2">
               <li>
-                <a href="https://economy.bossfighters.game/register?ref=9f15935b" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                  Boss Fighters
-                </a>
+                <Link href="/nft">
+                  <a className="text-gray-300 hover:text-orange-400 transition-colors">NFT Gallery</a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                  KoKodi
-                </a>
+                <Link href="/news">
+                  <a className="text-gray-300 hover:text-orange-400 transition-colors">News</a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                  Nyan Heroes
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                  Big Time
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                  WorldShards
-                </a>
-              </li>
-
-              <li>
-                <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                  Off The Grid
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] transition-colors duration-200">
-                  RavenQuest
-                </a>
+                <Link href="/support">
+                  <a className="text-gray-300 hover:text-orange-400 transition-colors">Support</a>
+                </Link>
               </li>
             </ul>
           </div>
           
-          {/* Contact Us */}
           <div>
-            <h3 className="text-[hsl(var(--cwg-orange))] font-orbitron font-semibold text-lg mb-4">Contact Us</h3>
-            <ul className="space-y-3">
-              <li className="flex items-start">
-                <Mail className="text-[hsl(var(--cwg-orange))] mt-1 mr-3 h-5 w-5" />
-                <span className="text-[hsl(var(--cwg-muted))]">contact@clockworkgamers.net</span>
-              </li>
-              <li className="flex items-start">
-                <MessageCircleCode className="text-[hsl(var(--cwg-orange))] mt-1 mr-3 h-5 w-5" />
-                <span className="text-[hsl(var(--cwg-muted))]">discord.gg/qC3wMKXYQb</span>
-              </li>
-              <li>
-                <Link href="/contact">
-                  <Button className="mt-4 w-full bg-[hsl(var(--cwg-dark))] border border-[hsl(var(--cwg-orange))] text-[hsl(var(--cwg-orange))] px-4 py-2 rounded-lg font-orbitron text-sm hover:bg-[hsl(var(--cwg-orange))] hover:text-[hsl(var(--cwg-dark))] transition-colors duration-200">
-                    <Send className="mr-2 h-4 w-4" />
-                    Send Message
-                  </Button>
-                </Link>
-              </li>
-            </ul>
+            <h4 className="text-lg font-bold mb-4 text-orange-500">Contact</h4>
+            <p className="text-gray-300 mb-2">Email: contact@clockworkgamers.net</p>
+            <div className="flex space-x-4 mt-4">
+              <a href="#" className="text-gray-300 hover:text-orange-400 transition-colors">
+                <span className="sr-only">Discord</span>
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"></path>
+                </svg>
+              </a>
+              <a href="#" className="text-gray-300 hover:text-orange-400 transition-colors">
+                <span className="sr-only">Twitter</span>
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                </svg>
+              </a>
+            </div>
           </div>
         </div>
         
-        {/* Footer Bottom */}
-        <div className="border-t border-[hsl(var(--cwg-dark-blue))/50] pt-8 mt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-[hsl(var(--cwg-muted))] text-sm">&copy; {new Date().getFullYear()} ClockWork Gamers. All rights reserved.</p>
-          <div className="mt-4 md:mt-0 flex space-x-6">
-            <Link href="/privacy-policy" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] text-sm transition-colors duration-200">Privacy Policy</Link>
-            <Link href="/terms-of-service" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] text-sm transition-colors duration-200">Terms of Service</Link>
-            <Link href="/cookie-policy" className="text-[hsl(var(--cwg-muted))] hover:text-[hsl(var(--cwg-orange))] text-sm transition-colors duration-200">Cookie Policy</Link>
-          </div>
+        <div className="mt-8 pt-6 border-t border-gray-800 text-center text-gray-400">
+          <p>&copy; {new Date().getFullYear()} ClockWork Gamers. All rights reserved.</p>
         </div>
       </div>
     </footer>
   );
 }
-
-export default Footer;
