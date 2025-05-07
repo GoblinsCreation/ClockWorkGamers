@@ -100,8 +100,11 @@ export function AnalyticsDashboard() {
 
   // Calculate total revenue from rental requests
   const calculateTotalRevenue = () => {
-    const approvedRentals = rentalRequests.filter((r: any) => r.status === 'approved');
-    const total = approvedRentals.reduce((sum: number, rental: any) => sum + (rental.price || 0), 0);
+    if (!rentalRequests || !Array.isArray(rentalRequests)) {
+      return '$0.00';
+    }
+    const approvedRentals = rentalRequests.filter((r: any) => r?.status === 'approved');
+    const total = approvedRentals.reduce((sum: number, rental: any) => sum + (rental?.price || 0), 0);
     return `$${total.toFixed(2)}`;
   };
 
@@ -140,7 +143,7 @@ export function AnalyticsDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <AnalyticsCard
           title="Total Users"
-          value={users.length}
+          value={Array.isArray(users) ? users.length : '0'}
           icon={<Users className="h-6 w-6" />}
           change={12}
           changeLabel={`from last ${timeframe}`}
@@ -151,7 +154,9 @@ export function AnalyticsDashboard() {
         
         <AnalyticsCard
           title="Active Streamers"
-          value={`${streamers.filter(s => s.isLive).length}/${streamers.length}`}
+          value={Array.isArray(streamers) 
+            ? `${streamers.filter((s: any) => s?.isLive).length}/${streamers.length}` 
+            : '0/0'}
           icon={<Activity className="h-6 w-6" />}
           change={8}
           changeLabel={`from last ${timeframe}`}
@@ -173,7 +178,9 @@ export function AnalyticsDashboard() {
         
         <AnalyticsCard
           title="Active Rentals"
-          value={rentalRequests.filter(r => r.status === 'approved').length}
+          value={Array.isArray(rentalRequests) 
+            ? rentalRequests.filter((r: any) => r?.status === 'approved').length
+            : '0'}
           icon={<Calendar className="h-6 w-6" />}
           change={15}
           changeLabel={`from last ${timeframe}`}
@@ -188,7 +195,10 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="User Growth"
           subtitle="New and returning users over time"
-          data={analyticsData.userGrowth}
+          data={analyticsData?.userGrowth || [
+            { name: 'Day 1', 'Unique Visitors': 0, 'New Signups': 0 },
+            { name: 'Day 2', 'Unique Visitors': 0, 'New Signups': 0 },
+          ]}
           type="area"
           dataKeys={['Unique Visitors', 'New Signups']}
           formattedLabels={{
@@ -201,7 +211,10 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="Revenue Trends"
           subtitle="Revenue breakdown by source"
-          data={analyticsData.rentalRevenue}
+          data={analyticsData?.rentalRevenue || [
+            { name: 'Day 1', 'Revenue': 0 },
+            { name: 'Day 2', 'Revenue': 0 },
+          ]}
           type="line"
           dataKeys={['Revenue']}
           valueFormat={(value) => `$${value}`}
@@ -214,7 +227,9 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="Token Distribution"
           subtitle="Allocation of CWG tokens"
-          data={analyticsData.tokenDistribution}
+          data={analyticsData?.tokenDistribution || [
+            { name: 'None', value: 0 }
+          ]}
           type="pie"
           dataKeys={['value']}
           valueFormat={(value) => `${value} CWG`}
@@ -224,7 +239,9 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="Games Played"
           subtitle="Most popular games on the platform"
-          data={analyticsData.gameDistribution}
+          data={analyticsData?.gameDistribution || [
+            { name: 'None', value: 0 }
+          ]}
           type="pie"
           dataKeys={['value']}
           valueFormat={(value) => `${value}%`}
@@ -234,7 +251,11 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="Stream Activity"
           subtitle="Streaming schedules by day"
-          data={analyticsData.streamActivity}
+          data={analyticsData?.streamActivity || [
+            { name: 'Mon', value: 0 },
+            { name: 'Tue', value: 0 },
+            { name: 'Wed', value: 0 },
+          ]}
           type="bar"
           dataKeys={['value']}
           formattedLabels={{ 'value': 'Streams' }}
@@ -283,7 +304,7 @@ export function AnalyticsDashboard() {
                     </tr>
                   ))
                 ) : (
-                  analyticsData.streamersPerformance.map((streamer, index) => (
+                  (analyticsData?.streamersPerformance || []).map((streamer, index) => (
                     <tr key={index} className="border-b border-[hsl(var(--cwg-dark-blue))]">
                       <td className="py-3 px-4 font-medium">{streamer.name}</td>
                       <td className="py-3 px-4 text-center">{streamer.viewers}</td>
@@ -356,7 +377,7 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="User Engagement"
           subtitle="Active users by time and platform"
-          data={analyticsData.userEngagement || [
+          data={analyticsData?.userEngagement || [
             { name: 'Mon', Mobile: 120, Desktop: 200, Web3: 80 },
             { name: 'Tue', Mobile: 132, Desktop: 180, Web3: 70 },
             { name: 'Wed', Mobile: 101, Desktop: 198, Web3: 90 },
@@ -373,7 +394,7 @@ export function AnalyticsDashboard() {
         <AnalyticsChart
           title="Token Economy"
           subtitle="Token flow and distribution over time"
-          data={analyticsData.tokenEconomy || [
+          data={analyticsData?.tokenEconomy || [
             { name: 'Week 1', Minted: 5000, Burned: 1200, Staked: 3000 },
             { name: 'Week 2', Minted: 4500, Burned: 1500, Staked: 3200 },
             { name: 'Week 3', Minted: 5200, Burned: 1700, Staked: 3500 },

@@ -862,23 +862,22 @@ const FloatingChat: React.FC = () => {
     }
   }, [activeTab, isOpen]);
 
-  // Apply chat settings to CSS variables
-  const getChatPositionStyle = () => {
+  // Get CSS class based on position
+  const getChatPositionClass = () => {
     // Get position from settings
     const { position } = chatSettings;
     
-    // Default positions (can be expanded with more precise positioning)
+    // Return appropriate class
     switch (position) {
-      case 'bottom-right':
-        return { bottom: '20px', right: '20px', top: 'auto', left: 'auto' };
       case 'bottom-left':
-        return { bottom: '20px', left: '20px', top: 'auto', right: 'auto' };
+        return 'chat-position-bottom-left';
       case 'top-right':
-        return { top: '20px', right: '20px', bottom: 'auto', left: 'auto' };
+        return 'chat-position-top-right';
       case 'top-left':
-        return { top: '20px', left: '20px', bottom: 'auto', right: 'auto' };
+        return 'chat-position-top-left';
+      case 'bottom-right':
       default:
-        return { bottom: '20px', right: '20px', top: 'auto', left: 'auto' };
+        return 'chat-position-bottom-right';
     }
   };
   
@@ -926,17 +925,15 @@ const FloatingChat: React.FC = () => {
       
       {!isOpen ? (
         <div 
-          className="chat-button" 
+          className={`chat-button ${getChatPositionClass()}`}
           onClick={toggleChat}
-          style={getChatPositionStyle()}
         >
           <MessageSquare className="h-5 w-5" />
         </div>
       ) : (
         <div 
-          className={`chat-window ${isMinimized ? 'minimized' : ''} ${getChatThemeClass()} ${getChatSizeClass()} ${getChatFontClass()}`}
+          className={`chat-window ${isMinimized ? 'minimized' : ''} ${getChatThemeClass()} ${getChatSizeClass()} ${getChatFontClass()} ${getChatPositionClass()}`}
           style={{
-            ...getChatPositionStyle(),
             '--chat-opacity': `${chatSettings.transparency}%`,
           } as React.CSSProperties}
         >

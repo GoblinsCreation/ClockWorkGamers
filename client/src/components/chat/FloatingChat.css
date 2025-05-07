@@ -3,6 +3,7 @@
   position: fixed;
   z-index: 999;
   font-family: var(--font-sans);
+  pointer-events: none;
 }
 
 .chat-button {
@@ -18,6 +19,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   position: fixed;
+  pointer-events: auto;
 }
 
 .chat-button:hover {
@@ -38,6 +40,37 @@
   transition: all 0.3s ease;
   position: fixed;
   opacity: var(--chat-opacity, 100%);
+  pointer-events: auto;
+  max-height: 80vh;
+}
+
+/* Chat positioning classes */
+.chat-position-bottom-right {
+  bottom: 20px !important;
+  right: 20px !important;
+  top: auto !important;
+  left: auto !important;
+}
+
+.chat-position-bottom-left {
+  bottom: 20px !important;
+  left: 20px !important;
+  top: auto !important;
+  right: auto !important;
+}
+
+.chat-position-top-right {
+  top: 20px !important;
+  right: 20px !important;
+  bottom: auto !important;
+  left: auto !important;
+}
+
+.chat-position-top-left {
+  top: 20px !important;
+  left: 20px !important;
+  bottom: auto !important;
+  right: auto !important;
 }
 
 /* Chat Themes */
