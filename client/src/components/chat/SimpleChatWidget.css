@@ -6,21 +6,36 @@
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  background-color: hsl(var(--cwg-orange));
+  background-color: hsl(var(--cwg-dark-blue));
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 0 15px rgba(255, 142, 43, 0.6), 0 0 30px rgba(255, 142, 43, 0.3);
+  box-shadow: 0 0 10px rgba(255, 142, 43, 0.6), 0 0 20px rgba(255, 142, 43, 0.2);
   z-index: 100;
   transition: all 0.3s ease;
-  border: 2px solid rgba(255, 165, 43, 0.6);
+  border: 2px solid hsl(var(--cwg-orange));
+  animation: pulse-glow 3s infinite ease-in-out;
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 10px rgba(255, 142, 43, 0.6), 0 0 20px rgba(255, 142, 43, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 142, 43, 0.8), 0 0 30px rgba(255, 142, 43, 0.4), 0 0 40px rgba(255, 142, 43, 0.1);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(255, 142, 43, 0.6), 0 0 20px rgba(255, 142, 43, 0.2);
+  }
 }
 
 .chat-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(255, 142, 43, 0.8), 0 0 40px rgba(255, 142, 43, 0.4);
+  transform: scale(1.1) rotate(15deg);
+  box-shadow: 0 0 20px rgba(255, 142, 43, 0.8), 0 0 40px rgba(255, 142, 43, 0.4), 0 0 60px rgba(255, 142, 43, 0.2);
+  border-color: hsl(var(--cwg-orange));
+  background-color: hsl(var(--cwg-orange));
 }
 
 /* Chat Window */

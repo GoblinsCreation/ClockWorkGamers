@@ -119,25 +119,35 @@ export function GuildShareModal({
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md neon-card-blue bg-[hsl(var(--cwg-dark))]/95 backdrop-blur-sm border-[hsl(var(--cwg-blue))]">
         <DialogHeader>
-          <DialogTitle>Share Guild</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="font-orbitron neon-text-blue text-xl">Share Guild</DialogTitle>
+          <DialogDescription className="text-[hsl(var(--cwg-muted))]">
             Invite friends to join ClockWork Gamers
           </DialogDescription>
         </DialogHeader>
         
         <Tabs defaultValue="social" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="social">Social Media</TabsTrigger>
-            <TabsTrigger value="custom">Custom Message</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-[hsl(var(--cwg-dark-blue))]/50">
+            <TabsTrigger 
+              value="social" 
+              className="data-[state=active]:neon-text-blue data-[state=active]:neon-border-blue data-[state=active]:shadow-sm data-[state=active]:bg-[hsl(var(--cwg-dark-blue))]/70"
+            >
+              Social Media
+            </TabsTrigger>
+            <TabsTrigger 
+              value="custom" 
+              className="data-[state=active]:neon-text-orange data-[state=active]:neon-border-orange data-[state=active]:shadow-sm data-[state=active]:bg-[hsl(var(--cwg-dark-blue))]/70"
+            >
+              Custom Message
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="social" className="py-4">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <Button
                 variant="outline"
-                className="justify-start gap-2 p-2 h-auto flex-col items-center"
+                className="justify-start gap-2 p-2 h-auto flex-col items-center neon-border-blue hover:neon-glow-sm-blue transition-all duration-300 bg-[hsl(var(--cwg-dark-blue))]/30"
                 onClick={shareToTwitter}
               >
                 <Twitter className="h-5 w-5 text-[#1DA1F2]" />
@@ -146,7 +156,7 @@ export function GuildShareModal({
               
               <Button
                 variant="outline"
-                className="justify-start gap-2 p-2 h-auto flex-col items-center"
+                className="justify-start gap-2 p-2 h-auto flex-col items-center neon-border-blue hover:neon-glow-sm-blue transition-all duration-300 bg-[hsl(var(--cwg-dark-blue))]/30"
                 onClick={shareToFacebook}
               >
                 <Facebook className="h-5 w-5 text-[#1877F2]" />
@@ -155,7 +165,7 @@ export function GuildShareModal({
               
               <Button
                 variant="outline"
-                className="justify-start gap-2 p-2 h-auto flex-col items-center"
+                className="justify-start gap-2 p-2 h-auto flex-col items-center neon-border-blue hover:neon-glow-sm-blue transition-all duration-300 bg-[hsl(var(--cwg-dark-blue))]/30"
                 onClick={shareToLinkedin}
               >
                 <Linkedin className="h-5 w-5 text-[#0A66C2]" />
@@ -164,7 +174,7 @@ export function GuildShareModal({
               
               <Button
                 variant="outline"
-                className="justify-start gap-2 p-2 h-auto flex-col items-center"
+                className="justify-start gap-2 p-2 h-auto flex-col items-center neon-border-purple hover:neon-glow-sm-purple transition-all duration-300 bg-[hsl(var(--cwg-dark-blue))]/30"
                 onClick={shareToDiscord}
               >
                 <FaDiscord className="h-5 w-5 text-[#5865F2]" />
@@ -173,41 +183,46 @@ export function GuildShareModal({
               
               <Button
                 variant="outline"
-                className="justify-start gap-2 p-2 h-auto flex-col items-center"
+                className="justify-start gap-2 p-2 h-auto flex-col items-center neon-border-orange hover:neon-glow-sm transition-all duration-300 bg-[hsl(var(--cwg-dark-blue))]/30"
                 onClick={shareByEmail}
               >
-                <Mail className="h-5 w-5 text-muted-foreground" />
+                <Mail className="h-5 w-5 neon-text-orange" />
                 <span className="text-xs">Email</span>
               </Button>
               
               <Button
                 variant="outline"
-                className="justify-start gap-2 p-2 h-auto flex-col items-center"
+                className="justify-start gap-2 p-2 h-auto flex-col items-center neon-border-green hover:neon-glow-sm-green transition-all duration-300 bg-[hsl(var(--cwg-dark-blue))]/30"
                 onClick={handleCopy}
               >
                 {copied ? 
-                  <Check className="h-5 w-5 text-green-500" /> : 
-                  <Copy className="h-5 w-5 text-muted-foreground" />
+                  <Check className="h-5 w-5 neon-text-green" /> : 
+                  <Copy className="h-5 w-5 neon-text-green" />
                 }
-                <span className="text-xs">{copied ? "Copied!" : "Copy Link"}</span>
+                <span className="text-xs neon-text-green">{copied ? "Copied!" : "Copy Link"}</span>
               </Button>
             </div>
             
             <div className="mt-4">
               <div className="flex items-center mb-2">
-                <Label htmlFor="guild-url">Guild URL</Label>
+                <Label htmlFor="guild-url" className="neon-text-blue font-medium">Guild URL</Label>
               </div>
               <div className="flex space-x-2">
                 <Input
                   id="guild-url"
                   value={shareUrl}
                   readOnly
-                  className="flex-1"
+                  className="flex-1 neon-border-blue bg-[hsl(var(--cwg-dark-blue))]/30 focus:neon-glow-sm-blue"
                 />
-                <Button size="icon" onClick={handleCopy} variant="secondary">
+                <Button 
+                  size="icon" 
+                  onClick={handleCopy} 
+                  variant="secondary"
+                  className="neon-border-green hover:neon-glow-sm-green bg-[hsl(var(--cwg-dark-blue))]/50"
+                >
                   {copied ? 
-                    <Check className="h-4 w-4 text-green-500" /> : 
-                    <Copy className="h-4 w-4" />
+                    <Check className="h-4 w-4 neon-text-green" /> : 
+                    <Copy className="h-4 w-4 text-[hsl(var(--cwg-muted))]" />
                   }
                 </Button>
               </div>
@@ -216,14 +231,15 @@ export function GuildShareModal({
           
           <TabsContent value="custom" className="py-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="custom-message">Customize your message</Label>
+              <Label htmlFor="custom-message" className="neon-text-orange font-medium">Customize your message</Label>
               <Textarea
                 id="custom-message"
                 value={customMessage}
                 onChange={(e) => setCustomMessage(e.target.value)}
                 rows={4}
+                className="neon-border-orange bg-[hsl(var(--cwg-dark-blue))]/30 focus:neon-glow-sm"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-[hsl(var(--cwg-muted))]">
                 This message will be included when sharing to social platforms.
               </p>
             </div>
@@ -232,15 +248,26 @@ export function GuildShareModal({
         
         <DialogFooter className="sm:justify-start">
           <div className="flex flex-col-reverse sm:flex-row sm:justify-between w-full gap-2">
-            <Button variant="secondary" onClick={() => onOpenChange(false)}>
+            <Button 
+              variant="secondary" 
+              onClick={() => onOpenChange(false)}
+              className="neon-border-blue hover:neon-glow-sm-blue bg-[hsl(var(--cwg-dark-blue))]/50"
+            >
               Cancel
             </Button>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={handleCopy}>
-                {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                Copy Link
+              <Button 
+                variant="outline" 
+                onClick={handleCopy}
+                className="neon-border-green hover:neon-glow-sm-green bg-[hsl(var(--cwg-dark-blue))]/50"
+              >
+                {copied ? <Check className="h-4 w-4 mr-2 neon-text-green" /> : <Copy className="h-4 w-4 mr-2" />}
+                {copied ? <span className="neon-text-green">Copied!</span> : "Copy Link"}
               </Button>
-              <Button onClick={shareToTwitter}>
+              <Button 
+                onClick={shareToTwitter}
+                className="bg-[hsl(var(--cwg-blue))] hover:bg-[hsl(var(--cwg-blue))]/90 hover:neon-glow-blue"
+              >
                 <Twitter className="h-4 w-4 mr-2" />
                 Share Now
               </Button>
