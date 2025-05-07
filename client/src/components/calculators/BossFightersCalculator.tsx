@@ -34,32 +34,32 @@ import { Progress } from "@/components/ui/progress";
 // Rarity types
 type Rarity = "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary" | "Mythic" | "Exalted";
 
-// Constants for badge calculations
+// Constants for badge calculations based on actual market values
 const BADGE_RECHARGE_COSTS = {
-  "Common": { flex: 350, sponsor: 20, rechargeDuration: 2 },
-  "Uncommon": { flex: 500, sponsor: 30, rechargeDuration: 3 },
-  "Rare": { flex: 950, sponsor: 55, rechargeDuration: 4 },
-  "Epic": { flex: 2400, sponsor: 150, rechargeDuration: 5 },
-  "Legendary": { flex: 6000, sponsor: 380, rechargeDuration: 6 },
-  "Mythic": { flex: 18000, sponsor: 1100, rechargeDuration: 8 },
-  "Exalted": { flex: 60000, sponsor: 3200, rechargeDuration: 10 }
+  "Common": { flex: 0, sponsor: 0, rechargeDuration: 2 }, // No data provided yet
+  "Uncommon": { flex: 124, sponsor: 6, rechargeDuration: 3 },
+  "Rare": { flex: 255, sponsor: 12, rechargeDuration: 4 },
+  "Epic": { flex: 768, sponsor: 36, rechargeDuration: 5 },
+  "Legendary": { flex: 2316, sponsor: 108, rechargeDuration: 6 },
+  "Mythic": { flex: 0, sponsor: 0, rechargeDuration: 8 }, // No data provided yet
+  "Exalted": { flex: 0, sponsor: 0, rechargeDuration: 10 } // No data for this tier
 };
 
 const BADGE_CRAFT_COSTS = {
-  "Common": { flex: 1000, sponsor: 0, requiredBadges: [], craftTime: 36 },
-  "Uncommon": { flex: 250, sponsor: 350, requiredBadges: ["Common", "Common"], craftTime: 60 },
-  "Rare": { flex: 1000, sponsor: 700, requiredBadges: ["Uncommon", "Uncommon"], craftTime: 84 },
-  "Epic": { flex: 4800, sponsor: 2000, requiredBadges: ["Rare", "Rare", "Rare"], craftTime: 108 },
-  "Legendary": { flex: 19000, sponsor: 6000, requiredBadges: ["Epic", "Epic", "Epic"], craftTime: 132 },
-  "Mythic": { flex: 75000, sponsor: 18000, requiredBadges: ["Legendary", "Legendary", "Legendary"], craftTime: 156 },
-  "Exalted": { flex: 290000, sponsor: 55000, requiredBadges: ["Mythic", "Mythic", "Mythic"], craftTime: 180 }
+  "Common": { flex: 1347, sponsor: 0, requiredBadges: [], craftTime: 36 },
+  "Uncommon": { flex: 475, sponsor: 113, requiredBadges: ["Common", "Common"], craftTime: 60 },
+  "Rare": { flex: 1403, sponsor: 226, requiredBadges: ["Uncommon", "Uncommon"], craftTime: 84 },
+  "Epic": { flex: 5809, sponsor: 665, requiredBadges: ["Rare", "Rare", "Rare"], craftTime: 108 },
+  "Legendary": { flex: 23025, sponsor: 1900, requiredBadges: ["Epic", "Epic", "Epic"], craftTime: 132 },
+  "Mythic": { flex: 88538, sponsor: 5511, requiredBadges: ["Legendary", "Legendary", "Legendary"], craftTime: 156 },
+  "Exalted": { flex: 0, sponsor: 0, requiredBadges: ["Mythic", "Mythic", "Mythic"], craftTime: 180 } // No data for this tier
 };
 
-// Current market prices
+// Current market prices based on OpenLoot and MEXC exchange
 const MARKET_PRICES = {
-  bfToken: 0.0159, // $15.90 per 1000 tokens
-  sponsorMark: 0.0364, // $3.64 per 100 sponsor marks
-  flex: 0.0074261102034754 // $500 per 67330 flex
+  bfToken: 0.03517, // Live value from MEXC exchange
+  sponsorMark: 0.067, // $6.70 per 100 sponsor marks (based on OpenLoot marketplace)
+  flex: 0.00740 // $0.00740 per 1 Flex
 };
 
 export default function BossFightersCalculator() {
@@ -91,6 +91,7 @@ export default function BossFightersCalculator() {
     let totalFlex = 0;
     let totalSponsor = 0;
     let avgDuration = 0;
+    let missingData = false;
     
     // Use only the number of badges specified by badgeCount
     const activeBadges = badgeRarities.slice(0, badgeCount);
@@ -98,6 +99,12 @@ export default function BossFightersCalculator() {
     // Calculate costs for each active badge
     for (let i = 0; i < activeBadges.length; i++) {
       const rarity = activeBadges[i];
+      
+      // Check if we have data for this rarity
+      if (BADGE_RECHARGE_COSTS[rarity].flex === 0 && BADGE_RECHARGE_COSTS[rarity].sponsor === 0) {
+        missingData = true;
+      }
+      
       totalFlex += BADGE_RECHARGE_COSTS[rarity].flex;
       totalSponsor += BADGE_RECHARGE_COSTS[rarity].sponsor;
       avgDuration += BADGE_RECHARGE_COSTS[rarity].rechargeDuration;
@@ -109,7 +116,8 @@ export default function BossFightersCalculator() {
     const rechargeCost = {
       flex: totalFlex,
       sponsor: totalSponsor,
-      duration: avgDuration
+      duration: avgDuration,
+      missingData: missingData
     };
     
     // Calculate recharge cost in USD
@@ -130,7 +138,7 @@ export default function BossFightersCalculator() {
     const monthlyProfit = hourlyProfit * 3 * 30;
     
     // Calculate return on investment (ROI)
-    const roi = (profitPerRecharge / rechargeCostUsd) * 100;
+    const roi = rechargeCostUsd > 0 ? (profitPerRecharge / rechargeCostUsd) * 100 : 0;
     
     setEarningsResults({
       tokensPerMinute,
@@ -142,7 +150,8 @@ export default function BossFightersCalculator() {
       hourlyProfit,
       weeklyProfit,
       monthlyProfit,
-      roi
+      roi,
+      missingData
     });
   };
   
@@ -173,10 +182,18 @@ export default function BossFightersCalculator() {
       });
     }
     
+    // Check if target rarity has data
+    if (targetRarity === "Exalted" && BADGE_CRAFT_COSTS[targetRarity].flex === 0) {
+      return setCraftingResults({
+        error: "Data for Exalted badges is not available yet"
+      });
+    }
+    
     // Initialize counters
     let totalFlex = 0;
     let totalSponsor = 0;
     let totalCraftTime = 0;
+    let missingData = false;
     let requiredBadges: Record<Rarity, number> = {
       "Common": 0,
       "Uncommon": 0,
@@ -194,6 +211,11 @@ export default function BossFightersCalculator() {
       // If this isn't the starting rarity, we need to craft these badges
       if (rarityLevels.indexOf(rarity) > startIndex) {
         const craftInfo = BADGE_CRAFT_COSTS[rarity];
+        
+        // Check if data is missing
+        if (craftInfo.flex === 0 && craftInfo.sponsor === 0) {
+          missingData = true;
+        }
         
         // Add direct costs for this badge
         totalFlex += craftInfo.flex * count;
@@ -229,6 +251,7 @@ export default function BossFightersCalculator() {
       totalFlexCost,
       totalSponsorCost,
       totalUsdCost,
+      missingData,
       craftTime: {
         total: totalCraftTime,
         adjusted: adjustedCraftTime,
@@ -375,6 +398,16 @@ export default function BossFightersCalculator() {
               <div className="mt-6 p-4 bg-[hsl(var(--cwg-dark))] rounded-lg border border-[hsl(var(--cwg-dark-blue))]">
                 <h3 className="text-[hsl(var(--cwg-blue))] font-orbitron mb-4">Earnings Summary</h3>
                 
+                {earningsResults.missingData && (
+                  <div className="mb-4 p-3 bg-[hsl(var(--cwg-dark-blue))]/30 rounded border border-amber-500/30 flex items-start">
+                    <AlertCircle className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <div className="text-xs text-[hsl(var(--cwg-muted))]">
+                      Some selected badge rarities do not have complete recharge data yet. 
+                      Results may not be accurate for Common, Mythic or Exalted badges.
+                    </div>
+                  </div>
+                )}
+                
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-[hsl(var(--cwg-muted))]">Tokens per hour:</span>
@@ -416,6 +449,16 @@ export default function BossFightersCalculator() {
                     <span className="text-[hsl(var(--cwg-muted))]">ROI:</span>
                     <span className={earningsResults.roi >= 0 ? "text-green-400" : "text-red-400"}>
                       {earningsResults.roi.toFixed(2)}%
+                    </span>
+                  </div>
+                  
+                  <div className="mt-4 pt-2 border-t border-[hsl(var(--cwg-dark-blue))] text-xs text-[hsl(var(--cwg-muted))] flex items-start">
+                    <DollarSign className="h-4 w-4 text-[hsl(var(--cwg-blue))] mr-2 mt-0.5" />
+                    <span>
+                      Current market prices:<br/>
+                      BFToken: ${MARKET_PRICES.bfToken.toFixed(5)}<br/>
+                      Sponsor Marks: ${MARKET_PRICES.sponsorMark.toFixed(5)}<br/>
+                      Flex: ${MARKET_PRICES.flex.toFixed(5)}
                     </span>
                   </div>
                 </div>
@@ -531,6 +574,16 @@ export default function BossFightersCalculator() {
                 ) : (
                   <>
                     <h3 className="text-[hsl(var(--cwg-blue))] font-orbitron mb-4">Crafting Summary</h3>
+                    
+                    {craftingResults.missingData && (
+                      <div className="mb-4 p-3 bg-[hsl(var(--cwg-dark-blue))]/30 rounded border border-amber-500/30 flex items-start">
+                        <AlertCircle className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <div className="text-xs text-[hsl(var(--cwg-muted))]">
+                          Some badge rarities in this calculation may have incomplete data.
+                          Results may not accurately reflect the full resource requirements.
+                        </div>
+                      </div>
+                    )}
                     
                     <div className="space-y-3">
                       <div className="space-y-2">
