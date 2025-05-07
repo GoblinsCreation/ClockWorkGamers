@@ -125,7 +125,7 @@ export default function AdminPageNew() {
     <div className="container mx-auto py-10 px-4">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-orbitron font-bold text-[hsl(var(--cwg-orange))]">
+          <h1 className="text-3xl font-orbitron font-bold neon-text-orange">
             Admin Dashboard
           </h1>
           <p className="text-[hsl(var(--cwg-muted))] mt-1">
@@ -133,45 +133,45 @@ export default function AdminPageNew() {
           </p>
         </div>
         <div className="flex gap-4">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="neon-border-blue neon-text-blue flex items-center gap-2 hover:neon-glow-blue">
             <Settings size={16} />
             Settings
           </Button>
-          <Button className="bg-[hsl(var(--cwg-blue))] hover:bg-[hsl(var(--cwg-blue))/90]">
+          <Button className="bg-[hsl(var(--cwg-blue))] hover:bg-[hsl(var(--cwg-blue))/90] hover:neon-glow-blue">
             Generate Report
           </Button>
         </div>
       </div>
 
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-[hsl(var(--cwg-dark-blue))] p-0 h-auto flex-wrap">
+        <TabsList className="bg-[hsl(var(--cwg-dark-blue))] p-0 h-auto flex-wrap neon-border-blue">
           <TabsTrigger
             value="overview"
-            className={`px-4 py-3 rounded-none data-[state=active]:bg-[hsl(var(--cwg-dark))] data-[state=active]:text-[hsl(var(--cwg-orange))] data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[hsl(var(--cwg-orange))]`}
+            className={`px-4 py-3 rounded-none data-[state=active]:bg-[hsl(var(--cwg-dark))] data-[state=active]:neon-text-orange data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[hsl(var(--cwg-orange))] hover:neon-text-blue`}
           >
             Overview
           </TabsTrigger>
           <TabsTrigger
             value="users"
-            className={`px-4 py-3 rounded-none data-[state=active]:bg-[hsl(var(--cwg-dark))] data-[state=active]:text-[hsl(var(--cwg-orange))] data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[hsl(var(--cwg-orange))]`}
+            className={`px-4 py-3 rounded-none data-[state=active]:bg-[hsl(var(--cwg-dark))] data-[state=active]:neon-text-orange data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[hsl(var(--cwg-orange))] hover:neon-text-blue`}
           >
             Users
           </TabsTrigger>
           <TabsTrigger
             value="content"
-            className={`px-4 py-3 rounded-none data-[state=active]:bg-[hsl(var(--cwg-dark))] data-[state=active]:text-[hsl(var(--cwg-orange))] data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[hsl(var(--cwg-orange))]`}
+            className={`px-4 py-3 rounded-none data-[state=active]:bg-[hsl(var(--cwg-dark))] data-[state=active]:neon-text-orange data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[hsl(var(--cwg-orange))] hover:neon-text-blue`}
           >
             Content
           </TabsTrigger>
           <TabsTrigger
             value="messaging"
-            className={`px-4 py-3 rounded-none data-[state=active]:bg-[hsl(var(--cwg-dark))] data-[state=active]:text-[hsl(var(--cwg-orange))] data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[hsl(var(--cwg-orange))]`}
+            className={`px-4 py-3 rounded-none data-[state=active]:bg-[hsl(var(--cwg-dark))] data-[state=active]:neon-text-orange data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[hsl(var(--cwg-orange))] hover:neon-text-blue`}
           >
             Messaging
           </TabsTrigger>
           <TabsTrigger
             value="reports"
-            className={`px-4 py-3 rounded-none data-[state=active]:bg-[hsl(var(--cwg-dark))] data-[state=active]:text-[hsl(var(--cwg-orange))] data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[hsl(var(--cwg-orange))]`}
+            className={`px-4 py-3 rounded-none data-[state=active]:bg-[hsl(var(--cwg-dark))] data-[state=active]:neon-text-orange data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[hsl(var(--cwg-orange))] hover:neon-text-blue`}
           >
             Reports
           </TabsTrigger>
@@ -181,16 +181,16 @@ export default function AdminPageNew() {
         <TabsContent value="overview" className="space-y-6">
           {/* Stat Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="neon-card-blue bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm hover:neon-glow-blue transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center space-y-0">
                   <div>
                     <p className="text-sm font-medium text-[hsl(var(--cwg-muted))]">Total Users</p>
-                    <p className="text-2xl font-orbitron font-bold text-[hsl(var(--cwg-blue))]">
+                    <p className="text-2xl font-orbitron font-bold neon-text-blue">
                       {analyticsData.userStats.totalUsers.toLocaleString()}
                     </p>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-[hsl(var(--cwg-blue))/20] flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-full bg-[hsl(var(--cwg-blue))/20] flex items-center justify-center neon-glow-blue">
                     <UsersIcon className="h-6 w-6 text-[hsl(var(--cwg-blue))]" />
                   </div>
                 </div>
@@ -201,16 +201,16 @@ export default function AdminPageNew() {
               </CardContent>
             </Card>
 
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="neon-card-orange bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm hover:neon-glow transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center space-y-0">
                   <div>
                     <p className="text-sm font-medium text-[hsl(var(--cwg-muted))]">Total Revenue</p>
-                    <p className="text-2xl font-orbitron font-bold text-[hsl(var(--cwg-orange))]">
+                    <p className="text-2xl font-orbitron font-bold neon-text-orange">
                       ${analyticsData.financialStats.totalRevenue.toLocaleString()}
                     </p>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-[hsl(var(--cwg-orange))/20] flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-full bg-[hsl(var(--cwg-orange))/20] flex items-center justify-center neon-glow">
                     <DollarSign className="h-6 w-6 text-[hsl(var(--cwg-orange))]" />
                   </div>
                 </div>
@@ -221,16 +221,16 @@ export default function AdminPageNew() {
               </CardContent>
             </Card>
 
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="neon-card-green bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm hover:neon-glow-green transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center space-y-0">
                   <div>
                     <p className="text-sm font-medium text-[hsl(var(--cwg-muted))]">Active Users</p>
-                    <p className="text-2xl font-orbitron font-bold text-[hsl(var(--cwg-green))]">
+                    <p className="text-2xl font-orbitron font-bold neon-text-green">
                       {analyticsData.userStats.activeUsers.toLocaleString()}
                     </p>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-[hsl(var(--cwg-green))/20] flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-full bg-[hsl(var(--cwg-green))/20] flex items-center justify-center neon-glow-green">
                     <Users className="h-6 w-6 text-[hsl(var(--cwg-green))]" />
                   </div>
                 </div>
@@ -241,16 +241,16 @@ export default function AdminPageNew() {
               </CardContent>
             </Card>
 
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="neon-card-purple bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm hover:neon-glow-purple transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center space-y-0">
                   <div>
                     <p className="text-sm font-medium text-[hsl(var(--cwg-muted))]">NFT Sales</p>
-                    <p className="text-2xl font-orbitron font-bold text-[hsl(var(--cwg-purple))]">
+                    <p className="text-2xl font-orbitron font-bold neon-text-purple">
                       ${analyticsData.financialStats.nftSales.toLocaleString()}
                     </p>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-[hsl(var(--cwg-purple))/20] flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-full bg-[hsl(var(--cwg-purple))/20] flex items-center justify-center neon-glow-purple">
                     <Award className="h-6 w-6 text-[hsl(var(--cwg-purple))]" />
                   </div>
                 </div>
@@ -265,9 +265,9 @@ export default function AdminPageNew() {
           {/* Charts Row */}
           <div className="grid gap-6 md:grid-cols-2">
             {/* User Growth Chart */}
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="neon-card-blue bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm transition-all duration-300 hover:neon-glow-blue">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">
+                <CardTitle className="text-lg font-orbitron neon-text-blue">
                   User Growth
                 </CardTitle>
                 <CardDescription>
@@ -278,22 +278,23 @@ export default function AdminPageNew() {
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={analyticsData.userGrowth}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(68, 68, 68, 0.5)" />
                       <XAxis dataKey="name" stroke="#888" />
                       <YAxis stroke="#888" />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--cwg-dark))',
-                          borderColor: 'hsl(var(--cwg-dark-blue))'
+                          borderColor: 'hsl(var(--cwg-blue))',
+                          boxShadow: '0 0 10px hsl(var(--cwg-blue))'
                         }} 
                       />
                       <Line 
                         type="monotone" 
                         dataKey="users" 
                         stroke="hsl(var(--cwg-blue))" 
-                        strokeWidth={2}
-                        dot={{ fill: 'hsl(var(--cwg-blue))', r: 4 }}
-                        activeDot={{ r: 6 }}
+                        strokeWidth={3}
+                        dot={{ fill: 'hsl(var(--cwg-blue))', r: 4, strokeWidth: 2, stroke: 'white' }}
+                        activeDot={{ r: 6, fill: 'hsl(var(--cwg-blue))', stroke: 'white', strokeWidth: 2 }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -302,9 +303,9 @@ export default function AdminPageNew() {
             </Card>
 
             {/* Revenue Breakdown Chart */}
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="neon-card-orange bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm transition-all duration-300 hover:neon-glow">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">
+                <CardTitle className="text-lg font-orbitron neon-text-orange">
                   Revenue Breakdown
                 </CardTitle>
                 <CardDescription>
@@ -327,14 +328,15 @@ export default function AdminPageNew() {
                         labelLine={false}
                       >
                         {analyticsData.revenueBreakdown.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} strokeWidth={2} stroke="rgba(255, 255, 255, 0.3)" />
                         ))}
                       </Pie>
                       <Tooltip 
                         formatter={(value) => [`${value}%`, 'Percentage']}
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--cwg-dark))',
-                          borderColor: 'hsl(var(--cwg-dark-blue))'
+                          borderColor: 'hsl(var(--cwg-orange))',
+                          boxShadow: '0 0 10px hsl(var(--cwg-orange))'
                         }} 
                       />
                       <Legend />
@@ -348,9 +350,9 @@ export default function AdminPageNew() {
           {/* More Charts */}
           <div className="grid gap-6 md:grid-cols-2">
             {/* Gaming Activity Chart */}
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="neon-card-green bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm transition-all duration-300 hover:neon-glow-green">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">
+                <CardTitle className="text-lg font-orbitron neon-text-green">
                   Games Played
                 </CardTitle>
                 <CardDescription>
@@ -373,14 +375,15 @@ export default function AdminPageNew() {
                         labelLine={false}
                       >
                         {analyticsData.gamingActivity.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} strokeWidth={2} stroke="rgba(255, 255, 255, 0.3)" />
                         ))}
                       </Pie>
                       <Tooltip 
                         formatter={(value) => [`${value}%`, 'Percentage']}
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--cwg-dark))',
-                          borderColor: 'hsl(var(--cwg-dark-blue))'
+                          borderColor: 'hsl(var(--cwg-green))',
+                          boxShadow: '0 0 10px hsl(var(--cwg-green))'
                         }} 
                       />
                       <Legend />
@@ -391,9 +394,9 @@ export default function AdminPageNew() {
             </Card>
 
             {/* Streaming Activity Chart */}
-            <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+            <Card className="neon-card-purple bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm transition-all duration-300 hover:neon-glow-purple">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">
+                <CardTitle className="text-lg font-orbitron neon-text-purple">
                   Streaming Activity
                 </CardTitle>
                 <CardDescription>
@@ -404,19 +407,22 @@ export default function AdminPageNew() {
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={analyticsData.streamingStats}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(68, 68, 68, 0.5)" />
                       <XAxis dataKey="name" stroke="#888" />
                       <YAxis stroke="#888" />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--cwg-dark))',
-                          borderColor: 'hsl(var(--cwg-dark-blue))'
+                          borderColor: 'hsl(var(--cwg-purple))',
+                          boxShadow: '0 0 10px hsl(var(--cwg-purple))'
                         }} 
                       />
                       <Bar 
                         dataKey="streams" 
                         fill="hsl(var(--cwg-purple))" 
                         radius={[4, 4, 0, 0]}
+                        strokeWidth={1}
+                        stroke="rgba(255, 255, 255, 0.3)"
                       />
                     </BarChart>
                   </ResponsiveContainer>
@@ -426,9 +432,9 @@ export default function AdminPageNew() {
           </div>
 
           {/* Recent Users Table */}
-          <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+          <Card className="neon-card-blue bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm transition-all duration-300">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">
+              <CardTitle className="text-lg font-orbitron neon-text-blue">
                 Recent Users
               </CardTitle>
               <CardDescription>
@@ -438,23 +444,23 @@ export default function AdminPageNew() {
             <CardContent>
               <Table>
                 <TableHeader>
-                  <TableRow className="border-[hsl(var(--cwg-dark-blue))]">
-                    <TableHead className="text-[hsl(var(--cwg-muted))]">Username</TableHead>
-                    <TableHead className="text-[hsl(var(--cwg-muted))]">Email</TableHead>
-                    <TableHead className="text-[hsl(var(--cwg-muted))]">Join Date</TableHead>
-                    <TableHead className="text-[hsl(var(--cwg-muted))]">Status</TableHead>
+                  <TableRow className="border-[hsl(var(--cwg-blue))/30]">
+                    <TableHead className="neon-text-blue font-medium">Username</TableHead>
+                    <TableHead className="neon-text-blue font-medium">Email</TableHead>
+                    <TableHead className="neon-text-blue font-medium">Join Date</TableHead>
+                    <TableHead className="neon-text-blue font-medium">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {analyticsData.recentUsers.map((user) => (
-                    <TableRow key={user.id} className="border-[hsl(var(--cwg-dark-blue))]">
+                    <TableRow key={user.id} className="border-[hsl(var(--cwg-dark-blue))] hover:bg-[hsl(var(--cwg-blue))/10] transition-colors duration-200">
                       <TableCell className="font-medium">{user.username}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.joinDate}</TableCell>
                       <TableCell>
                         <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
                           user.status === 'active' 
-                            ? 'bg-green-500/20 text-green-500' 
+                            ? 'bg-green-500/20 neon-text-green' 
                             : 'bg-yellow-500/20 text-yellow-500'
                         }`}>
                           {user.status}
@@ -465,7 +471,9 @@ export default function AdminPageNew() {
                 </TableBody>
               </Table>
               <div className="flex justify-end mt-4">
-                <Button variant="outline" size="sm">View All Users</Button>
+                <Button variant="outline" className="neon-border-blue neon-text-blue hover:neon-glow-blue" size="sm">
+                  View All Users
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -473,9 +481,9 @@ export default function AdminPageNew() {
 
         {/* Other Tabs - Simple placeholders for now */}
         <TabsContent value="users">
-          <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+          <Card className="neon-card-orange bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">
+              <CardTitle className="text-lg font-orbitron neon-text-orange">
                 User Management
               </CardTitle>
               <CardDescription>
@@ -485,10 +493,10 @@ export default function AdminPageNew() {
             <CardContent>
               <div className="flex justify-between items-center mb-6">
                 <div className="flex gap-4">
-                  <Input placeholder="Search users..." className="w-80" />
-                  <Button variant="outline">Search</Button>
+                  <Input placeholder="Search users..." className="w-80 neon-border-orange focus:neon-glow" />
+                  <Button variant="outline" className="neon-border-orange neon-text-orange hover:neon-glow">Search</Button>
                 </div>
-                <Button>
+                <Button className="bg-[hsl(var(--cwg-orange))] hover:bg-[hsl(var(--cwg-orange))/90] hover:neon-glow">
                   <Users className="h-4 w-4 mr-2" />
                   Add New User
                 </Button>
@@ -502,9 +510,9 @@ export default function AdminPageNew() {
         </TabsContent>
 
         <TabsContent value="content">
-          <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+          <Card className="neon-card-green bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">
+              <CardTitle className="text-lg font-orbitron neon-text-green">
                 Content Management
               </CardTitle>
               <CardDescription>
@@ -514,15 +522,24 @@ export default function AdminPageNew() {
             <CardContent>
               <div className="flex justify-between items-center mb-6">
                 <div className="flex gap-4">
-                  <Select>
-                    <option value="all">All Content</option>
-                    <option value="news">News</option>
-                    <option value="announcements">Announcements</option>
-                    <option value="guides">Guides</option>
-                  </Select>
-                  <Button variant="outline">Filter</Button>
+                  <div className="relative w-44 neon-border-green rounded-md overflow-hidden">
+                    <select
+                      className="w-full h-10 px-3 py-2 bg-[hsl(var(--cwg-dark-blue))/60] border-none rounded-md text-sm focus:outline-none appearance-none"
+                    >
+                      <option value="all">All Content</option>
+                      <option value="news">News</option>
+                      <option value="announcements">Announcements</option>
+                      <option value="guides">Guides</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <svg className="h-4 w-4 text-[hsl(var(--cwg-green))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                      </svg>
+                    </div>
+                  </div>
+                  <Button variant="outline" className="neon-border-green neon-text-green hover:neon-glow-green">Filter</Button>
                 </div>
-                <Button>
+                <Button className="bg-[hsl(var(--cwg-green))] hover:bg-[hsl(var(--cwg-green))/90] hover:neon-glow-green text-white">
                   <FileText className="h-4 w-4 mr-2" />
                   Create Content
                 </Button>
@@ -536,9 +553,9 @@ export default function AdminPageNew() {
         </TabsContent>
 
         <TabsContent value="messaging">
-          <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+          <Card className="neon-card-purple bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">
+              <CardTitle className="text-lg font-orbitron neon-text-purple">
                 Messaging Center
               </CardTitle>
               <CardDescription>
@@ -548,10 +565,10 @@ export default function AdminPageNew() {
             <CardContent>
               <div className="flex justify-between items-center mb-6">
                 <div className="flex gap-4">
-                  <Input placeholder="Search messages..." className="w-80" />
-                  <Button variant="outline">Search</Button>
+                  <Input placeholder="Search messages..." className="w-80 neon-border-purple focus:neon-glow-purple" />
+                  <Button variant="outline" className="neon-border-purple neon-text-purple hover:neon-glow-purple">Search</Button>
                 </div>
-                <Button>
+                <Button className="bg-[hsl(var(--cwg-purple))] hover:bg-[hsl(var(--cwg-purple))/90] hover:neon-glow-purple text-white">
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Send Message
                 </Button>
@@ -565,9 +582,9 @@ export default function AdminPageNew() {
         </TabsContent>
 
         <TabsContent value="reports">
-          <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))]">
+          <Card className="neon-card-blue bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">
+              <CardTitle className="text-lg font-orbitron neon-text-blue">
                 Reports & Analytics
               </CardTitle>
               <CardDescription>
@@ -576,46 +593,46 @@ export default function AdminPageNew() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <Card className="border-[hsl(var(--cwg-border))] bg-[hsl(var(--cwg-dark-blue))]">
+                <Card className="neon-card-blue bg-[hsl(var(--cwg-dark-blue))/60] hover:neon-glow-blue transition-all duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-center mb-4">
-                      <UsersIcon className="h-6 w-6 mr-3 text-[hsl(var(--cwg-blue))]" />
-                      <h3 className="text-base font-medium">User Reports</h3>
+                      <UsersIcon className="h-6 w-6 mr-3 neon-text-blue" />
+                      <h3 className="text-base font-medium neon-text-blue">User Reports</h3>
                     </div>
                     <p className="text-sm text-[hsl(var(--cwg-muted))] mb-4">
                       Generate detailed user activity and registration reports
                     </p>
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full neon-border-blue neon-text-blue hover:neon-glow-blue">
                       Generate Report
                     </Button>
                   </CardContent>
                 </Card>
 
-                <Card className="border-[hsl(var(--cwg-border))] bg-[hsl(var(--cwg-dark-blue))]">
+                <Card className="neon-card-orange bg-[hsl(var(--cwg-dark-blue))/60] hover:neon-glow transition-all duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-center mb-4">
-                      <BarChart2 className="h-6 w-6 mr-3 text-[hsl(var(--cwg-orange))]" />
-                      <h3 className="text-base font-medium">Financial Reports</h3>
+                      <BarChart2 className="h-6 w-6 mr-3 neon-text-orange" />
+                      <h3 className="text-base font-medium neon-text-orange">Financial Reports</h3>
                     </div>
                     <p className="text-sm text-[hsl(var(--cwg-muted))] mb-4">
                       Generate revenue, transaction, and financial reports
                     </p>
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full neon-border-orange neon-text-orange hover:neon-glow">
                       Generate Report
                     </Button>
                   </CardContent>
                 </Card>
 
-                <Card className="border-[hsl(var(--cwg-border))] bg-[hsl(var(--cwg-dark-blue))]">
+                <Card className="neon-card-green bg-[hsl(var(--cwg-dark-blue))/60] hover:neon-glow-green transition-all duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-center mb-4">
-                      <Globe className="h-6 w-6 mr-3 text-[hsl(var(--cwg-green))]" />
-                      <h3 className="text-base font-medium">Content Reports</h3>
+                      <Globe className="h-6 w-6 mr-3 neon-text-green" />
+                      <h3 className="text-base font-medium neon-text-green">Content Reports</h3>
                     </div>
                     <p className="text-sm text-[hsl(var(--cwg-muted))] mb-4">
                       Generate content engagement and performance reports
                     </p>
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full neon-border-green neon-text-green hover:neon-glow-green">
                       Generate Report
                     </Button>
                   </CardContent>
