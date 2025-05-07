@@ -21,7 +21,8 @@ import {
   AlertCircle, 
   DollarSign, 
   HelpCircle,
-  Diamond
+  Diamond,
+  RotateCw
 } from "lucide-react";
 import {
   Tooltip,
@@ -30,6 +31,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
+import { getCachedBFTokenPrice } from "@/lib/cryptoPrice";
 
 // Rarity types
 type Rarity = "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary" | "Mythic" | "Exalted";
@@ -55,19 +57,23 @@ const BADGE_CRAFT_COSTS = {
   "Exalted": { flex: 0, sponsor: 0, requiredBadges: ["Mythic", "Mythic", "Mythic"], craftTime: 180 } // No data for this tier
 };
 
-// Current market prices based on OpenLoot and MEXC exchange
-const MARKET_PRICES = {
-  bfToken: 0.03517, // Live value from MEXC exchange
-  sponsorMark: 0.067, // $6.70 per 100 sponsor marks (based on OpenLoot marketplace)
-  flex: 0.00740 // $0.00740 per 1 Flex
-};
-
 export default function BossFightersCalculator() {
+  // Market prices state (can be updated in real-time)
+  const [marketPrices, setMarketPrices] = useState({
+    bfToken: 0.03517, // Default value from MEXC exchange
+    sponsorMark: 0.067, // $6.70 per 100 sponsor marks (based on OpenLoot marketplace)
+    flex: 0.00740 // $0.00740 per 1 Flex
+  });
+  
+  // Price update state
+  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
+  const [lastPriceUpdate, setLastPriceUpdate] = useState<Date | null>(null);
+  
   // Earnings Calculator State
-  const [bfTokensEarned, setBfTokensEarned] = useState<number>(1000);
-  const [minutesPlayed, setMinutesPlayed] = useState<number>(60);
-  const [badgeRarities, setBadgeRarities] = useState<Rarity[]>(["Epic", "Epic", "Epic", "Epic", "Epic"]);
-  const [badgeCount, setBadgeCount] = useState<number>(1);
+  const [bfTokensEarned, setBfTokensEarned] = useState<number>(154.05);
+  const [minutesPlayed, setMinutesPlayed] = useState<number>(10);
+  const [badgeRarities, setBadgeRarities] = useState<Rarity[]>(["Rare", "Rare", "Rare", "Rare", "Rare"]);
+  const [badgeCount, setBadgeCount] = useState<number>(5);
   const [earningsResults, setEarningsResults] = useState<any | null>(null);
   
   // Crafting Calculator State
@@ -75,6 +81,27 @@ export default function BossFightersCalculator() {
   const [startRarity, setStartRarity] = useState<Rarity | "None">("None");
   const [showRunnerContracts, setShowRunnerContracts] = useState<number>(1);
   const [craftingResults, setCraftingResults] = useState<any | null>(null);
+  
+  // Fetch price from MEXC exchange
+  const updateBFTokenPrice = async () => {
+    setIsUpdatingPrice(true);
+    try {
+      const price = await getCachedBFTokenPrice();
+      setMarketPrices(prev => ({
+        ...prev,
+        bfToken: price || prev.bfToken // Fall back to previous price if fetch fails
+      }));
+      setLastPriceUpdate(new Date());
+      
+      // Recalculate with new price
+      calculateEarnings();
+      calculateCrafting();
+    } catch (error) {
+      console.error("Failed to update BFToken price:", error);
+    } finally {
+      setIsUpdatingPrice(false);
+    }
+  };
   
   // Calculate earnings
   const calculateEarnings = () => {
@@ -85,7 +112,7 @@ export default function BossFightersCalculator() {
     
     // Calculate USD value using token price
     // 924.3 * $0.03517 = $32.50
-    const usdPerHour = tokensPerHour * MARKET_PRICES.bfToken;
+    const usdPerHour = tokensPerHour * marketPrices.bfToken;
     
     // Calculate recharge costs for the badge(s)
     let missingData = false;
@@ -132,8 +159,8 @@ export default function BossFightersCalculator() {
     // Flex: 255 * 5 * $0.0074 = $9.435
     // Sponsor Marks: 12 * 5 * $0.067 = $4.02
     // Total: $9.435 + $4.02 = $13.455
-    const flexCostUsd = rechargeCost.flex * MARKET_PRICES.flex;
-    const sponsorCostUsd = rechargeCost.sponsor * MARKET_PRICES.sponsorMark;
+    const flexCostUsd = rechargeCost.flex * marketPrices.flex;
+    const sponsorCostUsd = rechargeCost.sponsor * marketPrices.sponsorMark;
     const rechargeCostUsd = flexCostUsd + sponsorCostUsd;
     
     // Calculate hourly profit directly (income - costs)
@@ -243,8 +270,8 @@ export default function BossFightersCalculator() {
     calculateRequiredBadges(targetRarity, 1);
     
     // Calculate total USD cost
-    const totalFlexCost = totalFlex * MARKET_PRICES.flex;
-    const totalSponsorCost = totalSponsor * MARKET_PRICES.sponsorMark;
+    const totalFlexCost = totalFlex * marketPrices.flex;
+    const totalSponsorCost = totalSponsor * marketPrices.sponsorMark;
     const totalUsdCost = totalFlexCost + totalSponsorCost;
     
     // Calculate time with showrunner contracts
@@ -271,11 +298,25 @@ export default function BossFightersCalculator() {
     });
   };
   
+  // Load the live price data and run initial calculations
   useEffect(() => {
-    // Run initial calculations
+    // Fetch the live BFToken price on component mount
+    updateBFTokenPrice();
+    
+    // Set up an interval to update the price every 5 minutes
+    const intervalId = setInterval(() => {
+      updateBFTokenPrice();
+    }, 5 * 60 * 1000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []);
+  
+  // Update calculations when relevant parameters change
+  useEffect(() => {
     calculateEarnings();
     calculateCrafting();
-  }, []);
+  }, [bfTokensEarned, minutesPlayed, badgeRarities, badgeCount, marketPrices]);
   
   return (
     <div className="space-y-8">
@@ -462,14 +503,45 @@ export default function BossFightersCalculator() {
                     </span>
                   </div>
                   
-                  <div className="mt-4 pt-2 border-t border-[hsl(var(--cwg-dark-blue))] text-xs text-[hsl(var(--cwg-muted))] flex items-start">
-                    <DollarSign className="h-4 w-4 text-[hsl(var(--cwg-blue))] mr-2 mt-0.5" />
-                    <span>
-                      Current market prices:<br/>
-                      BFToken: ${MARKET_PRICES.bfToken.toFixed(5)}<br/>
-                      Sponsor Marks: ${MARKET_PRICES.sponsorMark.toFixed(5)}<br/>
-                      Flex: ${MARKET_PRICES.flex.toFixed(5)}
-                    </span>
+                  <div className="mt-4 pt-2 border-t border-[hsl(var(--cwg-dark-blue))] text-xs text-[hsl(var(--cwg-muted))]">
+                    <div className="flex items-start mb-2">
+                      <DollarSign className="h-4 w-4 text-[hsl(var(--cwg-blue))] mr-2 mt-0.5" />
+                      <span>
+                        Current market prices:<br/>
+                        BFToken: ${marketPrices.bfToken.toFixed(5)}<br/>
+                        Sponsor Marks: ${marketPrices.sponsorMark.toFixed(5)}<br/>
+                        Flex: ${marketPrices.flex.toFixed(5)}
+                      </span>
+                    </div>
+                    
+                    <div className="mt-2 flex items-center justify-between">
+                      <div className="text-xs text-[hsl(var(--cwg-muted))]">
+                        {lastPriceUpdate ? (
+                          <span>Last updated: {lastPriceUpdate.toLocaleTimeString()}</span>
+                        ) : (
+                          <span>Using default prices</span>
+                        )}
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={updateBFTokenPrice} 
+                        disabled={isUpdatingPrice}
+                        className="text-xs border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))] hover:bg-[hsl(var(--cwg-blue))]/10"
+                      >
+                        {isUpdatingPrice ? (
+                          <>
+                            <RotateCw className="h-3 w-3 mr-1 animate-spin" /> 
+                            Updating...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="h-3 w-3 mr-1" /> 
+                            Update Price
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
