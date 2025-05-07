@@ -1,6 +1,7 @@
 import express, { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
+import path from "path";
 import { storage } from "./storage";
 import { z } from "zod";
 import * as crypto from "crypto";
@@ -38,6 +39,17 @@ declare module "express-session" {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+  
+  // Serve our test HTML file
+  app.get("/test-static", (req, res) => {
+    const __dirname = new URL('.', import.meta.url).pathname;
+    res.sendFile(path.resolve(__dirname, "static", "test.html"));
+  });
+  
   // Setup authentication routes
   setupAuth(app);
 
