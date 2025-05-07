@@ -36,28 +36,28 @@ type Rarity = "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary" | "Mythic" |
 
 // Constants for badge calculations
 const BADGE_RECHARGE_COSTS = {
-  "Common": { flex: 420, sponsor: 26, rechargeDuration: 1 },
-  "Uncommon": { flex: 590, sponsor: 37, rechargeDuration: 2 },
-  "Rare": { flex: 1100, sponsor: 66, rechargeDuration: 3 },
-  "Epic": { flex: 2800, sponsor: 171, rechargeDuration: 4 },
-  "Legendary": { flex: 7100, sponsor: 442, rechargeDuration: 5 },
-  "Mythic": { flex: 20400, sponsor: 1263, rechargeDuration: 6 },
-  "Exalted": { flex: 67000, sponsor: 3500, rechargeDuration: 7 }
+  "Common": { flex: 350, sponsor: 20, rechargeDuration: 2 },
+  "Uncommon": { flex: 500, sponsor: 30, rechargeDuration: 3 },
+  "Rare": { flex: 950, sponsor: 55, rechargeDuration: 4 },
+  "Epic": { flex: 2400, sponsor: 150, rechargeDuration: 5 },
+  "Legendary": { flex: 6000, sponsor: 380, rechargeDuration: 6 },
+  "Mythic": { flex: 18000, sponsor: 1100, rechargeDuration: 8 },
+  "Exalted": { flex: 60000, sponsor: 3200, rechargeDuration: 10 }
 };
 
 const BADGE_CRAFT_COSTS = {
-  "Common": { flex: 1300, sponsor: 0, requiredBadges: [], craftTime: 48 },
-  "Uncommon": { flex: 300, sponsor: 444, requiredBadges: ["Common", "Common"], craftTime: 72 },
-  "Rare": { flex: 1200, sponsor: 790, requiredBadges: ["Uncommon", "Uncommon"], craftTime: 96 },
-  "Epic": { flex: 5400, sponsor: 2363, requiredBadges: ["Rare", "Rare", "Rare"], craftTime: 120 },
-  "Legendary": { flex: 22300, sponsor: 6946, requiredBadges: ["Epic", "Epic", "Epic"], craftTime: 144 },
-  "Mythic": { flex: 86700, sponsor: 20507, requiredBadges: ["Legendary", "Legendary", "Legendary"], craftTime: 168 },
-  "Exalted": { flex: 326000, sponsor: 62348, requiredBadges: ["Mythic", "Mythic", "Mythic"], craftTime: 192 }
+  "Common": { flex: 1000, sponsor: 0, requiredBadges: [], craftTime: 36 },
+  "Uncommon": { flex: 250, sponsor: 350, requiredBadges: ["Common", "Common"], craftTime: 60 },
+  "Rare": { flex: 1000, sponsor: 700, requiredBadges: ["Uncommon", "Uncommon"], craftTime: 84 },
+  "Epic": { flex: 4800, sponsor: 2000, requiredBadges: ["Rare", "Rare", "Rare"], craftTime: 108 },
+  "Legendary": { flex: 19000, sponsor: 6000, requiredBadges: ["Epic", "Epic", "Epic"], craftTime: 132 },
+  "Mythic": { flex: 75000, sponsor: 18000, requiredBadges: ["Legendary", "Legendary", "Legendary"], craftTime: 156 },
+  "Exalted": { flex: 290000, sponsor: 55000, requiredBadges: ["Mythic", "Mythic", "Mythic"], craftTime: 180 }
 };
 
 // Current market prices
 const MARKET_PRICES = {
-  bfToken: 0.01399, // $13.99 per 1000 tokens
+  bfToken: 0.0159, // $15.90 per 1000 tokens
   sponsorMark: 0.0364, // $3.64 per 100 sponsor marks
   flex: 0.0074261102034754 // $500 per 67330 flex
 };
