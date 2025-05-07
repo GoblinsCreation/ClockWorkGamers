@@ -265,9 +265,9 @@ export default function ProfilePage() {
       <Navbar />
       
       <main className="flex-grow">
-        <section className="bg-mesh py-12">
+        <section className="py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-orbitron font-bold text-[hsl(var(--cwg-orange))]">
+            <h1 className="text-3xl font-orbitron font-bold neon-text-orange">
               Your Profile
             </h1>
             <p className="mt-2 text-[hsl(var(--cwg-muted))] max-w-3xl">
@@ -446,9 +446,9 @@ export default function ProfilePage() {
                         <Button 
                           variant="outline" 
                           className="w-full hover:neon-text-blue" 
-                          onClick={() => setLocation('/token-dashboard')}
+                          onClick={() => setLocation('/web3-dashboard')}
                         >
-                          View Token Dashboard
+                          View Web3 Dashboard
                         </Button>
                       </div>
                     </CardContent>
@@ -893,7 +893,14 @@ export default function ProfilePage() {
                         
                         <div>
                           <h3 className="text-lg font-medium mb-4">Streaming Status</h3>
-                          <TwitchStreamerStatus username={initialData.twitchUsername || ''} />
+                          {initialData.twitchUsername ? (
+                            <div className="bg-[hsl(var(--cwg-dark))] p-4 rounded-lg">
+                              <p className="text-[hsl(var(--cwg-muted))] mb-2">Twitch Channel: <span className="text-[hsl(var(--cwg-blue))]">{initialData.twitchUsername}</span></p>
+                              <p className="text-[hsl(var(--cwg-muted))]">Status: <span className="text-green-500">Connected</span></p>
+                            </div>
+                          ) : (
+                            <p className="text-[hsl(var(--cwg-muted))]">No Twitch account connected</p>
+                          )}
                         </div>
                       </div>
                     </CardContent>

@@ -31,7 +31,10 @@ import {
   Filter, 
   ArrowUpDown,
   Sparkles,
-  Wallet
+  Wallet,
+  Loader2,
+  Copy,
+  CheckCircle
 } from 'lucide-react';
 
 import {
