@@ -12,7 +12,7 @@ import RentalsPage from "@/pages/rentals-page";
 import CoursesPage from "@/pages/courses-page";
 import CalculatorsPage from "@/pages/calculators-page";
 import ContactPage from "@/pages/contact-page";
-import AdminPage from "@/pages/admin-page-new";
+import AdminPage from "@/pages/admin-page";
 import PlayToEarnPage from "@/pages/play-to-earn-page";
 import PayToEarnPage from "@/pages/pay-to-earn-page";
 import PaymentPage from "@/pages/payment-page";
@@ -24,8 +24,10 @@ import ChatPage from "@/pages/chat-page";
 import ReferralsPage from "@/pages/referrals-page";
 import NewsPage from "@/pages/news-page";
 import AchievementsPage from "@/pages/achievements-page";
+import WalletPage from "@/pages/wallet-page";
 import DemoPage from "@/pages/demo-page";
 import ShowcasePage from "@/pages/showcase-page";
+import TestPage from "@/pages/test-page";
 import Web3DashboardPage from "@/pages/web3-dashboard-page";
 import PrivacyPolicyPage from "@/pages/privacy-policy-page";
 import TermsOfServicePage from "@/pages/terms-of-service-page";
@@ -60,12 +62,12 @@ function Router() {
       <ProtectedRoute path="/payment" component={PaymentPage} />
       <ProtectedRoute path="/payment-options" component={PaymentOptionsPage} />
       
-      {/* Consolidated Web3 Dashboard (replaces separate NFT, Token, and Wallet pages) */}
+      {/* Web3 Related Pages */}
       <ProtectedRoute path="/web3-dashboard" component={Web3DashboardPage} />
       <ProtectedRoute path="/token-dashboard" component={Web3DashboardPage} />
       <ProtectedRoute path="/nft-marketplace" component={Web3DashboardPage} />
       <ProtectedRoute path="/nft-collections" component={Web3DashboardPage} />
-      <ProtectedRoute path="/wallet" component={Web3DashboardPage} />
+      <ProtectedRoute path="/wallet" component={WalletPage} />
       
       <ProtectedRoute path="/calculators" component={CalculatorsPage} />
       <ProtectedRoute path="/contact" component={ContactPage} />
@@ -77,6 +79,7 @@ function Router() {
       <ProtectedRoute path="/admin" component={AdminPage} />
       <ProtectedRoute path="/demo" component={DemoPage} />
       <ProtectedRoute path="/showcase" component={ShowcasePage} />
+      <Route path="/test" component={TestPage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -84,21 +87,9 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Web3Provider>
-            <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-              <TooltipProvider>
-                <Toaster />
-                <Router />
-                <SimpleChatWidget />
-                <AchievementUnlockNotification />
-                <OnboardingFlow />
-              </TooltipProvider>
-            </ThemeProvider>
-        </Web3Provider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <div>
+      <TestPage />
+    </div>
   );
 }
 
