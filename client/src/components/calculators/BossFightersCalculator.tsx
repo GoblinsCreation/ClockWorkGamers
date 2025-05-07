@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { getCachedBFTokenPrice } from "@/lib/cryptoPrice";
+import CryptoPriceWidget from "@/components/crypto/CryptoPriceWidget";
+import ProfitProjectionSlider from "@/components/calculators/ProfitProjectionSlider";
 
 // Rarity types
 type Rarity = "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary" | "Mythic" | "Exalted";
@@ -303,10 +305,10 @@ export default function BossFightersCalculator() {
     // Fetch the live BFToken price on component mount
     updateBFTokenPrice();
     
-    // Set up an interval to update the price every 5 minutes
+    // Set up an interval to update the price every 30 seconds
     const intervalId = setInterval(() => {
       updateBFTokenPrice();
-    }, 5 * 60 * 1000);
+    }, 30 * 1000);
     
     // Clean up interval on component unmount
     return () => clearInterval(intervalId);
@@ -320,6 +322,16 @@ export default function BossFightersCalculator() {
   
   return (
     <div className="space-y-8">
+      {/* Live Price Widget */}
+      <CryptoPriceWidget 
+        symbol="BFToken"
+        price={marketPrices.bfToken}
+        previousPrice={lastPriceUpdate ? marketPrices.bfToken : undefined}
+        onRefresh={updateBFTokenPrice}
+        isRefreshing={isUpdatingPrice}
+        lastUpdated={lastPriceUpdate}
+      />
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Earnings Calculator */}
         <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark-blue))]/30">
@@ -544,6 +556,17 @@ export default function BossFightersCalculator() {
                     </div>
                   </div>
                 </div>
+                
+                {/* Add profit projection slider */}
+                {earningsResults && earningsResults.hourlyProfit > 0 && (
+                  <div className="mt-4">
+                    <ProfitProjectionSlider 
+                      hourlyProfit={earningsResults.hourlyProfit} 
+                      maxHours={16}
+                      defaultHours={3}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

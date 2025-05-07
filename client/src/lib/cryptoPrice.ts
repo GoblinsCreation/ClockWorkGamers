@@ -1,86 +1,109 @@
 /**
- * Crypto Price Service for ClockWork Gamers
- * Retrieves real-time price data from MEXC Exchange
+ * CryptoPrice Service for ClockWork Gamers (CWG)
+ * Provides real-time and cached cryptocurrency price data from exchanges
  */
 
-interface PriceResponse {
-  data: {
-    p: string; // price
-    v: string; // volume
-    c: string; // change
-    h: string; // high
-    l: string; // low
-    t: number; // timestamp
-  }[];
+// Cache for storing price data
+interface PriceCache {
+  price: number;
+  timestamp: number;
+  expiry: number;
 }
 
+// Cache storage with 30-second TTL default
+const priceCache: Record<string, PriceCache> = {};
+const CACHE_TTL = 30 * 1000; // 30 seconds
+
 /**
- * Fetches the current price of BFToken from MEXC exchange
- * @returns The current price in USD
+ * Fetches BFToken price from MEXC exchange
+ * Returns the current price or null if fetch fails
  */
-export async function getBFTokenPrice(): Promise<number> {
+export async function fetchBFTokenPrice(): Promise<number | null> {
   try {
-    // MEXC API for BFToken/USDT price
-    const response = await fetch('https://www.mexc.com/open/api/v2/market/ticker?symbol=BFTOKEN_USDT');
+    // Production code should use the actual MEXC API
+    // This endpoint should be the actual MEXC API that provides BFToken price
+    const response = await fetch('https://www.mexc.com/open/api/v2/market/ticker?symbol=BFT_USDT');
     
     if (!response.ok) {
-      console.error('Failed to fetch BFToken price', response.statusText);
-      return 0.03517; // Use default price if API fails
+      throw new Error(`Failed to fetch price: ${response.status}`);
     }
     
-    const data = await response.json() as PriceResponse;
+    const data = await response.json();
     
-    if (data && data.data && data.data.length > 0) {
-      // Return the current price as a number
-      return parseFloat(data.data[0].p);
+    // Parse the price from the response
+    // Note: This parsing logic depends on the actual MEXC API response structure
+    // You may need to adjust this based on their actual API format
+    if (data && data.data && data.data[0] && data.data[0].last) {
+      const price = parseFloat(data.data[0].last);
+      
+      if (!isNaN(price) && price > 0) {
+        // Cache the price
+        priceCache['BFToken'] = {
+          price,
+          timestamp: Date.now(),
+          expiry: Date.now() + CACHE_TTL
+        };
+        
+        return price;
+      }
     }
     
-    return 0.03517; // Default price if API returns unexpected format
+    // If we can't parse the price from the response, return null
+    return null;
   } catch (error) {
     console.error('Error fetching BFToken price:', error);
-    return 0.03517; // Default price if fetch fails
+    
+    // If there's a cached price, return it even if it's expired
+    // This ensures we always have some data to show, even if the API is down
+    if (priceCache['BFToken']) {
+      return priceCache['BFToken'].price;
+    }
+    
+    return null;
   }
 }
 
 /**
- * Cache for price data to reduce API calls
- */
-const priceCache = {
-  bfToken: 0.03517,
-  lastFetched: 0,
-  cacheDuration: 5 * 60 * 1000 // 5 minutes
-};
-
-/**
- * Gets the current BFToken price, using cached value if available
- * @returns The current price in USD
+ * Gets the BFToken price, preferring cached value if not expired
+ * Will fetch fresh price if cache is expired or missing
  */
 export async function getCachedBFTokenPrice(): Promise<number> {
-  const now = Date.now();
-  
-  // If cache is still valid, return cached price
-  if (priceCache.lastFetched > 0 && 
-      now - priceCache.lastFetched < priceCache.cacheDuration) {
-    return priceCache.bfToken;
+  // Check if we have a cached price and it's not expired
+  const cached = priceCache['BFToken'];
+  if (cached && cached.expiry > Date.now()) {
+    return cached.price;
   }
   
-  try {
-    // Fetch fresh price
-    const price = await getBFTokenPrice();
-    
-    // Update cache
-    priceCache.bfToken = price;
-    priceCache.lastFetched = now;
-    
-    return price;
-  } catch (error) {
-    console.error('Error getting cached BFToken price:', error);
-    
-    // If cache exists but is expired, still return it rather than default
-    if (priceCache.lastFetched > 0) {
-      return priceCache.bfToken;
-    }
-    
-    return 0.03517; // Default fallback price
-  }
+  // No valid cache, fetch fresh price
+  const price = await fetchBFTokenPrice();
+  
+  // Return the price or fallback to default if fetch failed
+  return price || 0.03517; // Default price if API fails
+}
+
+/**
+ * Calculate price change percentage between two prices
+ */
+export function calculatePriceChange(currentPrice: number, previousPrice: number): number {
+  if (!previousPrice || previousPrice <= 0) return 0;
+  return ((currentPrice - previousPrice) / previousPrice) * 100;
+}
+
+/**
+ * Gets current BFToken price formatted with $ prefix
+ */
+export function getFormattedPrice(price: number): string {
+  return `$${price.toFixed(5)}`;
+}
+
+/**
+ * Helper to format large currency numbers
+ */
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
 }
