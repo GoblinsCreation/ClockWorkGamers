@@ -107,7 +107,7 @@ function GuildShareModal({
           {shareOptions.map((option) => (
             <Button
               key={option.name}
-              className={`\${option.bgColor} text-white font-medium flex items-center justify-center gap-2 transition-all duration-300 hover:neon-glow hover:scale-105`}
+              className={`${option.bgColor} text-white font-medium flex items-center justify-center gap-2 transition-all duration-300 hover:neon-glow hover:scale-105`}
               onClick={option.action}
             >
               {option.icon}
@@ -169,19 +169,19 @@ export default function ShowcasePage() {
           <TabsList className="border-b border-[hsl(var(--cwg-dark-blue))] mb-8 bg-transparent">
             <TabsTrigger 
               value="features" 
-              className={`px-4 py-2 font-orbitron text-base \${activeTab === 'features' ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))]'}`}
+              className={`px-4 py-2 font-orbitron text-base ${activeTab === 'features' ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))]'}`}
             >
               Features Showcase
             </TabsTrigger>
             <TabsTrigger 
               value="leaderboard" 
-              className={`px-4 py-2 font-orbitron text-base \${activeTab === 'leaderboard' ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))]'}`}
+              className={`px-4 py-2 font-orbitron text-base ${activeTab === 'leaderboard' ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))]'}`}
             >
               Guild Leaderboard
             </TabsTrigger>
             <TabsTrigger 
               value="sharing" 
-              className={`px-4 py-2 font-orbitron text-base \${activeTab === 'sharing' ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))]'}`}
+              className={`px-4 py-2 font-orbitron text-base ${activeTab === 'sharing' ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))]'}`}
             >
               Social Sharing
             </TabsTrigger>
@@ -327,58 +327,6 @@ export default function ShowcasePage() {
                       <p className="text-sm text-[hsl(var(--cwg-muted))] mt-4">
                         Click the button above to open the share dialog and test the functionality.
                       </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-12 space-y-8">
-                  <div>
-                    <h3 className="text-xl font-orbitron neon-text-blue mb-4">
-                      Achievement Sharing
-                    </h3>
-                    <div className="neon-card-blue bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-6 transition-all duration-300 hover:neon-glow-blue">
-                      <p className="mb-4">
-                        In addition to guild sharing, users can share individual achievements on social media. When you earn badges or complete guild achievements, you can share them with friends.
-                      </p>
-                      <div className="flex flex-wrap gap-3">
-                        <Button
-                          variant="outline"
-                          className="neon-border-blue neon-text-blue hover:neon-glow-blue"
-                        >
-                          Share Achievement
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          className="hover:neon-glow-blue"
-                        >
-                          View Achievements
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-orbitron neon-text-purple mb-4">
-                      Referral Program
-                    </h3>
-                    <div className="neon-border-purple bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-6 transition-all duration-300 hover:neon-glow-purple">
-                      <p className="mb-4">
-                        Our referral program rewards you for bringing new members to the guild. Share your unique referral link and earn points, tokens, or exclusive rewards.
-                      </p>
-                      <div className="flex flex-wrap gap-3">
-                        <Button
-                          variant="outline"
-                          className="neon-border-purple neon-text-purple hover:neon-glow-purple"
-                        >
-                          Generate Referral Link
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          className="hover:neon-glow-purple"
-                        >
-                          View Rewards
-                        </Button>
-                      </div>
                     </div>
                   </div>
                 </div>
