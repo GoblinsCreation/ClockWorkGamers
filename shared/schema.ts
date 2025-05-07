@@ -360,17 +360,40 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = typeof notifications.$inferSelect;
 
 // Guild Achievements model
+// Achievement Series model - groups related achievements in a tiered progression
+export const achievementSeries = pgTable("achievement_series", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  baseIcon: text("base_icon").notNull(), // Base icon name that will be modified for each tier
+  category: text("category").notNull(), // e.g., "onboarding", "web3", "community", "gaming"
+  requirementType: text("requirement_type").notNull(), // e.g., "rentals_count", "members_count", "streams_watched"
+  baseRequirementValue: integer("base_requirement_value").notNull(), // Base value that will be multiplied for each tier
+  maxTier: integer("max_tier").default(6).notNull(), // Maximum tier available in this series
+  baseRewardType: text("base_reward_type").notNull(), // e.g., "tokens", "badge", "discount"
+  baseRewardValue: integer("base_reward_value").notNull(), // Base value that will be multiplied for each tier
+  isActive: boolean("is_active").default(true).notNull(), // Whether this series is currently active
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAchievementSeriesSchema = createInsertSchema(achievementSeries)
+  .omit({ id: true, createdAt: true });
+
+// Guild Achievements model
 export const guildAchievements = pgTable("guild_achievements", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
   icon: text("icon").notNull(), // Path to achievement icon or icon name
+  category: text("category").notNull(), // matches achievementSeries.category
   requirementType: text("requirement_type").notNull(), // e.g., "rentals_count", "members_count", "streams_watched"
   requirementValue: integer("requirement_value").notNull(), // The threshold value required to unlock
   rewardType: text("reward_type").notNull(), // e.g., "tokens", "badge", "discount"
   rewardValue: integer("reward_value").notNull(), // The amount of reward
   tier: integer("tier").default(1).notNull(), // For achievements with multiple tiers (1, 2, 3, etc.)
+  seriesId: integer("series_id"), // Optional link to achievement series for tiered achievements
   isGlobal: boolean("is_global").default(true).notNull(), // Whether achievement applies guild-wide or individually
+  isActive: boolean("is_active").default(true).notNull(), // Whether this achievement is currently active
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -386,11 +409,41 @@ export const userAchievementProgress = pgTable("user_achievement_progress", {
   isCompleted: boolean("is_completed").default(false).notNull(),
   completedAt: timestamp("completed_at"), // When the achievement was completed
   rewardClaimed: boolean("reward_claimed").default(false).notNull(),
+  nextTierUnlocked: boolean("next_tier_unlocked").default(false).notNull(), // Whether user has unlocked the next tier
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const insertUserAchievementProgressSchema = createInsertSchema(userAchievementProgress)
   .omit({ id: true, updatedAt: true });
+
+// User Series Progress model - track overall progress in a series
+export const userSeriesProgress = pgTable("user_series_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  seriesId: integer("series_id").notNull(),
+  currentTier: integer("current_tier").default(0).notNull(), // 0 means not started, 1-6 for tiers
+  highestAchievementId: integer("highest_achievement_id"), // Reference to the highest tier achieved
+  isCompleted: boolean("is_completed").default(false).notNull(), // True if all tiers completed
+  completedAt: timestamp("completed_at"), // When the highest tier was completed
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserSeriesProgressSchema = createInsertSchema(userSeriesProgress)
+  .omit({ id: true, updatedAt: true });
+
+// Achievement relations
+export const achievementSeriesRelations = relations(achievementSeries, ({ many }) => ({
+  achievements: many(guildAchievements, { relationName: "series" }),
+}));
+
+export const guildAchievementsRelations = relations(guildAchievements, ({ one, many }) => ({
+  series: one(achievementSeries, {
+    fields: [guildAchievements.seriesId],
+    references: [achievementSeries.id],
+    relationName: "series",
+  }),
+  userProgress: many(userAchievementProgress),
+}));
 
 export const userAchievementProgressRelations = relations(userAchievementProgress, ({ one }) => ({
   user: one(users, {
@@ -403,10 +456,32 @@ export const userAchievementProgressRelations = relations(userAchievementProgres
   }),
 }));
 
+export const userSeriesProgressRelations = relations(userSeriesProgress, ({ one }) => ({
+  user: one(users, {
+    fields: [userSeriesProgress.userId],
+    references: [users.id],
+  }),
+  series: one(achievementSeries, {
+    fields: [userSeriesProgress.seriesId],
+    references: [achievementSeries.id],
+  }),
+  highestAchievement: one(guildAchievements, {
+    fields: [userSeriesProgress.highestAchievementId],
+    references: [guildAchievements.id],
+  }),
+}));
+
+export type InsertAchievementSeries = z.infer<typeof insertAchievementSeriesSchema>;
+export type AchievementSeries = typeof achievementSeries.$inferSelect;
+
 export type InsertGuildAchievement = z.infer<typeof insertGuildAchievementSchema>;
 export type GuildAchievement = typeof guildAchievements.$inferSelect;
+
 export type InsertUserAchievementProgress = z.infer<typeof insertUserAchievementProgressSchema>;
 export type UserAchievementProgress = typeof userAchievementProgress.$inferSelect;
+
+export type InsertUserSeriesProgress = z.infer<typeof insertUserSeriesProgressSchema>;
+export type UserSeriesProgress = typeof userSeriesProgress.$inferSelect;
 
 // User Preferences model - for onboarding and personalization
 export const userPreferences = pgTable("user_preferences", {
