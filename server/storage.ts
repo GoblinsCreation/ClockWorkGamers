@@ -109,13 +109,22 @@ export interface IStorage {
   markAllUserNotificationsAsRead(userId: number): Promise<boolean>;
   getUnreadNotificationCount(userId: number): Promise<number>;
   
+  // Achievement Series operations
+  createAchievementSeries(series: InsertAchievementSeries): Promise<AchievementSeries>;
+  getAchievementSeries(id: number): Promise<AchievementSeries | undefined>;
+  updateAchievementSeries(id: number, data: Partial<AchievementSeries>): Promise<AchievementSeries | undefined>;
+  deleteAchievementSeries(id: number): Promise<boolean>;
+  listAchievementSeries(): Promise<AchievementSeries[]>;
+  getAchievementSeriesWithTiers(seriesId: number): Promise<AchievementSeries & { achievements: GuildAchievement[] } | undefined>;
+
   // Guild Achievement operations
   createGuildAchievement(achievement: InsertGuildAchievement): Promise<GuildAchievement>;
   getGuildAchievement(id: number): Promise<GuildAchievement | undefined>;
   updateGuildAchievement(id: number, data: Partial<GuildAchievement>): Promise<GuildAchievement | undefined>;
   deleteGuildAchievement(id: number): Promise<boolean>;
   listGuildAchievements(): Promise<GuildAchievement[]>;
-  
+  createTieredAchievement(seriesId: number, tier: number): Promise<GuildAchievement>;
+
   // User Achievement Progress operations
   getUserAchievementProgress(userId: number, achievementId: number): Promise<UserAchievementProgress | undefined>;
   createUserAchievementProgress(progress: InsertUserAchievementProgress): Promise<UserAchievementProgress>;
@@ -124,6 +133,15 @@ export interface IStorage {
   listUserAchievements(userId: number): Promise<Array<GuildAchievement & { progress: UserAchievementProgress | null }>>;
   getRecentlyCompletedAchievements(userId: number, limit?: number): Promise<Array<GuildAchievement & { progress: UserAchievementProgress }>>;
   claimAchievementReward(userId: number, achievementId: number): Promise<boolean>;
+  unlockNextTier(userId: number, achievementId: number): Promise<UserAchievementProgress | undefined>;
+
+  // User Series Progress operations
+  getUserSeriesProgress(userId: number, seriesId: number): Promise<UserSeriesProgress | undefined>;
+  createUserSeriesProgress(progress: InsertUserSeriesProgress): Promise<UserSeriesProgress>;
+  updateUserSeriesProgress(userId: number, seriesId: number, data: Partial<UserSeriesProgress>): Promise<UserSeriesProgress | undefined>;
+  incrementSeriesTier(userId: number, seriesId: number): Promise<UserSeriesProgress | undefined>;
+  listUserSeriesProgress(userId: number): Promise<Array<UserSeriesProgress & { series: AchievementSeries }>>;
+  getCompletedSeries(userId: number, limit?: number): Promise<Array<UserSeriesProgress & { series: AchievementSeries }>>;
 
   // Payment operations
   createPayment(payment: InsertPayment): Promise<Payment>;
@@ -601,6 +619,56 @@ export class DatabaseStorage implements IStorage {
     return result[0]?.count || 0;
   }
 
+  // Achievement Series methods
+  async createAchievementSeries(series: InsertAchievementSeries): Promise<AchievementSeries> {
+    const [newSeries] = await db.insert(achievementSeries).values(series).returning();
+    return newSeries;
+  }
+
+  async getAchievementSeries(id: number): Promise<AchievementSeries | undefined> {
+    const [series] = await db.select().from(achievementSeries).where(eq(achievementSeries.id, id));
+    return series;
+  }
+
+  async updateAchievementSeries(id: number, data: Partial<AchievementSeries>): Promise<AchievementSeries | undefined> {
+    const [updatedSeries] = await db
+      .update(achievementSeries)
+      .set(data)
+      .where(eq(achievementSeries.id, id))
+      .returning();
+    return updatedSeries;
+  }
+
+  async deleteAchievementSeries(id: number): Promise<boolean> {
+    const deleted = await db.delete(achievementSeries).where(eq(achievementSeries.id, id)).returning();
+    return deleted.length > 0;
+  }
+
+  async listAchievementSeries(): Promise<AchievementSeries[]> {
+    return await db.select().from(achievementSeries);
+  }
+
+  async getAchievementSeriesWithTiers(seriesId: number): Promise<AchievementSeries & { achievements: GuildAchievement[] } | undefined> {
+    // Get the series
+    const series = await this.getAchievementSeries(seriesId);
+    
+    if (!series) {
+      return undefined;
+    }
+    
+    // Get all achievements in this series
+    const tiers = await db
+      .select()
+      .from(guildAchievements)
+      .where(eq(guildAchievements.seriesId, seriesId))
+      .orderBy(guildAchievements.tier);
+    
+    return {
+      ...series,
+      achievements: tiers
+    };
+  }
+  
   // Guild Achievement methods
   async createGuildAchievement(achievement: InsertGuildAchievement): Promise<GuildAchievement> {
     const [newAchievement] = await db.insert(guildAchievements).values(achievement).returning();
