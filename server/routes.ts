@@ -2152,5 +2152,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Achievement Series API endpoints
+  app.get("/api/achievement-series", async (req, res) => {
+    try {
+      const series = await storage.listAchievementSeries();
+      res.json(series);
+    } catch (error) {
+      console.error("Error fetching achievement series:", error);
+      res.status(500).json({ message: "Failed to fetch achievement series" });
+    }
+  });
+
+  app.get("/api/achievement-series/:id", async (req, res) => {
+    try {
+      const seriesId = parseInt(req.params.id);
+      if (isNaN(seriesId)) {
+        return res.status(400).json({ message: "Invalid series ID" });
+      }
+      
+      const series = await storage.getAchievementSeriesWithTiers(seriesId);
+      if (!series) {
+        return res.status(404).json({ message: "Achievement series not found" });
+      }
+      
+      res.json(series);
+    } catch (error) {
+      console.error("Error fetching achievement series:", error);
+      res.status(500).json({ message: "Failed to fetch achievement series" });
+    }
+  });
+  
+  // Admin-only: Create achievement series
+  app.post("/api/achievement-series", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user!.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    try {
+      const newSeries = await storage.createAchievementSeries(req.body);
+      res.status(201).json(newSeries);
+    } catch (error) {
+      console.error("Error creating achievement series:", error);
+      res.status(500).json({ message: "Failed to create achievement series" });
+    }
+  });
+  
+  // Admin-only: Create tiered achievement within a series
+  app.post("/api/achievement-series/:id/tiers", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user!.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    try {
+      const seriesId = parseInt(req.params.id);
+      const { tier } = req.body;
+      
+      if (isNaN(seriesId)) {
+        return res.status(400).json({ message: "Invalid series ID" });
+      }
+      
+      if (!tier || tier < 1 || tier > 6) {
+        return res.status(400).json({ message: "Invalid tier value (1-6)" });
+      }
+      
+      const achievement = await storage.createTieredAchievement(seriesId, tier);
+      res.status(201).json(achievement);
+    } catch (error) {
+      console.error("Error creating tiered achievement:", error);
+      res.status(500).json({ message: "Failed to create tiered achievement" });
+    }
+  });
+  
+  // Tier progression - unlock next tier
+  app.post("/api/user/achievements/:id/next-tier", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const achievementId = parseInt(req.params.id);
+      
+      if (isNaN(achievementId)) {
+        return res.status(400).json({ message: "Invalid achievement ID" });
+      }
+      
+      const nextTierProgress = await storage.unlockNextTier(userId, achievementId);
+      
+      if (!nextTierProgress) {
+        return res.status(400).json({ 
+          message: "Unable to unlock next tier. Achievement may not be completed, reward not claimed, or this may be the final tier." 
+        });
+      }
+      
+      // Get the achievement details for the newly unlocked tier
+      const achievement = await storage.getGuildAchievement(nextTierProgress.achievementId);
+      
+      if (achievement) {
+        // Notify user about the next tier
+        await storage.createNotification({
+          userId,
+          type: "achievement_tier_unlocked",
+          title: "New Achievement Tier Unlocked",
+          message: `You've unlocked ${achievement.name}! Keep going to reach higher tiers.`,
+          data: JSON.stringify({
+            achievementId: achievement.id,
+            icon: achievement.icon,
+            tier: achievement.tier
+          }),
+          isRead: false
+        });
+      }
+      
+      res.json(nextTierProgress);
+    } catch (error) {
+      console.error("Error unlocking next tier:", error);
+      res.status(500).json({ message: "Failed to unlock next tier" });
+    }
+  });
+  
+  // User series progress endpoints
+  app.get("/api/user/series-progress", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const seriesProgress = await storage.listUserSeriesProgress(userId);
+      res.json(seriesProgress);
+    } catch (error) {
+      console.error("Error fetching user series progress:", error);
+      res.status(500).json({ message: "Failed to fetch series progress" });
+    }
+  });
+  
+  app.get("/api/user/series-progress/completed", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      const userId = req.user!.id;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 5;
+      
+      const completedSeries = await storage.getCompletedSeries(userId, limit);
+      res.json(completedSeries);
+    } catch (error) {
+      console.error("Error fetching completed series:", error);
+      res.status(500).json({ message: "Failed to fetch completed series" });
+    }
+  });
+
   return httpServer;
 }
