@@ -67,6 +67,9 @@ export default function BossFightersCalculator() {
     flex: 0.00740 // $0.00740 per 1 Flex
   });
   
+  // Store previous price for comparison
+  const [previousBFTokenPrice, setPreviousBFTokenPrice] = useState<number | undefined>(undefined);
+  
   // Price update state
   const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
   const [lastPriceUpdate, setLastPriceUpdate] = useState<Date | null>(null);
@@ -88,16 +91,31 @@ export default function BossFightersCalculator() {
   const updateBFTokenPrice = async () => {
     setIsUpdatingPrice(true);
     try {
-      const price = await getCachedBFTokenPrice();
+      // Get current price before updating
+      const currentPrice = marketPrices.bfToken;
+      
+      // Fetch new price
+      const newPrice = await getCachedBFTokenPrice();
+      
+      // Only update previous price if we have a real new price
+      if (newPrice && newPrice !== currentPrice) {
+        setPreviousBFTokenPrice(currentPrice);
+      }
+      
+      // Update market prices with new BFToken price
       setMarketPrices(prev => ({
         ...prev,
-        bfToken: price || prev.bfToken // Fall back to previous price if fetch fails
+        bfToken: newPrice || prev.bfToken // Fall back to previous price if fetch fails
       }));
+      
+      // Record update time
       setLastPriceUpdate(new Date());
       
       // Recalculate with new price
       calculateEarnings();
       calculateCrafting();
+      
+      console.log(`BFToken price updated: ${currentPrice} → ${newPrice}`);
     } catch (error) {
       console.error("Failed to update BFToken price:", error);
     } finally {
@@ -326,7 +344,7 @@ export default function BossFightersCalculator() {
       <CryptoPriceWidget 
         symbol="BFToken"
         price={marketPrices.bfToken}
-        previousPrice={lastPriceUpdate ? marketPrices.bfToken : undefined}
+        previousPrice={previousBFTokenPrice}
         onRefresh={updateBFTokenPrice}
         isRefreshing={isUpdatingPrice}
         lastUpdated={lastPriceUpdate}
