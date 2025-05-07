@@ -1,43 +1,25 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import { AnimatedContainer } from "./animated-elements";
 
 interface PageHeaderProps {
   title: string;
   description?: string;
-  icon?: React.ReactNode;
-  action?: React.ReactNode;
-  className?: string;
+  children?: React.ReactNode;
 }
 
-export function PageHeader({ 
-  title, 
-  description, 
-  icon, 
-  action,
-  className 
-}: PageHeaderProps) {
+export function PageHeader({ title, description, children }: PageHeaderProps) {
   return (
-    <div className={cn('flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6', className)}>
-      <div className="flex items-start sm:items-center gap-4">
-        {icon && (
-          <div className="hidden sm:flex items-center justify-center h-12 w-12 rounded-lg bg-[hsl(var(--cwg-dark))] text-[hsl(var(--cwg-blue))]">
-            {icon}
-          </div>
+    <div className="py-8">
+      <AnimatedContainer 
+        className="space-y-4"
+        animationVariant="fadeIn"
+        delay={0.1}
+      >
+        <h1 className="text-4xl font-bold tracking-tight neon-text-orange">{title}</h1>
+        {description && (
+          <p className="text-lg text-muted-foreground max-w-3xl">{description}</p>
         )}
-        
-        <div>
-          <h1 className="text-2xl font-bold neon-text-blue">{title}</h1>
-          {description && (
-            <p className="text-[hsl(var(--cwg-muted))] mt-1">{description}</p>
-          )}
-        </div>
-      </div>
-      
-      {action && (
-        <div>
-          {action}
-        </div>
-      )}
+        {children}
+      </AnimatedContainer>
     </div>
   );
 }

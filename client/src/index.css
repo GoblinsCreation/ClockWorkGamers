@@ -106,128 +106,39 @@
     opacity: 0.3;
   }
   
-  /* Enhanced Neon Styles */
-  
   /* Glow effects */
   .neon-glow {
-    box-shadow: 0 0 15px hsla(var(--cwg-orange), 0.6), 0 0 30px hsla(var(--cwg-orange), 0.3);
+    box-shadow: 0 0 15px hsla(var(--cwg-orange), 0.6);
   }
   
-  .neon-glow-blue {
-    box-shadow: 0 0 15px hsla(var(--cwg-blue), 0.6), 0 0 30px hsla(var(--cwg-blue), 0.3);
+  .blue-glow {
+    box-shadow: 0 0 15px hsla(var(--cwg-blue), 0.6);
   }
   
-  .neon-glow-purple {
-    box-shadow: 0 0 15px hsla(var(--web3-neon-purple), 0.6), 0 0 30px hsla(var(--web3-neon-purple), 0.3);
-  }
-  
-  .neon-glow-green {
-    box-shadow: 0 0 15px hsla(var(--web3-neon-green), 0.6), 0 0 30px hsla(var(--web3-neon-green), 0.3);
-  }
-  
-  .neon-glow-yellow {
-    box-shadow: 0 0 15px hsla(var(--web3-crypto-yellow), 0.6), 0 0 30px hsla(var(--web3-crypto-yellow), 0.3);
-  }
-  
-  /* Neon text effects */
   .neon-text-orange {
     color: hsl(var(--cwg-orange));
     text-shadow: 0 0 5px hsla(var(--cwg-orange), 0.5), 
-                 0 0 10px hsla(var(--cwg-orange), 0.3),
-                 0 0 20px hsla(var(--cwg-orange), 0.2);
+                 0 0 10px hsla(var(--cwg-orange), 0.3);
     letter-spacing: 0.05em;
   }
   
   .neon-text-blue {
     color: hsl(var(--cwg-blue));
     text-shadow: 0 0 5px hsla(var(--cwg-blue), 0.5), 
-                 0 0 10px hsla(var(--cwg-blue), 0.3),
-                 0 0 20px hsla(var(--cwg-blue), 0.2);
+                 0 0 10px hsla(var(--cwg-blue), 0.3);
     letter-spacing: 0.05em;
   }
   
-  .neon-text-green {
-    color: hsl(var(--web3-neon-green));
-    text-shadow: 0 0 5px hsla(var(--web3-neon-green), 0.5), 
-                 0 0 10px hsla(var(--web3-neon-green), 0.3),
-                 0 0 20px hsla(var(--web3-neon-green), 0.2);
-    letter-spacing: 0.05em;
-  }
-  
-  .neon-text-purple {
-    color: hsl(var(--web3-neon-purple));
-    text-shadow: 0 0 5px hsla(var(--web3-neon-purple), 0.5), 
-                 0 0 10px hsla(var(--web3-neon-purple), 0.3),
-                 0 0 20px hsla(var(--web3-neon-purple), 0.2);
-    letter-spacing: 0.05em;
-  }
-  
-  .neon-text-pink {
-    color: hsl(var(--web3-cyber-pink));
-    text-shadow: 0 0 5px hsla(var(--web3-cyber-pink), 0.5), 
-                 0 0 10px hsla(var(--web3-cyber-pink), 0.3),
-                 0 0 20px hsla(var(--web3-cyber-pink), 0.2);
-    letter-spacing: 0.05em;
-  }
-  
-  /* Neon borders */
   .neon-border-orange {
     border: 1px solid hsl(var(--cwg-orange));
     box-shadow: 0 0 5px hsla(var(--cwg-orange), 0.5), 
-                0 0 10px hsla(var(--cwg-orange), 0.3),
                 inset 0 0 5px hsla(var(--cwg-orange), 0.2);
   }
   
   .neon-border-blue {
     border: 1px solid hsl(var(--cwg-blue));
     box-shadow: 0 0 5px hsla(var(--cwg-blue), 0.5), 
-                0 0 10px hsla(var(--cwg-blue), 0.3),
                 inset 0 0 5px hsla(var(--cwg-blue), 0.2);
-  }
-  
-  .neon-border-green {
-    border: 1px solid hsl(var(--web3-neon-green));
-    box-shadow: 0 0 5px hsla(var(--web3-neon-green), 0.5), 
-                0 0 10px hsla(var(--web3-neon-green), 0.3),
-                inset 0 0 5px hsla(var(--web3-neon-green), 0.2);
-  }
-  
-  .neon-border-purple {
-    border: 1px solid hsl(var(--web3-neon-purple));
-    box-shadow: 0 0 5px hsla(var(--web3-neon-purple), 0.5), 
-                0 0 10px hsla(var(--web3-neon-purple), 0.3),
-                inset 0 0 5px hsla(var(--web3-neon-purple), 0.2);
-  }
-  
-  /* Neon card effects */
-  .neon-card {
-    background-color: rgba(10, 10, 20, 0.7);
-    backdrop-filter: blur(10px);
-    border-radius: 0.5rem;
-    border: 1px solid rgba(60, 60, 120, 0.5);
-    transition: all 0.3s ease;
-  }
-  
-  .neon-card-orange {
-    background-color: rgba(10, 10, 20, 0.7);
-    backdrop-filter: blur(10px);
-    border-radius: 0.5rem;
-    border: 1px solid rgba(255, 135, 0, 0.3);
-    box-shadow: 0 0 15px rgba(255, 135, 0, 0.2);
-    transition: all 0.3s ease;
-  }
-  
-  .neon-card-blue {
-    background-color: rgba(10, 10, 20, 0.7);
-    backdrop-filter: blur(10px);
-    border-radius: 0.5rem; 
-    border: 1px solid rgba(0, 135, 255, 0.3);
-    box-shadow: 0 0 15px rgba(0, 135, 255, 0.2);
-    transition: all 0.3s ease;
-  }
-  
-  .neon-card:hover, .neon-card-orange:hover, .neon-card-blue:hover {
-    transform: translateY(-5px);
   }
   
   /* Hover effects */

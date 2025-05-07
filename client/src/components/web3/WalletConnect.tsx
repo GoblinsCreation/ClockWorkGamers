@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useWeb3 } from '@/lib/web3/Web3Provider';
+import { useState, useEffect, useRef } from 'react';
+import { useWeb3 } from '@/hooks/use-web3';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Wallet, ChevronDown, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import {
   DropdownMenu,
@@ -12,10 +13,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatEthereumAddress } from '@/lib/utils';
-import { isSupportedNetwork } from '@/lib/web3-utils';
+import { getNetworkName, isSupportedNetwork } from '@/lib/web3-utils';
 
 export function WalletConnect() {
-  const { isConnected, isConnecting, address, chainId, balance, connectWallet, disconnectWallet } = useWeb3();
+  const { connected, connecting, account, chainId, balance, connectWallet, disconnectWallet } = useWeb3();
   const [networkStatus, setNetworkStatus] = useState<'supported' | 'unsupported' | 'unknown'>('unknown');
   const [isMobile, setIsMobile] = useState(false);
   
@@ -44,20 +45,17 @@ export function WalletConnect() {
     }
   }, [chainId]);
 
-  if (!isConnected) {
+  if (!connected) {
     return (
       <Button 
         variant="outline" 
         className="bg-gradient-to-r from-[hsl(var(--cwg-orange))] to-[hsl(var(--cwg-orange))/80] text-white px-3 sm:px-4 py-2 rounded-lg font-orbitron font-medium text-xs sm:text-sm btn-hover transition-all duration-300 w-full"
-        onClick={(e) => {
-          e.preventDefault();
-          connectWallet('metamask');
-        }}
-        disabled={isConnecting}
+        onClick={connectWallet}
+        disabled={connecting}
       >
-        {isConnecting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Wallet className={`h-4 w-4 ${isMobile ? "" : "mr-2"}`} />}
-        {!isMobile && (isConnecting ? 'Connecting...' : 'Connect Wallet')}
-        {isMobile && (isConnecting ? '...' : '')}
+        {connecting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Wallet className={`h-4 w-4 ${isMobile ? "" : "mr-2"}`} />}
+        {!isMobile && (connecting ? 'Connecting...' : 'Connect Wallet')}
+        {isMobile && (connecting ? '...' : '')}
       </Button>
     );
   }
@@ -72,7 +70,7 @@ export function WalletConnect() {
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center">
               <Wallet className={`h-4 w-4 ${isMobile ? "" : "mr-2"}`} />
-              {isMobile ? '' : formatEthereumAddress(address || '')}
+              {isMobile ? '' : formatEthereumAddress(account || '')}
             </div>
             <ChevronDown className="h-4 w-4" />
           </div>
@@ -84,7 +82,7 @@ export function WalletConnect() {
         <DropdownMenuGroup>
           <DropdownMenuItem className="flex justify-between">
             <span className="text-[hsl(var(--cwg-muted))]">Address:</span>
-            <span className="font-mono text-xs">{formatEthereumAddress(address || '')}</span>
+            <span className="font-mono text-xs">{formatEthereumAddress(account || '')}</span>
           </DropdownMenuItem>
           <DropdownMenuItem className="flex justify-between">
             <span className="text-[hsl(var(--cwg-muted))]">Balance:</span>
@@ -96,13 +94,7 @@ export function WalletConnect() {
               {networkStatus === 'supported' ? (
                 <span className="flex items-center text-green-500">
                   <CheckCircle className="mr-1 h-3 w-3" />
-                  {chainId ? (
-                    chainId === 1 ? 'Ethereum Mainnet' :
-                    chainId === 5 ? 'Goerli Testnet' :
-                    chainId === 137 ? 'Polygon Mainnet' :
-                    chainId === 80001 ? 'Mumbai Testnet' :
-                    `Network #${chainId}`
-                  ) : 'Unknown'}
+                  {getNetworkName(chainId)}
                 </span>
               ) : networkStatus === 'unsupported' ? (
                 <span className="flex items-center text-red-500">
@@ -118,7 +110,7 @@ export function WalletConnect() {
         <DropdownMenuSeparator />
         <DropdownMenuItem 
           className="text-red-500 cursor-pointer flex justify-center"
-          onClick={() => disconnectWallet()}
+          onClick={disconnectWallet}
         >
           Disconnect Wallet
         </DropdownMenuItem>

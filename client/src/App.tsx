@@ -12,9 +12,8 @@ import RentalsPage from "@/pages/rentals-page";
 import CoursesPage from "@/pages/courses-page";
 import CalculatorsPage from "@/pages/calculators-page";
 import ContactPage from "@/pages/contact-page";
-import AdminPage from "@/pages/admin-page-new";
+import AdminPage from "@/pages/admin-page";
 import NFTMarketplacePage from "@/pages/nft-marketplace-page";
-import NFTCollectionsPage from "@/pages/nft-collections-page";
 import TokenDashboardPage from "@/pages/token-dashboard-page";
 import PlayToEarnPage from "@/pages/play-to-earn-page";
 import PayToEarnPage from "@/pages/pay-to-earn-page";
@@ -27,7 +26,6 @@ import ChatPage from "@/pages/chat-page";
 import ReferralsPage from "@/pages/referrals-page";
 import NewsPage from "@/pages/news-page";
 import AchievementsPage from "@/pages/achievements-page";
-import WalletPage from "@/pages/wallet-page";
 import DemoPage from "@/pages/demo-page";
 import ShowcasePage from "@/pages/showcase-page";
 import PrivacyPolicyPage from "@/pages/privacy-policy-page";
@@ -36,8 +34,8 @@ import CookiePolicyPage from "@/pages/cookie-policy-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from "./hooks/use-auth";
-import { Web3Provider } from "./lib/web3/Web3Provider";
-import SimpleChatWidget from "@/components/chat/SimpleChatWidget";
+import { Web3Provider } from "./hooks/use-web3";
+import FloatingChat from "@/components/chat/FloatingChat";
 import AchievementUnlockNotification from "@/components/achievements/AchievementUnlockNotification";
 import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
 
@@ -63,9 +61,7 @@ function Router() {
       <ProtectedRoute path="/payment" component={PaymentPage} />
       <ProtectedRoute path="/payment-options" component={PaymentOptionsPage} />
       <ProtectedRoute path="/nft-marketplace" component={NFTMarketplacePage} />
-      <ProtectedRoute path="/nft-collections" component={NFTCollectionsPage} />
       <ProtectedRoute path="/token-dashboard" component={TokenDashboardPage} />
-      <ProtectedRoute path="/wallet" component={WalletPage} />
       <ProtectedRoute path="/calculators" component={CalculatorsPage} />
       <ProtectedRoute path="/contact" component={ContactPage} />
       <ProtectedRoute path="/news" component={NewsPage} />
@@ -90,7 +86,7 @@ function App() {
               <TooltipProvider>
                 <Toaster />
                 <Router />
-                <SimpleChatWidget />
+                <FloatingChat />
                 <AchievementUnlockNotification />
                 <OnboardingFlow />
               </TooltipProvider>

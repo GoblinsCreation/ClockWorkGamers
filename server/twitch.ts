@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import { db } from './db';
-import { streamers, notifications, User } from '@shared/schema';
-import { eq, inArray, and, desc } from 'drizzle-orm';
+import { streamers, User } from '@shared/schema';
+import { eq, inArray } from 'drizzle-orm';
 import { log } from './vite';
 
 // Twitch API configuration
@@ -9,15 +9,6 @@ const TWITCH_API_URL = 'https://api.twitch.tv/helix';
 const TWITCH_AUTH_URL = 'https://id.twitch.tv/oauth2/token';
 const CLIENT_ID = process.env.TWITCH_CLIENT_ID || '';
 const CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET || '';
-
-// Update interval in minutes (can be configured)
-const DEFAULT_UPDATE_INTERVAL_MINUTES = 5;
-
-// Track streamers that were live in the previous check
-let previouslyLiveStreamers = new Set<string>();
-
-// Store the interval timer reference
-let updateInterval: NodeJS.Timer | null = null;
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   console.warn('Twitch API credentials are not configured. Please set TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET environment variables.');
@@ -50,7 +41,6 @@ async function getAccessToken(): Promise<string> {
     // Set expiry time with a small buffer (5 minutes)
     tokenExpiry = Date.now() + (data.expires_in * 1000) - (5 * 60 * 1000);
     
-    log(`Successfully obtained Twitch access token, expires in ${Math.floor(data.expires_in / 60)} minutes`, 'twitch');
     return accessToken;
   } catch (error: any) {
     log(`Error getting Twitch access token: ${error.message}`, 'twitch');
@@ -67,39 +57,23 @@ async function getStreams(twitchIds: string[]): Promise<any[]> {
   try {
     const token = await getAccessToken();
     
-    // Handle Twitch API pagination and rate limits by processing in batches
-    const MAX_IDS_PER_REQUEST = 100;
-    let allStreams: any[] = [];
+    // Construct the user_login query params
+    const userParams = twitchIds.map(id => `user_login=${id}`).join('&');
+    const url = `${TWITCH_API_URL}/streams?${userParams}`;
     
-    // Process in batches to respect API limits
-    for (let i = 0; i < twitchIds.length; i += MAX_IDS_PER_REQUEST) {
-      const batchIds = twitchIds.slice(i, i + MAX_IDS_PER_REQUEST);
-      const userParams = batchIds.map(id => `user_login=${id}`).join('&');
-      const url = `${TWITCH_API_URL}/streams?${userParams}`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'Client-ID': CLIENT_ID,
-          'Authorization': `Bearer ${token}`
-        }
-      });
+    const response = await fetch(url, {
+      headers: {
+        'Client-ID': CLIENT_ID,
+        'Authorization': `Bearer ${token}`
+      }
+    });
 
-      if (!response.ok) {
-        throw new Error(`Twitch API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json() as { data: any[] };
-      if (data.data && data.data.length > 0) {
-        allStreams = allStreams.concat(data.data);
-      }
-      
-      // Add a small delay between batch requests to avoid rate limiting
-      if (i + MAX_IDS_PER_REQUEST < twitchIds.length) {
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
+    if (!response.ok) {
+      throw new Error(`Twitch API error: ${response.status} ${response.statusText}`);
     }
-    
-    return allStreams;
+
+    const data = await response.json() as { data: any[] };
+    return data.data || [];
   } catch (error: any) {
     log(`Error fetching Twitch streams: ${error.message}`, 'twitch');
     return [];
@@ -115,83 +89,26 @@ async function getChannelInfo(twitchIds: string[]): Promise<any[]> {
   try {
     const token = await getAccessToken();
     
-    // Handle Twitch API pagination and rate limits by processing in batches
-    const MAX_IDS_PER_REQUEST = 100;
-    let allChannels: any[] = [];
+    // Construct the user_login query params
+    const userParams = twitchIds.map(id => `broadcaster_login=${id}`).join('&');
+    const url = `${TWITCH_API_URL}/channels?${userParams}`;
     
-    // Process in batches to respect API limits
-    for (let i = 0; i < twitchIds.length; i += MAX_IDS_PER_REQUEST) {
-      const batchIds = twitchIds.slice(i, i + MAX_IDS_PER_REQUEST);
-      const userParams = batchIds.map(id => `broadcaster_login=${id}`).join('&');
-      const url = `${TWITCH_API_URL}/channels?${userParams}`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'Client-ID': CLIENT_ID,
-          'Authorization': `Bearer ${token}`
-        }
-      });
+    const response = await fetch(url, {
+      headers: {
+        'Client-ID': CLIENT_ID,
+        'Authorization': `Bearer ${token}`
+      }
+    });
 
-      if (!response.ok) {
-        throw new Error(`Twitch API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json() as { data: any[] };
-      if (data.data && data.data.length > 0) {
-        allChannels = allChannels.concat(data.data);
-      }
-      
-      // Add a small delay between batch requests to avoid rate limiting
-      if (i + MAX_IDS_PER_REQUEST < twitchIds.length) {
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
+    if (!response.ok) {
+      throw new Error(`Twitch API error: ${response.status} ${response.statusText}`);
     }
-    
-    return allChannels;
+
+    const data = await response.json() as { data: any[] };
+    return data.data || [];
   } catch (error: any) {
     log(`Error fetching Twitch channels: ${error.message}`, 'twitch');
     return [];
-  }
-}
-
-/**
- * Create notifications for streamers that just went live
- */
-async function createStreamLiveNotifications(liveStreamers: any[], streamerMap: Map<string, any>): Promise<void> {
-  try {
-    for (const stream of liveStreamers) {
-      const twitchUsername = stream.user_login.toLowerCase();
-      
-      // Check if this streamer was previously not live
-      if (!previouslyLiveStreamers.has(twitchUsername)) {
-        const streamer = streamerMap.get(twitchUsername);
-        if (!streamer) continue;
-        
-        // Create a notification for all users
-        await db.insert(notifications)
-          .values({
-            userId: streamer.userId, // For the streamer themselves
-            type: 'streamer_live',
-            title: 'Stream Started',
-            message: `${streamer.displayName} is now live on Twitch: ${stream.title}`,
-            isRead: false,
-            link: `https://twitch.tv/${twitchUsername}`,
-            metadata: {
-              streamerId: streamer.id,
-              twitchId: twitchUsername,
-              game: stream.game_name,
-              viewerCount: stream.viewer_count,
-              thumbnailUrl: stream.thumbnail_url
-                .replace('{width}', '1280')
-                .replace('{height}', '720')
-            }
-          });
-        
-        log(`Created 'Stream Started' notification for ${streamer.displayName}`, 'twitch');
-      }
-    }
-  } catch (error: any) {
-    log(`Error creating stream live notifications: ${error.message}`, 'twitch');
   }
 }
 
@@ -212,35 +129,17 @@ export async function updateStreamStatus(): Promise<void> {
       return;
     }
     
-    // Create a map for faster lookups
-    const streamerMap = new Map();
-    for (const streamer of streamersWithTwitchIds) {
-      if (streamer.twitchId) {
-        streamerMap.set(streamer.twitchId.toLowerCase(), streamer);
-      }
-    }
-    
     // Fetch stream data from Twitch API
     const streamData = await getStreams(twitchIds);
     const channelData = await getChannelInfo(twitchIds);
-    
-    // Track newly live streamers for notifications
-    const currentlyLiveStreamers = new Set<string>();
     
     // Process each streamer
     for (const streamer of streamersWithTwitchIds) {
       if (!streamer.twitchId) continue;
       
-      const twitchId = streamer.twitchId.toLowerCase();
-      
       // Find stream data for this streamer
-      const stream = streamData.find(s => s.user_login.toLowerCase() === twitchId);
-      const channel = channelData.find(c => c.broadcaster_login.toLowerCase() === twitchId);
-      
-      // Track live status
-      if (stream) {
-        currentlyLiveStreamers.add(twitchId);
-      }
+      const stream = streamData.find(s => s.user_login.toLowerCase() === streamer.twitchId!.toLowerCase());
+      const channel = channelData.find(c => c.broadcaster_login.toLowerCase() === streamer.twitchId!.toLowerCase());
       
       // Prepare update data
       const updates = {
@@ -252,21 +151,13 @@ export async function updateStreamStatus(): Promise<void> {
         updates.streamTitle = stream.title;
         updates.viewerCount = stream.viewer_count;
         updates.startedAt = new Date(stream.started_at);
-        updates.streamType = stream.type;
         updates.thumbnailUrl = stream.thumbnail_url
           .replace('{width}', '1280')
           .replace('{height}', '720');
-          
-        if (stream.tags && Array.isArray(stream.tags)) {
-          updates.tags = stream.tags;
-        }
-        
-        updates.language = stream.language || 'en';
       }
       
       if (channel) {
         updates.currentGame = channel.game_name;
-        updates.gameId = channel.game_id;
         updates.profileImageUrl = streamer.profileImageUrl || ''; // Keep existing if present
       }
       
@@ -275,19 +166,8 @@ export async function updateStreamStatus(): Promise<void> {
         .set(updates)
         .where(eq(streamers.id, streamer.id));
       
-      const statusChange = 
-        (previouslyLiveStreamers.has(twitchId) && !stream) ? 'WENT OFFLINE' :
-        (!previouslyLiveStreamers.has(twitchId) && stream) ? 'WENT LIVE' :
-        stream ? 'STILL LIVE' : 'STILL OFFLINE';
-        
-      log(`Updated streamer ${streamer.displayName} (${twitchId}): ${statusChange}`, 'twitch');
+      log(`Updated streamer ${streamer.displayName} (${streamer.twitchId}): ${stream ? 'LIVE' : 'OFFLINE'}`, 'twitch');
     }
-    
-    // Create notifications for streamers who just went live
-    await createStreamLiveNotifications(streamData, streamerMap);
-    
-    // Update the previously live streamers tracker
-    previouslyLiveStreamers = currentlyLiveStreamers;
     
     log(`Successfully updated status for ${streamersWithTwitchIds.length} streamers`, 'twitch');
   } catch (error: any) {
@@ -296,62 +176,18 @@ export async function updateStreamStatus(): Promise<void> {
 }
 
 /**
- * Get all currently live streamers from the database
- */
-export async function getLiveStreamers() {
-  try {
-    return await db.select()
-      .from(streamers)
-      .where(eq(streamers.isLive, true))
-      .orderBy(desc(streamers.viewerCount));
-  } catch (error: any) {
-    log(`Error fetching live streamers: ${error.message}`, 'twitch');
-    throw error;
-  }
-}
-
-/**
  * Schedule regular updates of stream status
  * @param intervalMinutes How often to check Twitch API (in minutes)
  */
-export function scheduleStreamStatusUpdates(intervalMinutes: number = DEFAULT_UPDATE_INTERVAL_MINUTES): NodeJS.Timeout {
-  // Clear any existing interval
-  if (updateInterval) {
-    clearInterval(updateInterval as NodeJS.Timeout);
-  }
-  
+export function scheduleStreamStatusUpdates(intervalMinutes: number = 5): NodeJS.Timer {
   // Run immediately on startup
   updateStreamStatus().catch((err: any) => log(`Initial stream status update failed: ${err.message}`, 'twitch'));
   
   // Then schedule regular updates
   const intervalMs = intervalMinutes * 60 * 1000;
-  updateInterval = setInterval(() => {
+  return setInterval(() => {
     updateStreamStatus().catch((err: any) => log(`Scheduled stream status update failed: ${err.message}`, 'twitch'));
   }, intervalMs);
-  
-  log(`Scheduled Twitch stream status updates every ${intervalMinutes} minutes`, 'twitch');
-  
-  return updateInterval as NodeJS.Timeout;
-}
-
-/**
- * Stop scheduled stream status updates
- */
-export function stopStreamStatusUpdates(): void {
-  if (updateInterval) {
-    clearInterval(updateInterval as NodeJS.Timeout);
-    updateInterval = null;
-    log('Stopped Twitch stream status updates', 'twitch');
-  }
-}
-
-/**
- * Reset the Twitch API token (for testing or when token becomes invalid)
- */
-export function resetTwitchToken(): void {
-  accessToken = null;
-  tokenExpiry = 0;
-  log('Reset Twitch API token', 'twitch');
 }
 
 /**
@@ -408,7 +244,6 @@ export async function linkTwitchAccount(code: string, redirectUri: string, userI
           twitchId: twitchUser.login,
           displayName: twitchUser.display_name,
           profileImageUrl: twitchUser.profile_image_url,
-          lastUpdated: new Date(),
           isLive: false
         })
         .where(eq(streamers.userId, userId));
@@ -420,15 +255,10 @@ export async function linkTwitchAccount(code: string, redirectUri: string, userI
           twitchId: twitchUser.login,
           displayName: twitchUser.display_name,
           profileImageUrl: twitchUser.profile_image_url,
-          lastUpdated: new Date(),
           isLive: false
         });
     }
     
-    // Run an immediate update to check if the streamer is currently live
-    await updateStreamStatus();
-    
-    log(`Successfully linked Twitch account ${twitchUser.login} for user ${userId}`, 'twitch');
     return true;
   } catch (error: any) {
     log(`Error linking Twitch account: ${error.message}`, 'twitch');

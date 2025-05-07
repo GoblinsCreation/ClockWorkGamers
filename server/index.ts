@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import cors from "cors";
-import { scheduleStreamStatusUpdates } from "./twitch";
 
 const app = express();
 // Enable CORS for all routes
@@ -62,9 +61,6 @@ app.use((req, res, next) => {
   } else {
     serveStatic(app);
   }
-
-  // Schedule Twitch stream status updates (checks for live streamers every 5 minutes)
-  scheduleStreamStatusUpdates(5);
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.

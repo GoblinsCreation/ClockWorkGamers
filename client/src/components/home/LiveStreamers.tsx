@@ -6,7 +6,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Streamer } from '@shared/schema';
-import LiveStreamersSection from '@/components/streamers/LiveStreamersSection';
 
 interface StreamerCardProps {
   streamer: Streamer & {
@@ -121,6 +120,74 @@ function StreamerCard({ streamer }: StreamerCardProps) {
 }
 
 export default function LiveStreamers() {
+  const { data: liveStreamers, isLoading, error } = useQuery({
+    queryKey: ['/api/streamers/live'],
+    queryFn: () => fetch('/api/streamers/live').then(res => res.json()),
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    refetchInterval: 1000 * 60 * 3, // 3 minutes
+  });
+
+  if (isLoading) {
+    return (
+      <div className="mt-10 container">
+        <h2 className="text-3xl font-bold mb-6">Live Streamers</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, index) => (
+            <Card key={index} className="overflow-hidden border-2 border-orange-400/20">
+              <Skeleton className="h-48 w-full" />
+              <CardHeader>
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-24 mt-1" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-full" />
+              </CardContent>
+              <CardFooter>
+                <Skeleton className="h-10 w-32" />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mt-10 container">
+        <h2 className="text-3xl font-bold mb-6">Live Streamers</h2>
+        <Card className="p-6 border-orange-400/20">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <WifiOff className="h-12 w-12 text-orange-500" />
+            <h3 className="text-xl font-semibold">Unable to load live streamers</h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              There was an error connecting to the server. Please try again later.
+            </p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!liveStreamers || liveStreamers.length === 0) {
+    return (
+      <div className="mt-10 container">
+        <h2 className="text-3xl font-bold mb-6">Live Streamers</h2>
+        <Card className="p-6 border-orange-400/20">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="rounded-full bg-orange-100 dark:bg-orange-900/30 p-3">
+              <WifiOff className="h-6 w-6 text-orange-500" />
+            </div>
+            <h3 className="text-xl font-semibold">No Streamers Live</h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              Check back later to see when our guild members go live!
+            </p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-10 container">
       <h2 className="text-3xl font-bold mb-6 flex items-center">
@@ -130,9 +197,11 @@ export default function LiveStreamers() {
         </span>
         Live Streamers
       </h2>
-      
-      {/* Use our enhanced LiveStreamersSection component which integrates with Twitch API */}
-      <LiveStreamersSection />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {(liveStreamers as (Streamer & { startedAt?: string; thumbnailUrl?: string; description?: string })[]).map((streamer) => (
+          <StreamerCard key={streamer.id} streamer={streamer} />
+        ))}
+      </div>
     </div>
   );
 }

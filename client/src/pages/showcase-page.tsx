@@ -1,385 +1,298 @@
 import React, { useState } from 'react';
-import { Share, Users, Twitter, Facebook, Linkedin, Link as LinkIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
+import { ShareButton } from '@/components/guild/ShareButton';
 import { MemberLeaderboard } from '@/components/leaderboard/MemberLeaderboard';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Trophy, Users, Share2, Settings } from 'lucide-react';
 
-// Share Modal Component
-function GuildShareModal({ 
-  isOpen, 
-  onClose 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void;
-}) {
-  const [message, setMessage] = useState('Join ClockWork Gamers - the premier Web3 gaming guild! Earn rewards, join tournaments, and connect with like-minded gamers. #ClockWorkGamers #Web3Gaming');
-
-  const shareOptions = [
-    { 
-      name: 'Twitter', 
-      icon: <Twitter className="h-5 w-5" />, 
-      bgColor: 'bg-[#1DA1F2] hover:bg-[#1a94e0]',
-      action: () => {
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`, '_blank');
-      }
-    },
-    { 
-      name: 'Facebook', 
-      icon: <Facebook className="h-5 w-5" />, 
-      bgColor: 'bg-[#1877F2] hover:bg-[#166fe5]',
-      action: () => {
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=https://clockworkgamers.net&quote=${encodeURIComponent(message)}`, '_blank');
-      }
-    },
-    { 
-      name: 'LinkedIn', 
-      icon: <Linkedin className="h-5 w-5" />, 
-      bgColor: 'bg-[#0A66C2] hover:bg-[#0959ab]',
-      action: () => {
-        window.open(`https://www.linkedin.com/shareArticle?mini=true&url=https://clockworkgamers.net&title=Join%20ClockWork%20Gamers&summary=${encodeURIComponent(message)}`, '_blank');
-      }
-    },
-    { 
-      name: 'Copy Link', 
-      icon: <LinkIcon className="h-5 w-5" />, 
-      bgColor: 'bg-gray-700 hover:bg-gray-600',
-      action: () => {
-        navigator.clipboard.writeText(`https://clockworkgamers.net - ${message}`);
-        alert('Guild invitation link copied to clipboard!');
-      }
-    }
-  ];
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(message);
-    alert('Message copied to clipboard!');
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="neon-card-orange bg-[hsl(var(--cwg-dark))/90] backdrop-blur-md rounded-lg w-full max-w-md p-6 shadow-xl"
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-orbitron font-semibold neon-text-orange">
-            Share Guild
-          </h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="text-[hsl(var(--cwg-muted))] hover:neon-text-orange"
-          >
-            ✕
-          </Button>
-        </div>
-        
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 neon-text-orange">Customize your message:</label>
-          <div className="relative">
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="w-full h-32 p-3 bg-[hsl(var(--cwg-dark-blue))/80] text-[hsl(var(--cwg-text))] rounded-md neon-border-orange focus:neon-glow outline-none resize-none"
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={copyToClipboard}
-              className="absolute bottom-2 right-2 text-xs text-[hsl(var(--cwg-muted))] hover:neon-text-orange"
-            >
-              Copy
-            </Button>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-3">
-          {shareOptions.map((option) => (
-            <Button
-              key={option.name}
-              className={`${option.bgColor} text-white font-medium flex items-center justify-center gap-2 transition-all duration-300 hover:neon-glow hover:scale-105`}
-              onClick={option.action}
-            >
-              {option.icon}
-              {option.name}
-            </Button>
-          ))}
-        </div>
-      </motion.div>
-    </div>
-  );
-}
+// CWG Logo SVG Component
+const CWGLogo = () => (
+  <svg 
+    viewBox="0 0 120 120" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-12 h-12"
+  >
+    <circle cx="60" cy="60" r="56" fill="#111827" stroke="#FF8800" strokeWidth="2" />
+    <path d="M32 40H42L52 80H42L32 40Z" fill="#FF8800" />
+    <path d="M58 40H68L78 80H68L58 40Z" fill="#1E40AF" />
+    <path d="M84 40L60 80H70L94 40H84Z" fill="#FF8800" />
+    <path d="M36 85H84" stroke="#FF8800" strokeWidth="4" strokeLinecap="round" />
+  </svg>
+);
 
 export default function ShowcasePage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('features');
-  const [showShareModal, setShowShareModal] = useState(false);
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('showcase');
+
+  // Sample guild data
+  const guildData = {
+    name: 'ClockWork Gamers',
+    description: 'A Web3 gaming guild connecting players, streamers, and creators',
+    memberCount: 350,
+    websiteUrl: window.location.origin,
+    imageUrl: '/images/cwg-logo.png'
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-screen-xl">
-      <AnimatePresence>
-        {showShareModal && (
-          <GuildShareModal 
-            isOpen={showShareModal} 
-            onClose={() => setShowShareModal(false)} 
-          />
-        )}
-      </AnimatePresence>
-
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-orbitron font-bold text-[hsl(var(--cwg-orange))] mb-2">
-            CWG Features Showcase
-          </h1>
-          <p className="text-[hsl(var(--cwg-muted))]">
-            Explore our latest guild features and functionality
-          </p>
+    <div className="container mx-auto py-8 px-4">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+        <div className="flex items-center gap-4">
+          <div className="p-2 rounded-lg bg-background border flex-shrink-0">
+            <CWGLogo />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">CWG Features Showcase</h1>
+            <p className="text-muted-foreground">
+              Explore our latest guild features and functionality
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))] hover:bg-[hsl(var(--cwg-blue))/10]"
-            onClick={() => setShowShareModal(true)}
-          >
-            <Share className="h-4 w-4 mr-2" />
-            Share Guild
-          </Button>
-          <Button
-            className="bg-[hsl(var(--cwg-orange))] hover:bg-[hsl(var(--cwg-orange))/90] text-white"
-          >
+          <ShareButton variant="outline" label="Share Guild" />
+          <Button variant="default">
             <Users className="h-4 w-4 mr-2" />
             Join Guild
           </Button>
         </div>
       </div>
 
-      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="border-b border-[hsl(var(--cwg-dark-blue))] mb-8 bg-transparent">
-          <TabsTrigger 
-            value="features" 
-            className={`px-4 py-2 font-orbitron text-base ${activeTab === 'features' ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))]'}`}
-          >
-            Features Showcase
-          </TabsTrigger>
-          <TabsTrigger 
-            value="leaderboard" 
-            className={`px-4 py-2 font-orbitron text-base ${activeTab === 'leaderboard' ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))]'}`}
-          >
-            Guild Leaderboard
-          </TabsTrigger>
-          <TabsTrigger 
-            value="sharing" 
-            className={`px-4 py-2 font-orbitron text-base ${activeTab === 'sharing' ? 'text-[hsl(var(--cwg-orange))] border-b-2 border-[hsl(var(--cwg-orange))]' : 'text-[hsl(var(--cwg-muted))]'}`}
-          >
-            Social Sharing
-          </TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-8">
+        <div className="border-b">
+          <div className="container flex-col md:flex-row flex items-start md:items-center py-4 md:py-0">
+            <TabsList className="mr-auto">
+              <TabsTrigger value="showcase">Features Showcase</TabsTrigger>
+              <TabsTrigger value="leaderboard">Guild Leaderboard</TabsTrigger>
+              <TabsTrigger value="integrations">Social Sharing</TabsTrigger>
+            </TabsList>
+          </div>
+        </div>
 
-        <TabsContent value="features" className="mt-0">
-          <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))] neon-border-blue">
-            <CardContent className="p-6">
-              <h2 className="text-2xl font-orbitron font-semibold neon-text-blue mb-4">
-                ClockWork Gamers Features
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div className="neon-card-blue bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-5 transition-all duration-300 hover:neon-glow-blue">
-                  <h3 className="text-xl font-orbitron neon-text-orange mb-3">Web3 Integration</h3>
-                  <ul className="space-y-2">
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
-                      <span>Wallet connection & authentication</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
-                      <span>NFT marketplace integration</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
-                      <span>Guild token ecosystem</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
-                      <span>Play-to-earn gaming support</span>
-                    </li>
-                  </ul>
+        <TabsContent value="showcase" className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Customizable Chat Card */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-primary" />
+                  Customizable Chat
+                </CardTitle>
+                <CardDescription>Chat widget with personalization options</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Our chat system includes position control, theme options, transparency settings,
+                  and font style customization.
+                </p>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <Badge variant="outline">Position Control</Badge>
+                  <Badge variant="outline">Theme Options</Badge>
+                  <Badge variant="outline">Transparency</Badge>
+                  <Badge variant="outline">Font Styles</Badge>
                 </div>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" size="sm" onClick={() => toast({
+                  title: "Chat Widget",
+                  description: "Click the chat icon in the bottom right corner to try it"
+                })}>
+                  Try Chat Widget
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Guild Sharing Card */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Share2 className="h-5 w-5 text-primary" />
+                  Guild Sharing
+                </CardTitle>
+                <CardDescription>One-click social media integration</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Share your guild on popular social platforms with customizable messages
+                  and direct links to invite friends.
+                </p>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <Badge variant="outline">Twitter</Badge>
+                  <Badge variant="outline">Facebook</Badge>
+                  <Badge variant="outline">LinkedIn</Badge>
+                  <Badge variant="outline">Email</Badge>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <ShareButton size="sm" variant="outline" />
+              </CardFooter>
+            </Card>
+
+            {/* Leaderboard Card */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-primary" />
+                  Gamified Leaderboard
+                </CardTitle>
+                <CardDescription>Interactive member rankings with gamification</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Track achievements, points, activity, and referrals with our interactive
+                  leaderboard system featuring badges and rewards.
+                </p>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <Badge variant="outline">Rankings</Badge>
+                  <Badge variant="outline">Achievements</Badge>
+                  <Badge variant="outline">Badges</Badge>
+                  <Badge variant="outline">Rewards</Badge>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setActiveTab('leaderboard')}
+                >
+                  View Leaderboard
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>CWG Feature Showcase</CardTitle>
+                <CardDescription>
+                  A collection of ClockWork Gamers' Web3 gaming platform features
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p>
+                  ClockWork Gamers is a comprehensive Web3 gaming platform that seamlessly 
+                  integrates traditional gaming community features with blockchain technology.
+                  This showcase demonstrates our latest features including:
+                </p>
                 
-                <div className="neon-card-orange bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-5 transition-all duration-300 hover:neon-glow">
-                  <h3 className="text-xl font-orbitron neon-text-orange mb-3">Community Features</h3>
-                  <ul className="space-y-2">
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
-                      <span>Real-time chat with auto-translation</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
-                      <span>Guild achievements system</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
-                      <span>Member leaderboards</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">✓</span>
-                      <span>Streamer integration</span>
-                    </li>
-                  </ul>
-                </div>
-                
-                <div className="neon-card bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-5 transition-all duration-300 hover:neon-glow-purple">
-                  <h3 className="text-xl font-orbitron neon-text-purple mb-3">Guild Tools</h3>
-                  <ul className="space-y-2">
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--web3-neon-purple))] mr-2">✓</span>
-                      <span>NFT & in-game item rentals</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--web3-neon-purple))] mr-2">✓</span>
-                      <span>Gaming courses & tutorials</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--web3-neon-purple))] mr-2">✓</span>
-                      <span>Play-to-earn calculators</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--web3-neon-purple))] mr-2">✓</span>
-                      <span>Referral program with rewards</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>
+                    <strong>Interactive Chat System</strong> - A floating chat widget with 
+                    customizable themes, positions, and appearance settings
+                  </li>
+                  <li>
+                    <strong>Social Sharing</strong> - One-click guild sharing across multiple 
+                    social platforms with customizable messages
+                  </li>
+                  <li>
+                    <strong>Guild Leaderboard</strong> - Interactive member rankings with 
+                    gamification elements, badges, and level rewards
+                  </li>
+                  <li>
+                    <strong>Achievement System</strong> - Track user progress, unlock badges, 
+                    and earn rewards
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        <TabsContent value="leaderboard" className="mt-0">
+        <TabsContent value="leaderboard">
           <MemberLeaderboard />
         </TabsContent>
 
-        <TabsContent value="sharing" className="mt-0">
-          <Card className="border-[hsl(var(--cwg-dark-blue))] bg-[hsl(var(--cwg-dark))] neon-border-orange">
-            <CardContent className="p-6">
-              <h2 className="text-2xl font-orbitron font-semibold neon-text-orange mb-4">
-                Guild Social Sharing
-              </h2>
-              <p className="text-[hsl(var(--cwg-muted))] mb-6">
+        <TabsContent value="integrations" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Guild Social Sharing</CardTitle>
+              <CardDescription>
                 Promote your guild across social platforms
-              </p>
-
-              <div className="prose prose-invert max-w-none mb-8">
-                <p>Our social sharing tools make it easy to promote your guild and invite new members across multiple platforms. You can customize your message and share directly to Twitter, Facebook, LinkedIn, or via email.</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                  <h3 className="text-xl font-orbitron neon-text-orange mb-4">
-                    Share Features
-                  </h3>
-                  <ul className="space-y-3">
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">•</span>
-                      <span>Multiple social platform support</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">•</span>
-                      <span>Customizable share messages</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">•</span>
-                      <span>Direct sharing links</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">•</span>
-                      <span>Copy to clipboard functionality</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-[hsl(var(--cwg-orange))] mr-2">•</span>
-                      <span>Guild stats and information included</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="text-xl font-orbitron neon-text-orange mb-4">
-                    Try it now
-                  </h3>
-                  <div className="neon-card-orange bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-6 transition-all duration-300 hover:neon-glow">
-                    <Button
-                      className="w-full bg-[hsl(var(--cwg-orange))] hover:bg-[hsl(var(--cwg-orange))/90] text-white hover:neon-glow"
-                      onClick={() => setShowShareModal(true)}
-                    >
-                      <Share className="h-4 w-4 mr-2" />
-                      Share
-                    </Button>
-                    <p className="text-sm text-[hsl(var(--cwg-muted))] mt-4">
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p>
+                  Our social sharing tools make it easy to promote your guild and invite new 
+                  members across multiple platforms. You can customize your message and share
+                  directly to Twitter, Facebook, LinkedIn, or via email.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/30 rounded-lg">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium mb-2">Share Features</h3>
+                    <ul className="space-y-1 text-sm">
+                      <li>• Multiple social platform support</li>
+                      <li>• Customizable share messages</li>
+                      <li>• Direct sharing links</li>
+                      <li>• Copy to clipboard functionality</li>
+                      <li>• Guild stats and information included</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="sm:w-[300px] flex flex-col gap-3">
+                    <h3 className="text-lg font-medium">Try it now</h3>
+                    <ShareButton className="w-full" />
+                    
+                    <p className="text-xs text-muted-foreground mt-2">
                       Click the button above to open the share dialog and test the functionality.
                     </p>
                   </div>
                 </div>
               </div>
-
-              <div className="mt-12 space-y-8">
-                <div>
-                  <h3 className="text-xl font-orbitron neon-text-blue mb-4">
-                    Achievement Sharing
-                  </h3>
-                  <div className="neon-card-blue bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-6 transition-all duration-300 hover:neon-glow-blue">
-                    <p className="mb-4">
-                      In addition to guild sharing, users can share individual achievements on social media. When you earn badges or complete guild achievements, you can share them with friends.
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      <Button
-                        variant="outline"
-                        className="neon-border-blue neon-text-blue hover:neon-glow-blue"
-                      >
-                        Share Achievement
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        className="hover:neon-glow-blue"
-                      >
-                        View Achievements
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-xl font-orbitron neon-text-purple mb-4">
-                    Referral Program
-                  </h3>
-                  <div className="neon-border-purple bg-[hsl(var(--cwg-dark-blue))/70] backdrop-blur-sm rounded-lg p-6 transition-all duration-300 hover:neon-glow-purple">
-                    <p className="mb-4">
-                      Our referral program allows you to earn points and exclusive rewards by inviting friends to join ClockWork Gamers. Each successful referral increases your ranking on the leaderboard.
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      <Button
-                        variant="outline"
-                        className="neon-border-purple neon-text-purple hover:neon-glow-purple"
-                      >
-                        My Referral Link
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        className="hover:neon-glow-purple"
-                      >
-                        Referral Stats
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Achievement Sharing</CardTitle>
+                <CardDescription>Share your gaming milestones</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm">
+                  In addition to guild sharing, users can share individual achievements on social 
+                  media. When you earn badges or complete guild achievements, you can share them 
+                  with friends.
+                </p>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Share Achievement
+                  </Button>
+                  <Button variant="outline" size="sm" className="w-full">
+                    View Achievements
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Referral Program</CardTitle>
+                <CardDescription>Invite friends and earn rewards</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm">
+                  Our referral program allows you to earn points and exclusive rewards by inviting 
+                  friends to join ClockWork Gamers. Each successful referral increases your ranking 
+                  on the leaderboard.
+                </p>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <Button variant="outline" size="sm" className="w-full">
+                    My Referral Link
+                  </Button>
+                  <Button variant="outline" size="sm" className="w-full">
+                    Referral Stats
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
