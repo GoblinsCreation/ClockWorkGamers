@@ -27,11 +27,11 @@ export async function fetchBFTokenPrice(): Promise<number | null> {
     // In production, you would implement a server-side proxy to make authenticated API calls
     
     // CoinMarketCap link: https://coinmarketcap.com/currencies/boss-fighters/
-    // Current price as of May 2023 data from CoinMarketCap: ~$0.03517
+    // Current price as of May 8th, 2023 data from CoinMarketCap: ~$0.02619
     
     // Simulate a slight price fluctuation to demonstrate UI changes
     // In production, this would fetch from the actual CoinMarketCap API
-    const basePrice = 0.03517; // Base price in USD from CoinMarketCap
+    const basePrice = 0.02619; // Base price in USD from CoinMarketCap (updated May 8th, 2023)
     
     // Generate a small random fluctuation to simulate market movement
     // This creates a more realistic experience while testing
@@ -78,7 +78,7 @@ export async function getCachedBFTokenPrice(): Promise<number> {
   const price = await fetchBFTokenPrice();
   
   // Return the price or fallback to default if fetch failed
-  return price || 0.03517; // Default price if API fails
+  return price || 0.02619; // Default price if API fails (updated to May 8th, 2023 value)
 }
 
 /**

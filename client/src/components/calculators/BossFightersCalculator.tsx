@@ -62,7 +62,7 @@ const BADGE_CRAFT_COSTS = {
 export default function BossFightersCalculator() {
   // Market prices state (can be updated in real-time)
   const [marketPrices, setMarketPrices] = useState({
-    bfToken: 0.03517, // Default value from MEXC exchange
+    bfToken: 0.02619, // Default value from CoinMarketCap (May 8th, 2023)
     sponsorMark: 0.067, // $6.70 per 100 sponsor marks (based on OpenLoot marketplace)
     flex: 0.00740 // $0.00740 per 1 Flex
   });
@@ -131,7 +131,7 @@ export default function BossFightersCalculator() {
     const tokensPerHour = tokensPerMinute * 60;
     
     // Calculate USD value using token price
-    // 924.3 * $0.03517 = $32.50
+    // 924.3 * $0.02619 = $24.21 (updated with current CoinMarketCap price)
     const usdPerHour = tokensPerHour * marketPrices.bfToken;
     
     // Calculate recharge costs for the badge(s)
@@ -184,15 +184,15 @@ export default function BossFightersCalculator() {
     const rechargeCostUsd = flexCostUsd + sponsorCostUsd;
     
     // Calculate hourly profit directly (income - costs)
-    // $32.50 - $13.455 = $19.04
+    // $24.21 - $13.455 = $10.76 (updated with current CoinMarketCap price)
     const hourlyProfit = usdPerHour - rechargeCostUsd;
     
     // Calculate weekly profit (3 hours of play per day * 7 days)
-    // $19.04 * 3 * 7 = $399.91
+    // $10.76 * 3 * 7 = $226.00 (updated with current CoinMarketCap price)
     const weeklyProfit = hourlyProfit * 3 * 7;
     
     // Calculate monthly profit (3 hours per day * 30 days)
-    // $19.04 * 3 * 30 = $1,599.62
+    // $10.76 * 3 * 30 = $968.55 (updated with current CoinMarketCap price)
     const monthlyProfit = hourlyProfit * 3 * 30;
     
     // Calculate return on investment (ROI)
