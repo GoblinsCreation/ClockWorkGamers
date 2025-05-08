@@ -91,7 +91,18 @@ export default function CryptoPriceWidget({
               <h2 className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">{symbol}</h2>
               <span className="ml-2 py-1 px-2 text-xs rounded-md bg-[hsl(var(--cwg-dark-blue))]/50 text-[hsl(var(--cwg-muted))]">USDT</span>
             </div>
-            <p className="text-xs text-[hsl(var(--cwg-muted))]">Boss Fighters Token</p>
+            <a 
+              href="https://coinmarketcap.com/currencies/boss-fighters/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xs text-[hsl(var(--cwg-blue))] hover:text-[hsl(var(--cwg-orange))] transition-colors flex items-center"
+            >
+              Boss Fighters Token
+              <svg className="w-3 h-3 ml-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.6396 7.02527H12.0181V5.02527H19.0181V12.0253H17.0181V8.47527L12.1042 13.3892L10.6899 11.975L15.6396 7.02527Z" fill="currentColor"/>
+                <path d="M5 5H10V7H7V17H17V14H19V19H5V5Z" fill="currentColor"/>
+              </svg>
+            </a>
           </div>
         </div>
         

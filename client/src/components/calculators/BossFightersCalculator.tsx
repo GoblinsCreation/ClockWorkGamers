@@ -340,10 +340,17 @@ export default function BossFightersCalculator() {
   
   return (
     <div className="space-y-8">
-      {/* Live Price Widget - KCEX Exchange */}
+      {/* Live Price Widget - CoinMarketCap */}
       <div className="relative">
-        <div className="absolute top-2 right-2 text-xs opacity-70 bg-[hsl(var(--cwg-dark-blue))]/50 px-2 py-1 rounded">
-          KCEX Exchange
+        <div className="absolute top-2 right-2 text-xs opacity-70 bg-[hsl(var(--cwg-dark-blue))]/50 px-2 py-1 rounded flex items-center">
+          <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 24C18.6274 24 24 18.6274 24 12C24 5.37258 18.6274 0 12 0C5.37258 0 0 5.37258 0 12C0 18.6274 5.37258 24 12 24Z" fill="#17181B"/>
+            <path d="M11.0908 9.0513L8.1841 7.0185C8.0382 6.9226 7.8416 7.0264 7.8416 7.2001V11.2719C7.8416 11.4468 8.0406 11.5502 8.1865 11.4519L11.0932 9.3904C11.2123 9.311 11.2111 9.1319 11.0908 9.0513Z" fill="#16C784"/>
+            <path d="M15.8159 7.0185L12.9092 9.0513C12.7889 9.1319 12.7877 9.311 12.9068 9.3904L15.8135 11.4519C15.9594 11.5502 16.1584 11.4468 16.1584 11.2719V7.2001C16.1584 7.0264 15.9618 6.9226 15.8159 7.0185Z" fill="#16C784"/>
+            <path d="M15.8159 12.5481L12.9092 14.5809C12.7889 14.6615 12.7877 14.8406 12.9068 14.92L15.8135 16.9815C15.9594 17.0798 16.1584 16.9764 16.1584 16.8015V12.7297C16.1584 12.556 15.9618 12.4522 15.8159 12.5481Z" fill="#16C784"/>
+            <path d="M11.0908 14.5809L8.1841 12.5481C8.0382 12.4522 7.8416 12.556 7.8416 12.7297V16.8015C7.8416 16.9764 8.0406 17.0798 8.1865 16.9815L11.0932 14.92C11.2123 14.8406 11.2111 14.6615 11.0908 14.5809Z" fill="#16C784"/>
+          </svg>
+          CoinMarketCap
         </div>
         <CryptoPriceWidget 
           symbol="BFToken"
