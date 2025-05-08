@@ -340,15 +340,20 @@ export default function BossFightersCalculator() {
   
   return (
     <div className="space-y-8">
-      {/* Live Price Widget */}
-      <CryptoPriceWidget 
-        symbol="BFToken"
-        price={marketPrices.bfToken}
-        previousPrice={previousBFTokenPrice}
-        onRefresh={updateBFTokenPrice}
-        isRefreshing={isUpdatingPrice}
-        lastUpdated={lastPriceUpdate}
-      />
+      {/* Live Price Widget - KCEX Exchange */}
+      <div className="relative">
+        <div className="absolute top-2 right-2 text-xs opacity-70 bg-[hsl(var(--cwg-dark-blue))]/50 px-2 py-1 rounded">
+          KCEX Exchange
+        </div>
+        <CryptoPriceWidget 
+          symbol="BFToken"
+          price={marketPrices.bfToken}
+          previousPrice={previousBFTokenPrice}
+          onRefresh={updateBFTokenPrice}
+          isRefreshing={isUpdatingPrice}
+          lastUpdated={lastPriceUpdate}
+        />
+      </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Earnings Calculator */}

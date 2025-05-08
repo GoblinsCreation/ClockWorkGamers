@@ -21,6 +21,7 @@ export default function CryptoPriceWidget({
 }: CryptoPriceWidgetProps) {
   const [priceChange, setPriceChange] = useState<number>(0);
   const [isFlashing, setIsFlashing] = useState<boolean>(false);
+  const [autoUpdateCount, setAutoUpdateCount] = useState<number>(30); // Start with 30 seconds
   
   // Calculate price change percentage
   useEffect(() => {
@@ -37,75 +38,141 @@ export default function CryptoPriceWidget({
     }
   }, [price, previousPrice]);
   
+  // Update counter for next auto-refresh
+  useEffect(() => {
+    if (isRefreshing) {
+      return; // Don't start counting if we're already refreshing
+    }
+    
+    const interval = setInterval(() => {
+      setAutoUpdateCount(prev => {
+        if (prev <= 0) {
+          // Reset and trigger refresh when counter reaches 0
+          clearInterval(interval);
+          return 30; // Reset to 30 seconds
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [isRefreshing, lastUpdated]);
+  
+  // When counter reaches 0, trigger refresh
+  useEffect(() => {
+    if (autoUpdateCount === 0) {
+      onRefresh();
+      setAutoUpdateCount(30); // Reset to 30 seconds
+    }
+  }, [autoUpdateCount, onRefresh]);
+  
   const isPriceUp = priceChange > 0;
   const isPriceDown = priceChange < 0;
   
   return (
-    <div className="p-4 bg-[hsl(var(--cwg-dark-blue))]/40 rounded-lg border border-[hsl(var(--cwg-dark-blue))] shadow-lg mb-4 transition-all duration-300 relative">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <div className="flex items-center justify-center bg-[hsl(var(--cwg-dark-blue))] h-10 w-10 rounded-full mr-3">
-            <DollarSign className="h-5 w-5 text-[hsl(var(--cwg-orange))]" />
+    <div className="p-5 bg-gradient-to-b from-[hsl(var(--cwg-dark-blue))]/60 to-[hsl(var(--cwg-dark))]/80 rounded-lg border border-[hsl(var(--cwg-dark-blue))] shadow-lg overflow-hidden transition-all duration-300 relative">
+      {/* Neon glow effect on the border when price changes */}
+      <div className={`absolute inset-0 rounded-lg ${
+        isFlashing 
+          ? isPriceUp 
+              ? 'shadow-[0_0_15px_rgba(52,211,153,0.5)]' 
+              : 'shadow-[0_0_15px_rgba(248,113,113,0.5)]' 
+              : ''
+      }`} />
+      
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {/* Token symbol and logo */}
+        <div className="flex items-center md:col-span-2">
+          <div className="flex items-center justify-center bg-[hsl(var(--cwg-dark-blue))] h-12 w-12 rounded-full mr-4 shadow-[0_0_10px_rgba(255,153,0,0.3)]">
+            <DollarSign className="h-6 w-6 text-[hsl(var(--cwg-orange))]" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-[hsl(var(--cwg-muted))]">{symbol}/USDT</h3>
             <div className="flex items-center">
-              <span className={`font-orbitron text-xl transition-colors ${
-                isFlashing 
-                  ? isPriceUp 
-                      ? 'text-green-400' 
-                      : isPriceDown 
-                          ? 'text-red-400' 
-                          : 'text-[hsl(var(--cwg-orange))]'
-                  : 'text-[hsl(var(--cwg-orange))]'
-              }`}>
-                ${price.toFixed(5)}
-              </span>
-              
-              {priceChange !== 0 && (
-                <span className={`ml-2 text-xs flex items-center ${
-                  isPriceUp ? 'text-green-400' : isPriceDown ? 'text-red-400' : 'text-[hsl(var(--cwg-muted))]'
-                }`}>
-                  {isPriceUp ? (
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 mr-1" />
-                  )}
-                  {Math.abs(priceChange).toFixed(2)}%
-                </span>
-              )}
+              <h2 className="text-lg font-orbitron text-[hsl(var(--cwg-orange))]">{symbol}</h2>
+              <span className="ml-2 py-1 px-2 text-xs rounded-md bg-[hsl(var(--cwg-dark-blue))]/50 text-[hsl(var(--cwg-muted))]">USDT</span>
             </div>
+            <p className="text-xs text-[hsl(var(--cwg-muted))]">Boss Fighters Token</p>
           </div>
         </div>
         
-        <div className="flex flex-col items-end">
+        {/* Price display */}
+        <div className="md:col-span-2 flex flex-col justify-center">
+          <div className="flex items-baseline">
+            <span className={`font-orbitron text-2xl md:text-3xl tracking-tight transition-colors ${
+              isFlashing 
+                ? isPriceUp 
+                    ? 'text-green-400' 
+                    : isPriceDown 
+                        ? 'text-red-400' 
+                        : 'text-[hsl(var(--cwg-orange))]'
+                : 'text-[hsl(var(--cwg-orange))]'
+            }`}>
+              ${price.toFixed(5)}
+            </span>
+            
+            {priceChange !== 0 && (
+              <span className={`ml-3 text-sm flex items-center rounded px-2 py-0.5 ${
+                isPriceUp 
+                  ? 'text-green-400 bg-green-500/10' 
+                  : 'text-red-400 bg-red-500/10'
+              }`}>
+                {isPriceUp ? (
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                ) : (
+                  <TrendingDown className="h-3 w-3 mr-1" />
+                )}
+                {Math.abs(priceChange).toFixed(2)}%
+              </span>
+            )}
+          </div>
+          
+          <div className="text-xs text-[hsl(var(--cwg-muted))] mt-1">
+            {lastUpdated ? (
+              <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
+            ) : (
+              <span>Waiting for data...</span>
+            )}
+          </div>
+        </div>
+        
+        {/* Refresh button and countdown */}
+        <div className="flex flex-col justify-center items-end">
           <Button 
             size="sm" 
-            variant="outline" 
             onClick={onRefresh} 
             disabled={isRefreshing}
-            className="text-xs border-[hsl(var(--cwg-blue))] text-[hsl(var(--cwg-blue))] hover:bg-[hsl(var(--cwg-blue))]/10 mb-1"
+            className={`
+              relative overflow-hidden transition-all 
+              ${isRefreshing 
+                ? 'bg-[hsl(var(--cwg-blue))]/20 text-[hsl(var(--cwg-blue))] hover:bg-[hsl(var(--cwg-blue))]/30' 
+                : 'bg-[hsl(var(--cwg-blue))] text-white hover:bg-[hsl(var(--cwg-blue))]/90'
+              }
+            `}
           >
             {isRefreshing ? (
               <>
-                <RotateCw className="h-3 w-3 mr-1 animate-spin" /> 
+                <RotateCw className="h-4 w-4 mr-2 animate-spin" /> 
                 Updating...
               </>
             ) : (
               <>
-                <RefreshCw className="h-3 w-3 mr-1" /> 
-                Refresh
+                <RefreshCw className="h-4 w-4 mr-2" /> 
+                Refresh Now
               </>
             )}
           </Button>
           
-          <div className="text-xs text-[hsl(var(--cwg-muted))]">
-            {lastUpdated ? (
-              <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
-            ) : (
-              <span>No data yet</span>
-            )}
-          </div>
+          {!isRefreshing && (
+            <div className="mt-2 text-xs flex items-center text-[hsl(var(--cwg-muted))]">
+              <div className="w-full bg-[hsl(var(--cwg-dark-blue))]/50 rounded-full h-1 mr-2">
+                <div 
+                  className="bg-[hsl(var(--cwg-blue))] h-1 rounded-full transition-all duration-1000" 
+                  style={{ width: `${(autoUpdateCount / 30) * 100}%` }}
+                />
+              </div>
+              Auto-update in {autoUpdateCount}s
+            </div>
+          )}
         </div>
       </div>
       
@@ -114,9 +181,9 @@ export default function CryptoPriceWidget({
         <div 
           className={`absolute inset-0 rounded-lg animate-pulse ${
             isPriceUp 
-              ? 'bg-green-400/10' 
+              ? 'bg-green-400/5' 
               : isPriceDown 
-                  ? 'bg-red-400/10' 
+                  ? 'bg-red-400/5' 
                   : 'bg-transparent'
           }`} 
         />
