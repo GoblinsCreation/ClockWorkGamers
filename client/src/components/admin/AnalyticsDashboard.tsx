@@ -1,59 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AnalyticsCard } from './AnalyticsCard';
 import { AnalyticsChart } from './AnalyticsChart';
-import {
-  Users,
-  Activity,
-  DollarSign,
-  Calendar,
-  BarChart2,
-  TrendingUp,
-  Globe,
-  Clock,
-  Wallet,
-  Star,
-  List,
-  Zap,
-  Ticket,
-  Gift,
-  Package,
-  PieChart as PieChartIcon
-} from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { format, subDays, subMonths } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  BarChart3, 
+  Users, 
+  ArrowUpRight, 
+  CreditCard, 
+  Wallet, 
+  Coins, 
+  Award, 
+  Globe, 
+  BookText, 
+  MessageSquare, 
+  Hash,
+  Gamepad2,
+  RefreshCw,
+  TrendingUp
+} from 'lucide-react';
 
-interface AnalyticsData {
-  userGrowth: any[];
-  streamViewership: any[];
-  rentalRevenue: any[];
-  tokenDistribution: any[];
-  gameDistribution: any[];
-  streamActivity: any[];
-  streamersPerformance: any[];
-  guildAchievements: any[];
-  referralsSummary: any[];
-  userEngagement: any[];
-  tokenEconomy: any[];
-  nftActivity: any[];
-  dailyActiveUsers: any[];
-  onboardingCompletion: any[];
+interface AnalyticsDashboardProps {
+  view?: 'overview' | 'financial' | 'users' | 'web3' | 'gaming';
 }
 
-export function AnalyticsDashboard() {
-  const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month' | 'quarter'>('week');
+export function AnalyticsDashboard({ view = 'overview' }: AnalyticsDashboardProps) {
+  const [activeView, setActiveView] = useState(view);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month'>('week');
+  const { toast } = useToast();
 
-  // Fetch analytics data from API
-  const { data: analyticsData, isLoading } = useQuery<AnalyticsData>({
+  // Fetch analytics data
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/admin/analytics', timeframe],
     queryFn: async () => {
       const response = await fetch(`/api/admin/analytics?timeframe=${timeframe}`);
@@ -61,350 +41,609 @@ export function AnalyticsDashboard() {
         throw new Error('Failed to fetch analytics data');
       }
       return response.json();
-    }
+    },
   });
 
-  // Fetch users for total count
-  const { data: users = [] } = useQuery({
-    queryKey: ['/api/admin/users'],
-  });
-
-  // Fetch rentals for total count
-  const { data: rentalRequests = [] } = useQuery({
-    queryKey: ['/api/admin/rental-requests'],
-  });
-
-  // Fetch streamers for streamer count
-  const { data: streamers = [] } = useQuery({
-    queryKey: ['/api/streamers'],
-  });
-
-  // Get current date
-  const currentDate = new Date();
-  
-  // Format date range for display based on timeframe
-  const getDateRangeLabel = () => {
-    switch(timeframe) {
-      case 'day':
-        return `Today (${format(currentDate, 'MMM d, yyyy')})`;
-      case 'week':
-        return `Last 7 days (${format(subDays(currentDate, 7), 'MMM d')} - ${format(currentDate, 'MMM d')})`;
-      case 'month':
-        return `Last 30 days (${format(subDays(currentDate, 30), 'MMM d')} - ${format(currentDate, 'MMM d')})`;
-      case 'quarter':
-        return `Last 90 days (${format(subDays(currentDate, 90), 'MMM d')} - ${format(currentDate, 'MMM d')})`;
-      default:
-        return 'Custom Range';
+  const handleRefresh = async () => {
+    try {
+      await refetch();
+      setLastUpdated(new Date());
+      toast({
+        title: 'Data refreshed',
+        description: 'Analytics data has been updated',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error refreshing data',
+        description: 'Failed to update analytics data',
+        variant: 'destructive',
+      });
     }
   };
 
-  // Calculate total revenue from rental requests
-  const calculateTotalRevenue = () => {
-    if (!rentalRequests || !Array.isArray(rentalRequests)) {
-      return '$0.00';
+  // Format the user metrics
+  const userMetrics = [
+    {
+      title: 'Total Users',
+      value: isLoading ? '...' : data?.dailyActiveUsers?.totalUsers || '0',
+      icon: <Users className="h-5 w-5" />,
+      change: 12,
+      iconBgColor: 'bg-blue-500/20',
+      iconColor: 'text-blue-500',
+      isLoading,
+    },
+    {
+      title: 'Active Users',
+      value: isLoading ? '...' : data?.dailyActiveUsers?.activeUsers || '0',
+      icon: <Users className="h-5 w-5" />,
+      change: 8,
+      changeLabel: 'from yesterday',
+      iconBgColor: 'bg-green-500/20',
+      iconColor: 'text-green-500',
+      isLoading,
+    },
+    {
+      title: 'New Signups',
+      value: isLoading ? '...' : data?.dailyActiveUsers?.newSignups || '0',
+      icon: <ArrowUpRight className="h-5 w-5" />,
+      change: 18,
+      changeLabel: 'from yesterday',
+      iconBgColor: 'bg-orange-500/20',
+      iconColor: 'text-orange-500',
+      isLoading,
+    },
+    {
+      title: 'Onboarding Completion',
+      value: isLoading ? '...' : `${data?.onboardingCompletion?.completionRate || '0'}%`,
+      icon: <Award className="h-5 w-5" />,
+      change: 5,
+      changeLabel: 'from last week',
+      iconBgColor: 'bg-purple-500/20',
+      iconColor: 'text-purple-500',
+      isLoading,
+    },
+  ];
+
+  // Format the financials metrics
+  const financialMetrics = [
+    {
+      title: 'Total Revenue',
+      value: isLoading ? '...' : `$${data?.rentalRevenue?.totalRevenue || '0'}`,
+      icon: <CreditCard className="h-5 w-5" />,
+      change: 15,
+      iconBgColor: 'bg-orange-500/20',
+      iconColor: 'text-orange-500',
+      isLoading,
+    },
+    {
+      title: 'NFT Sales',
+      value: isLoading ? '...' : `$${data?.nftActivity?.totalSales || '0'}`,
+      icon: <Wallet className="h-5 w-5" />,
+      change: 9,
+      iconBgColor: 'bg-cyan-500/20',
+      iconColor: 'text-cyan-500',
+      isLoading,
+    },
+    {
+      title: 'Subscription Revenue',
+      value: isLoading ? '...' : `$${data?.rentalRevenue?.subscriptionRevenue || '0'}`,
+      icon: <CreditCard className="h-5 w-5" />,
+      change: 3,
+      iconBgColor: 'bg-yellow-500/20',
+      iconColor: 'text-yellow-500',
+      isLoading,
+    },
+    {
+      title: 'Rental Revenue',
+      value: isLoading ? '...' : `$${data?.rentalRevenue?.rentalFees || '0'}`,
+      icon: <CreditCard className="h-5 w-5" />,
+      change: 23,
+      iconBgColor: 'bg-pink-500/20',
+      iconColor: 'text-pink-500',
+      isLoading,
+    },
+  ];
+
+  // Format the Web3 metrics
+  const web3Metrics = [
+    {
+      title: 'Token Transactions',
+      value: isLoading ? '...' : data?.tokenEconomy?.totalTransactions || '0',
+      icon: <Coins className="h-5 w-5" />,
+      change: 12,
+      iconBgColor: 'bg-blue-500/20',
+      iconColor: 'text-blue-500',
+      isLoading,
+    },
+    {
+      title: 'Wallet Connections',
+      value: isLoading ? '...' : data?.tokenEconomy?.walletConnections || '0',
+      icon: <Wallet className="h-5 w-5" />,
+      change: 8,
+      iconBgColor: 'bg-purple-500/20',
+      iconColor: 'text-purple-500',
+      isLoading,
+    },
+    {
+      title: 'NFT Transactions',
+      value: isLoading ? '...' : data?.nftActivity?.transactions || '0',
+      icon: <Award className="h-5 w-5" />,
+      change: 15,
+      iconBgColor: 'bg-green-500/20',
+      iconColor: 'text-green-500',
+      isLoading,
+    },
+    {
+      title: 'Guild Token Price',
+      value: isLoading ? '...' : `$${data?.tokenEconomy?.tokenPrice || '0.02619'}`,
+      icon: <Hash className="h-5 w-5" />,
+      change: -3.1,
+      iconBgColor: 'bg-orange-500/20',
+      iconColor: 'text-orange-500',
+      isLoading,
+    },
+  ];
+
+  // Format the gaming metrics
+  const gamingMetrics = [
+    {
+      title: 'Active Games',
+      value: isLoading ? '...' : data?.gameDistribution?.activeGames || '0',
+      icon: <Gamepad2 className="h-5 w-5" />,
+      change: 5,
+      iconBgColor: 'bg-purple-500/20',
+      iconColor: 'text-purple-500',
+      isLoading,
+    },
+    {
+      title: 'Total Play Time',
+      value: isLoading ? '...' : `${data?.gameDistribution?.totalPlayHours || '0'} hrs`,
+      icon: <TrendingUp className="h-5 w-5" />,
+      change: 18,
+      iconBgColor: 'bg-blue-500/20',
+      iconColor: 'text-blue-500',
+      isLoading,
+    },
+    {
+      title: 'Live Streams',
+      value: isLoading ? '...' : data?.streamActivity?.liveStreams || '0',
+      icon: <Globe className="h-5 w-5" />,
+      change: 22,
+      iconBgColor: 'bg-red-500/20',
+      iconColor: 'text-red-500',
+      isLoading,
+    },
+    {
+      title: 'Tournaments',
+      value: isLoading ? '...' : data?.gameDistribution?.tournaments || '0',
+      icon: <Award className="h-5 w-5" />,
+      change: 0,
+      iconBgColor: 'bg-yellow-500/20',
+      iconColor: 'text-yellow-500',
+      isLoading,
+    },
+  ];
+
+  // Format dashboard charts data
+  const userGrowthData = data?.userGrowth || [];
+  const rentalRevenueData = data?.rentalRevenue?.revenueByDay || [];
+  const tokenDistributionData = data?.tokenDistribution || [];
+  const gameDistributionData = data?.gameDistribution?.popularGames || [];
+  const streamActivityData = data?.streamActivity?.activityByHour || [];
+  const nftActivityData = data?.nftActivity?.transactionsByDay || [];
+  const tokenEconomyData = data?.tokenEconomy?.priceHistory || [];
+  const userEngagementData = data?.userEngagement || [];
+
+  const renderContent = () => {
+    switch (activeView) {
+      case 'financial':
+        return (
+          <div className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {financialMetrics.map((metric, index) => (
+                <AnalyticsCard key={index} {...metric} />
+              ))}
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              <AnalyticsChart
+                title="Revenue by Day"
+                subtitle="Daily revenue breakdown"
+                data={rentalRevenueData}
+                type="bar"
+                dataKeys={['Subscriptions', 'NFT Sales', 'Rentals']}
+                formattedLabels={{
+                  'Subscriptions': 'Subscription Revenue',
+                  'NFT Sales': 'NFT Sales Revenue',
+                  'Rentals': 'Rental Fees'
+                }}
+                valueFormat={(value) => `$${value}`}
+                isLoading={isLoading}
+              />
+              
+              <AnalyticsChart
+                title="Revenue Sources"
+                subtitle="Distribution of revenue streams"
+                data={data?.rentalRevenue?.revenueSources || []}
+                type="pie"
+                dataKeys={['value']}
+                formattedLabels={{ 'value': 'Revenue' }}
+                valueFormat={(value) => `$${value}`}
+                isLoading={isLoading}
+              />
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              <AnalyticsChart
+                title="Token Economy"
+                subtitle="Token price history"
+                data={tokenEconomyData}
+                type="area"
+                dataKeys={['price']}
+                formattedLabels={{ 'price': 'Token Price' }}
+                valueFormat={(value) => `$${value}`}
+                isLoading={isLoading}
+              />
+              
+              <AnalyticsChart
+                title="NFT Transaction Volume"
+                subtitle="Daily NFT transaction activity"
+                data={nftActivityData}
+                type="line"
+                dataKeys={['volume', 'value']}
+                formattedLabels={{ 
+                  'volume': 'Transaction Count',
+                  'value': 'Transaction Value'
+                }}
+                valueFormat={(value) => typeof value === 'number' && value > 100 ? `$${value}` : value}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
+        );
+        
+      case 'users':
+        return (
+          <div className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {userMetrics.map((metric, index) => (
+                <AnalyticsCard key={index} {...metric} />
+              ))}
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              <AnalyticsChart
+                title="User Growth"
+                subtitle="New users and active users"
+                data={userGrowthData}
+                type="line"
+                dataKeys={['Unique Visitors', 'New Signups']}
+                formattedLabels={{
+                  'Unique Visitors': 'Unique Visitors',
+                  'New Signups': 'New Registrations'
+                }}
+                isLoading={isLoading}
+              />
+              
+              <AnalyticsChart
+                title="Onboarding Completion"
+                subtitle="User onboarding funnel"
+                data={data?.onboardingCompletion?.steps || []}
+                type="bar"
+                dataKeys={['value']}
+                formattedLabels={{ 'value': 'Completion Rate' }}
+                valueFormat={(value) => `${value}%`}
+                isLoading={isLoading}
+              />
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              <AnalyticsChart
+                title="User Engagement"
+                subtitle="Daily active users by feature"
+                data={userEngagementData}
+                type="area"
+                dataKeys={['Chat', 'Rentals', 'Courses', 'Streams', 'NFT Marketplace']}
+                isLoading={isLoading}
+              />
+              
+              <AnalyticsChart
+                title="User Retention"
+                subtitle="Weekly retention rate"
+                data={data?.dailyActiveUsers?.retentionData || []}
+                type="line"
+                dataKeys={['rate']}
+                formattedLabels={{ 'rate': 'Retention Rate' }}
+                valueFormat={(value) => `${value}%`}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
+        );
+        
+      case 'web3':
+        return (
+          <div className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {web3Metrics.map((metric, index) => (
+                <AnalyticsCard key={index} {...metric} />
+              ))}
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              <AnalyticsChart
+                title="Token Distribution"
+                subtitle="Token allocation by user group"
+                data={tokenDistributionData}
+                type="pie"
+                dataKeys={['value']}
+                formattedLabels={{ 'value': 'Token Amount' }}
+                valueFormat={(value) => `${value.toLocaleString()} CWG`}
+                isLoading={isLoading}
+              />
+              
+              <AnalyticsChart
+                title="Token Price History"
+                subtitle="CWG token price over time"
+                data={tokenEconomyData}
+                type="line"
+                dataKeys={['price']}
+                formattedLabels={{ 'price': 'Token Price' }}
+                valueFormat={(value) => `$${value}`}
+                isLoading={isLoading}
+              />
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              <AnalyticsChart
+                title="NFT Transactions"
+                subtitle="Daily NFT transaction volume"
+                data={nftActivityData}
+                type="bar"
+                dataKeys={['volume']}
+                formattedLabels={{ 'volume': 'Transaction Count' }}
+                isLoading={isLoading}
+              />
+              
+              <AnalyticsChart
+                title="Wallet Connections"
+                subtitle="Connected wallets by type"
+                data={data?.tokenEconomy?.walletTypes || []}
+                type="pie"
+                dataKeys={['value']}
+                formattedLabels={{ 'value': 'Connections' }}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
+        );
+        
+      case 'gaming':
+        return (
+          <div className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {gamingMetrics.map((metric, index) => (
+                <AnalyticsCard key={index} {...metric} />
+              ))}
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              <AnalyticsChart
+                title="Popular Games"
+                subtitle="Most played games on the platform"
+                data={gameDistributionData}
+                type="pie"
+                dataKeys={['value']}
+                formattedLabels={{ 'value': 'Players' }}
+                isLoading={isLoading}
+              />
+              
+              <AnalyticsChart
+                title="Streaming Activity"
+                subtitle="Stream viewership by hour"
+                data={streamActivityData}
+                type="line"
+                dataKeys={['viewers']}
+                formattedLabels={{ 'viewers': 'Viewers' }}
+                isLoading={isLoading}
+              />
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              <AnalyticsChart
+                title="Top Streamers"
+                subtitle="Streamers by viewer count"
+                data={data?.streamersPerformance || []}
+                type="bar"
+                dataKeys={['viewers']}
+                formattedLabels={{ 'viewers': 'Average Viewers' }}
+                isLoading={isLoading}
+                xAxisDataKey="streamer"
+              />
+              
+              <AnalyticsChart
+                title="Game Revenue"
+                subtitle="Revenue by game category"
+                data={data?.gameDistribution?.revenueByGame || []}
+                type="bar"
+                dataKeys={['revenue']}
+                formattedLabels={{ 'revenue': 'Revenue' }}
+                valueFormat={(value) => `$${value}`}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
+        );
+        
+      default:
+        // Overview - show a mix of all metrics
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-orbitron font-semibold text-[hsl(var(--cwg-orange))]">
+                Guild Dashboard
+              </h2>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1 h-8 text-xs"
+                  onClick={handleRefresh}
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  Refresh
+                </Button>
+              </div>
+            </div>
+            
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <AnalyticsCard
+                title="Total Users"
+                value={isLoading ? '...' : data?.dailyActiveUsers?.totalUsers || '0'}
+                icon={<Users className="h-5 w-5" />}
+                change={12}
+                iconBgColor="bg-blue-500/20"
+                iconColor="text-blue-500"
+                isLoading={isLoading}
+              />
+              
+              <AnalyticsCard
+                title="Total Revenue"
+                value={isLoading ? '...' : `$${data?.rentalRevenue?.totalRevenue || '0'}`}
+                icon={<CreditCard className="h-5 w-5" />}
+                change={15}
+                iconBgColor="bg-orange-500/20"
+                iconColor="text-orange-500"
+                isLoading={isLoading}
+              />
+              
+              <AnalyticsCard
+                title="Token Price"
+                value={isLoading ? '...' : `$${data?.tokenEconomy?.tokenPrice || '0.02619'}`}
+                icon={<Coins className="h-5 w-5" />}
+                change={-3.1}
+                iconBgColor="bg-purple-500/20"
+                iconColor="text-purple-500"
+                isLoading={isLoading}
+              />
+              
+              <AnalyticsCard
+                title="Active Rentals"
+                value={isLoading ? '...' : data?.rentalRevenue?.activeRentals || '0'}
+                icon={<Award className="h-5 w-5" />}
+                change={8}
+                iconBgColor="bg-green-500/20"
+                iconColor="text-green-500"
+                isLoading={isLoading}
+              />
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              <AnalyticsChart
+                title="User Growth"
+                subtitle="User signups and engagement"
+                data={userGrowthData}
+                type="line"
+                dataKeys={['Unique Visitors', 'New Signups']}
+                formattedLabels={{
+                  'Unique Visitors': 'Unique Visitors',
+                  'New Signups': 'New Registrations'
+                }}
+                isLoading={isLoading}
+              />
+              
+              <AnalyticsChart
+                title="Revenue Sources"
+                subtitle="Distribution of revenue streams"
+                data={data?.rentalRevenue?.revenueSources || []}
+                type="pie"
+                dataKeys={['value']}
+                formattedLabels={{ 'value': 'Revenue' }}
+                valueFormat={(value) => `$${value}`}
+                isLoading={isLoading}
+              />
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              <AnalyticsChart
+                title="Popular Games"
+                subtitle="Most played games on the platform"
+                data={gameDistributionData}
+                type="pie"
+                dataKeys={['value']}
+                formattedLabels={{ 'value': 'Players' }}
+                isLoading={isLoading}
+              />
+              
+              <AnalyticsChart
+                title="Token Price History"
+                subtitle="CWG token price over time"
+                data={tokenEconomyData}
+                type="area"
+                dataKeys={['price']}
+                formattedLabels={{ 'price': 'Token Price' }}
+                valueFormat={(value) => `$${value}`}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
+        );
     }
-    const approvedRentals = rentalRequests.filter((r: any) => r?.status === 'approved');
-    const total = approvedRentals.reduce((sum: number, rental: any) => sum + (rental?.price || 0), 0);
-    return `$${total.toFixed(2)}`;
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-orbitron font-semibold text-[hsl(var(--cwg-blue))]">
-            Enhanced Analytics Dashboard
-          </h2>
-          <p className="text-muted-foreground">{getDateRangeLabel()}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <p className="text-[hsl(var(--cwg-muted))]">Timeframe:</p>
-          <Select 
-            value={timeframe}
-            onValueChange={(value) => setTimeframe(value as 'day' | 'week' | 'month' | 'quarter')}
-          >
-            <SelectTrigger className="w-36 bg-[hsl(var(--cwg-dark-blue))] border-[hsl(var(--cwg-dark-blue))]">
-              <SelectValue placeholder="Select timeframe" />
-            </SelectTrigger>
-            <SelectContent className="bg-[hsl(var(--cwg-dark))] border-[hsl(var(--cwg-dark-blue))]">
-              <SelectItem value="day">Last 24 Hours</SelectItem>
-              <SelectItem value="week">Last Week</SelectItem>
-              <SelectItem value="month">Last Month</SelectItem>
-              <SelectItem value="quarter">Last Quarter</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" className="hidden md:flex" onClick={() => setTimeframe('week')}>
-            Reset
-          </Button>
-        </div>
-      </div>
-
-      {/* Stats Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        <AnalyticsCard
-          title="Total Users"
-          value={Array.isArray(users) ? users.length : '0'}
-          icon={<Users className="h-6 w-6" />}
-          change={12}
-          changeLabel={`from last ${timeframe}`}
-          iconBgColor="bg-[hsl(var(--cwg-blue))]/20"
-          iconColor="text-[hsl(var(--cwg-blue))]"
-          isLoading={isLoading}
-        />
-        
-        <AnalyticsCard
-          title="Active Streamers"
-          value={Array.isArray(streamers) 
-            ? `${streamers.filter((s: any) => s?.isLive).length}/${streamers.length}` 
-            : '0/0'}
-          icon={<Activity className="h-6 w-6" />}
-          change={8}
-          changeLabel={`from last ${timeframe}`}
-          iconBgColor="bg-[hsl(var(--cwg-orange))]/20"
-          iconColor="text-[hsl(var(--cwg-orange))]"
-          isLoading={isLoading}
-        />
-        
-        <AnalyticsCard
-          title="Revenue (USD)"
-          value={calculateTotalRevenue()}
-          icon={<DollarSign className="h-6 w-6" />}
-          change={21}
-          changeLabel={`from last ${timeframe}`}
-          iconBgColor="bg-[hsl(var(--cwg-green))]/20"
-          iconColor="text-[hsl(var(--cwg-green))]"
-          isLoading={isLoading}
-        />
-        
-        <AnalyticsCard
-          title="Active Rentals"
-          value={Array.isArray(rentalRequests) 
-            ? rentalRequests.filter((r: any) => r?.status === 'approved').length
-            : '0'}
-          icon={<Calendar className="h-6 w-6" />}
-          change={15}
-          changeLabel={`from last ${timeframe}`}
-          iconBgColor="bg-purple-500/20"
-          iconColor="text-purple-500"
-          isLoading={isLoading}
-        />
-      </div>
-
-      {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AnalyticsChart
-          title="User Growth"
-          subtitle="New and returning users over time"
-          data={analyticsData?.userGrowth || [
-            { name: 'Day 1', 'Unique Visitors': 0, 'New Signups': 0 },
-            { name: 'Day 2', 'Unique Visitors': 0, 'New Signups': 0 },
-          ]}
-          type="area"
-          dataKeys={['Unique Visitors', 'New Signups']}
-          formattedLabels={{
-            'Unique Visitors': 'Unique Visitors',
-            'New Signups': 'New Signups',
-          }}
-          isLoading={isLoading}
-        />
-        
-        <AnalyticsChart
-          title="Revenue Trends"
-          subtitle="Revenue breakdown by source"
-          data={analyticsData?.rentalRevenue || [
-            { name: 'Day 1', 'Revenue': 0 },
-            { name: 'Day 2', 'Revenue': 0 },
-          ]}
-          type="line"
-          dataKeys={['Revenue']}
-          valueFormat={(value) => `$${value}`}
-          isLoading={isLoading}
-        />
-      </div>
-
-      {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <AnalyticsChart
-          title="Token Distribution"
-          subtitle="Allocation of CWG tokens"
-          data={analyticsData?.tokenDistribution || [
-            { name: 'None', value: 0 }
-          ]}
-          type="pie"
-          dataKeys={['value']}
-          valueFormat={(value) => `${value} CWG`}
-          isLoading={isLoading}
-        />
-        
-        <AnalyticsChart
-          title="Games Played"
-          subtitle="Most popular games on the platform"
-          data={analyticsData?.gameDistribution || [
-            { name: 'None', value: 0 }
-          ]}
-          type="pie"
-          dataKeys={['value']}
-          valueFormat={(value) => `${value}%`}
-          isLoading={isLoading}
-        />
-        
-        <AnalyticsChart
-          title="Stream Activity"
-          subtitle="Streaming schedules by day"
-          data={analyticsData?.streamActivity || [
-            { name: 'Mon', value: 0 },
-            { name: 'Tue', value: 0 },
-            { name: 'Wed', value: 0 },
-          ]}
-          type="bar"
-          dataKeys={['value']}
-          formattedLabels={{ 'value': 'Streams' }}
-          isLoading={isLoading}
-        />
-      </div>
-
-      {/* Top Performing Streamers */}
-      <Card className="card-gradient border-[hsl(var(--cwg-dark-blue))]">
-        <CardHeader>
-          <CardTitle className="text-xl font-orbitron font-semibold text-[hsl(var(--cwg-orange))]">
-            Top Performing Streamers
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-[hsl(var(--cwg-dark-blue))]">
-                  <th className="text-left py-3 px-4 font-semibold text-[hsl(var(--cwg-muted))]">Streamer</th>
-                  <th className="text-center py-3 px-4 font-semibold text-[hsl(var(--cwg-muted))]">Avg. Viewers</th>
-                  <th className="text-center py-3 px-4 font-semibold text-[hsl(var(--cwg-muted))]">Hours Streamed</th>
-                  <th className="text-center py-3 px-4 font-semibold text-[hsl(var(--cwg-muted))]">New Followers</th>
-                  <th className="text-center py-3 px-4 font-semibold text-[hsl(var(--cwg-muted))]">Growth</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
-                  Array(5).fill(0).map((_, i) => (
-                    <tr key={i} className="border-b border-[hsl(var(--cwg-dark-blue))]">
-                      <td className="py-3 px-4">
-                        <div className="h-4 w-24 bg-muted rounded animate-pulse" />
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <div className="h-4 w-12 bg-muted rounded animate-pulse mx-auto" />
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <div className="h-4 w-12 bg-muted rounded animate-pulse mx-auto" />
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <div className="h-4 w-12 bg-muted rounded animate-pulse mx-auto" />
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <div className="h-4 w-16 bg-muted rounded animate-pulse mx-auto" />
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  (analyticsData?.streamersPerformance || []).map((streamer, index) => (
-                    <tr key={index} className="border-b border-[hsl(var(--cwg-dark-blue))]">
-                      <td className="py-3 px-4 font-medium">{streamer.name}</td>
-                      <td className="py-3 px-4 text-center">{streamer.viewers}</td>
-                      <td className="py-3 px-4 text-center">{streamer.hours}</td>
-                      <td className="py-3 px-4 text-center">{streamer.followers}</td>
-                      <td className="py-3 px-4 text-center text-green-500">+{Math.floor(Math.random() * 10) + 5}%</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+      <div className="flex justify-between items-center">
+        <Tabs value={activeView} onValueChange={(value) => setActiveView(value as any)} className="w-full">
+          <div className="flex justify-between items-center mb-4">
+            <TabsList className="bg-[hsl(var(--cwg-dark-blue))] p-1 neon-border-blue">
+              <TabsTrigger 
+                value="overview"
+                className="data-[state=active]:bg-[hsl(var(--cwg-blue))/20] data-[state=active]:neon-text-blue"
+              >
+                Overview
+              </TabsTrigger>
+              <TabsTrigger 
+                value="financial"
+                className="data-[state=active]:bg-[hsl(var(--cwg-orange))/20] data-[state=active]:neon-text-orange"
+              >
+                Financial
+              </TabsTrigger>
+              <TabsTrigger 
+                value="users"
+                className="data-[state=active]:bg-[hsl(var(--cwg-green))/20] data-[state=active]:neon-text-green"
+              >
+                Users
+              </TabsTrigger>
+              <TabsTrigger 
+                value="web3"
+                className="data-[state=active]:bg-[hsl(var(--cwg-purple))/20] data-[state=active]:neon-text-purple"
+              >
+                Web3
+              </TabsTrigger>
+              <TabsTrigger 
+                value="gaming"
+                className="data-[state=active]:bg-[hsl(var(--cwg-yellow))/20] data-[state=active]:text-[hsl(var(--cwg-yellow))]"
+              >
+                Gaming
+              </TabsTrigger>
+            </TabsList>
+            
+            <div className="flex items-center gap-2">
+              <Tabs value={timeframe} onValueChange={(value) => setTimeframe(value as any)}>
+                <TabsList className="bg-[hsl(var(--cwg-dark-blue))]">
+                  <TabsTrigger value="day">Day</TabsTrigger>
+                  <TabsTrigger value="week">Week</TabsTrigger>
+                  <TabsTrigger value="month">Month</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Additional Analytics Section */}
-      <h3 className="text-xl font-orbitron font-semibold text-[hsl(var(--cwg-blue))] mt-8 mb-4">
-        Extended Web3 Analytics
-      </h3>
-
-      {/* NFT & Web3 Analytics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        <AnalyticsCard
-          title="NFT Transactions"
-          value="253"
-          icon={<Ticket className="h-6 w-6" />}
-          change={32}
-          changeLabel={`from last ${timeframe}`}
-          iconBgColor="bg-pink-500/20"
-          iconColor="text-pink-500"
-          isLoading={isLoading}
-        />
-        
-        <AnalyticsCard
-          title="Token Transactions"
-          value="1,482"
-          icon={<Wallet className="h-6 w-6" />}
-          change={18}
-          changeLabel={`from last ${timeframe}`}
-          iconBgColor="bg-cyan-500/20"
-          iconColor="text-cyan-500"
-          isLoading={isLoading}
-        />
-        
-        <AnalyticsCard
-          title="Guild Achievements"
-          value="78"
-          icon={<Star className="h-6 w-6" />}
-          change={5}
-          changeLabel={`from last ${timeframe}`}
-          iconBgColor="bg-amber-500/20"
-          iconColor="text-amber-500"
-          isLoading={isLoading}
-        />
-        
-        <AnalyticsCard
-          title="Total Rewards"
-          value="12,645 CWG"
-          icon={<Gift className="h-6 w-6" />}
-          change={24}
-          changeLabel={`from last ${timeframe}`}
-          iconBgColor="bg-emerald-500/20"
-          iconColor="text-emerald-500"
-          isLoading={isLoading}
-        />
+        </Tabs>
       </div>
-
-      {/* Advanced Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <AnalyticsChart
-          title="User Engagement"
-          subtitle="Active users by time and platform"
-          data={analyticsData?.userEngagement || [
-            { name: 'Mon', Mobile: 120, Desktop: 200, Web3: 80 },
-            { name: 'Tue', Mobile: 132, Desktop: 180, Web3: 70 },
-            { name: 'Wed', Mobile: 101, Desktop: 198, Web3: 90 },
-            { name: 'Thu', Mobile: 134, Desktop: 210, Web3: 120 },
-            { name: 'Fri', Mobile: 190, Desktop: 220, Web3: 140 },
-            { name: 'Sat', Mobile: 230, Desktop: 170, Web3: 160 },
-            { name: 'Sun', Mobile: 210, Desktop: 180, Web3: 130 },
-          ]}
-          type="line"
-          dataKeys={['Mobile', 'Desktop', 'Web3']}
-          isLoading={isLoading}
-        />
-        
-        <AnalyticsChart
-          title="Token Economy"
-          subtitle="Token flow and distribution over time"
-          data={analyticsData?.tokenEconomy || [
-            { name: 'Week 1', Minted: 5000, Burned: 1200, Staked: 3000 },
-            { name: 'Week 2', Minted: 4500, Burned: 1500, Staked: 3200 },
-            { name: 'Week 3', Minted: 5200, Burned: 1700, Staked: 3500 },
-            { name: 'Week 4', Minted: 6000, Burned: 2000, Staked: 4000 },
-          ]}
-          type="bar"
-          dataKeys={['Minted', 'Burned', 'Staked']}
-          isLoading={isLoading}
-        />
-      </div>
+      
+      {renderContent()}
     </div>
   );
 }

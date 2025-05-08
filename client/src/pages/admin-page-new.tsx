@@ -46,8 +46,17 @@ import {
   Users as UsersIcon,
   FileText,
   MessageSquare,
-  Bell
+  Bell,
+  TrendingUp,
+  TrendingDown,
+  RefreshCw,
+  ChevronDown,
+  CreditCard,
+  Clock,
+  Coins,
+  Hash
 } from 'lucide-react';
+import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
 
 // Define neon colors for the admin dashboard
 const NEON_COLORS = {
@@ -63,6 +72,7 @@ const NEON_COLORS = {
 
 export default function AdminPageNew() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [showEnhancedAnalytics, setShowEnhancedAnalytics] = useState(true);
 
   // Mock data for dashboard
   const analyticsData = {
@@ -133,6 +143,23 @@ export default function AdminPageNew() {
           </p>
         </div>
         <div className="flex gap-4">
+          <Button 
+            variant="outline" 
+            className="neon-border-blue neon-text-blue flex items-center gap-2 hover:neon-glow-blue"
+            onClick={() => setShowEnhancedAnalytics(!showEnhancedAnalytics)}
+          >
+            {showEnhancedAnalytics ? (
+              <>
+                <BarChart2 size={16} />
+                Standard View
+              </>
+            ) : (
+              <>
+                <TrendingUp size={16} />
+                Enhanced Analytics
+              </>
+            )}
+          </Button>
           <Button variant="outline" className="neon-border-blue neon-text-blue flex items-center gap-2 hover:neon-glow-blue">
             <Settings size={16} />
             Settings
@@ -179,9 +206,13 @@ export default function AdminPageNew() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Stat Cards */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="neon-card-blue bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm hover:neon-glow-blue transition-all duration-300">
+          {showEnhancedAnalytics ? (
+            <AnalyticsDashboard view="overview" />
+          ) : (
+            <div className="space-y-6">
+              {/* Stat Cards */}
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card className="neon-card-blue bg-[hsl(var(--cwg-dark))]/80 backdrop-blur-sm hover:neon-glow-blue transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center space-y-0">
                   <div>
@@ -477,6 +508,8 @@ export default function AdminPageNew() {
               </div>
             </CardContent>
           </Card>
+            </div>
+          )}
         </TabsContent>
 
         {/* Other Tabs - Simple placeholders for now */}
@@ -651,7 +684,7 @@ export default function AdminPageNew() {
 }
 
 // Helper component for select
-function Select({ children, ...props }) {
+function Select({ children, ...props }: { children: React.ReactNode } & React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <div className="relative w-44">
       <select
