@@ -302,3 +302,20 @@
     background-position: -200% 0;
   }
 }
+
+/* Subtle pulsing animation for neon text */
+.animation-pulse-subtle {
+  animation: pulseShadowSubtle 3s ease-in-out infinite;
+}
+
+@keyframes pulseShadowSubtle {
+  0% {
+    text-shadow: 0 0 8px rgba(252, 123, 30, 0.6);
+  }
+  50% {
+    text-shadow: 0 0 12px rgba(252, 123, 30, 0.8), 0 0 18px rgba(252, 123, 30, 0.3);
+  }
+  100% {
+    text-shadow: 0 0 8px rgba(252, 123, 30, 0.6);
+  }
+}

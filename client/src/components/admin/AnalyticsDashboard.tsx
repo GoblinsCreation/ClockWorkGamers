@@ -480,15 +480,15 @@ export function AnalyticsDashboard({ view = 'overview' }: AnalyticsDashboardProp
         return (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-orbitron font-semibold text-[hsl(var(--cwg-orange))]">
+              <h2 className="text-xl font-orbitron font-semibold neon-text-orange animation-pulse-subtle">
                 Guild Dashboard
               </h2>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
+                <span className="font-medium text-[hsl(var(--cwg-muted))]">Last updated: {lastUpdated.toLocaleTimeString()}</span>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="flex items-center gap-1 h-8 text-xs"
+                  className="flex items-center gap-1 h-8 text-xs neon-border-blue hover:neon-glow-blue transition-all duration-300"
                   onClick={handleRefresh}
                 >
                   <RefreshCw className="h-3 w-3" />
@@ -597,45 +597,65 @@ export function AnalyticsDashboard({ view = 'overview' }: AnalyticsDashboardProp
       <div className="flex justify-between items-center">
         <Tabs value={activeView} onValueChange={(value) => setActiveView(value as any)} className="w-full">
           <div className="flex justify-between items-center mb-4">
-            <TabsList className="bg-[hsl(var(--cwg-dark-blue))] p-1 neon-border-blue">
+            <TabsList className="bg-[hsl(var(--cwg-dark-blue))] p-1 neon-border-blue shadow-md backdrop-blur-sm">
               <TabsTrigger 
                 value="overview"
-                className="data-[state=active]:bg-[hsl(var(--cwg-blue))/20] data-[state=active]:neon-text-blue"
+                className="data-[state=active]:bg-[hsl(var(--cwg-blue))/20] data-[state=active]:neon-text-blue data-[state=active]:shadow-[0_0_8px_hsl(var(--cwg-blue))] transition-all duration-300"
               >
+                <BarChart3 className="w-4 h-4 mr-1" />
                 Overview
               </TabsTrigger>
               <TabsTrigger 
                 value="financial"
-                className="data-[state=active]:bg-[hsl(var(--cwg-orange))/20] data-[state=active]:neon-text-orange"
+                className="data-[state=active]:bg-[hsl(var(--cwg-orange))/20] data-[state=active]:neon-text-orange data-[state=active]:shadow-[0_0_8px_hsl(var(--cwg-orange))] transition-all duration-300"
               >
+                <CreditCard className="w-4 h-4 mr-1" />
                 Financial
               </TabsTrigger>
               <TabsTrigger 
                 value="users"
-                className="data-[state=active]:bg-[hsl(var(--cwg-green))/20] data-[state=active]:neon-text-green"
+                className="data-[state=active]:bg-[hsl(var(--cwg-green))/20] data-[state=active]:neon-text-green data-[state=active]:shadow-[0_0_8px_hsl(var(--cwg-green))] transition-all duration-300"
               >
+                <Users className="w-4 h-4 mr-1" />
                 Users
               </TabsTrigger>
               <TabsTrigger 
                 value="web3"
-                className="data-[state=active]:bg-[hsl(var(--cwg-purple))/20] data-[state=active]:neon-text-purple"
+                className="data-[state=active]:bg-[hsl(var(--cwg-purple))/20] data-[state=active]:neon-text-purple data-[state=active]:shadow-[0_0_8px_hsl(var(--cwg-purple))] transition-all duration-300"
               >
+                <Coins className="w-4 h-4 mr-1" />
                 Web3
               </TabsTrigger>
               <TabsTrigger 
                 value="gaming"
-                className="data-[state=active]:bg-[hsl(var(--cwg-yellow))/20] data-[state=active]:text-[hsl(var(--cwg-yellow))]"
+                className="data-[state=active]:bg-[hsl(var(--cwg-yellow))/20] data-[state=active]:text-[hsl(var(--cwg-yellow))] data-[state=active]:shadow-[0_0_8px_hsl(var(--cwg-yellow))] transition-all duration-300"
               >
+                <Gamepad2 className="w-4 h-4 mr-1" />
                 Gaming
               </TabsTrigger>
             </TabsList>
             
             <div className="flex items-center gap-2">
               <Tabs value={timeframe} onValueChange={(value) => setTimeframe(value as any)}>
-                <TabsList className="bg-[hsl(var(--cwg-dark-blue))]">
-                  <TabsTrigger value="day">Day</TabsTrigger>
-                  <TabsTrigger value="week">Week</TabsTrigger>
-                  <TabsTrigger value="month">Month</TabsTrigger>
+                <TabsList className="bg-[hsl(var(--cwg-dark-blue))] neon-border-blue shadow-md backdrop-blur-sm p-1">
+                  <TabsTrigger 
+                    value="day" 
+                    className="data-[state=active]:bg-[hsl(var(--cwg-blue))/20] data-[state=active]:neon-text-blue transition-all duration-300 text-xs"
+                  >
+                    Day
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="week" 
+                    className="data-[state=active]:bg-[hsl(var(--cwg-blue))/20] data-[state=active]:neon-text-blue transition-all duration-300 text-xs"
+                  >
+                    Week
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="month" 
+                    className="data-[state=active]:bg-[hsl(var(--cwg-blue))/20] data-[state=active]:neon-text-blue transition-all duration-300 text-xs"
+                  >
+                    Month
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
